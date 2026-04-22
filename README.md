@@ -1,20 +1,16 @@
 # ProjetoIntegrador-SMUL2
 
-Este repositório contém 3 componentes independentes:
+Este repositório contém atualmente 2 componentes ativos:
 
 1. `MS-CAFIN/calc_service` - microserviço em Django
-2. `PortalBackend/api` - backend em Django
-3. `PortalFrontend` - frontend em ASP.NET Core MVC
-
-Este README descreve como preparar e executar todos os servidores em ambiente local.
+2. `Portal` - frontend em ASP.NET Core MVC
 
 ## Estrutura do projeto
 
 ```text
 ProjetoIntegrador-SMUL2/
 |- MS-CAFIN/calc_service
-|- PortalBackend/api
-|- PortalFrontend
+|- Portal
 ```
 
 ## Pré-requisitos
@@ -23,19 +19,19 @@ ProjetoIntegrador-SMUL2/
 - pip
 - .NET SDK 10.0
 
-Notas importantes (pré-development):
+Notas importantes:
 
-- Os dois projetos Django foram gerados com Django 6.0.4 e não existe atualmente um ficheiro `requirements.txt` no repositório.
-- O frontend está configurado para `net10.0`. Um SDK .NET 9 não consegue compilar nem executar este projeto.
-- Os projetos Django usam SQLite local, por isso a base de dados é criada localmente após as migrações.
+- O projeto Django usa SQLite local. A base de dados é criada após as migrações.
+- Não existe ficheiro de dependências Python (`requirements.txt`) no repositório.
+- O frontend está configurado para `net10.0`; versões mais antigas do SDK .NET não compilam o projeto.
 
 ## Portas
 
 - `MS-CAFIN`: `http://127.0.0.1:8000`
-- `PortalBackend`: `http://127.0.0.1:8001`
-- `PortalFrontend`: `http://localhost:5000`
+- `Portal` (HTTP): `http://localhost:5000`
+- `Portal` (HTTPS): `https://localhost:5001`
 
-## 1. Executar o MS-CAFIN
+## 1. Executar o MS-CAFIN (Django)
 
 Entre na pasta do serviço:
 
@@ -50,13 +46,13 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Instalar o Django:
+Instalar Django:
 
 ```bash
 pip install django==6.0.4
 ```
 
-Executar as migrações:
+Executar migrações:
 
 ```bash
 python manage.py migrate
@@ -68,86 +64,37 @@ Arrancar o servidor:
 python manage.py runserver 127.0.0.1:8000
 ```
 
-URL de acesso:
+URLs de acesso:
 
 - `http://127.0.0.1:8000/`
 - `http://127.0.0.1:8000/admin/`
 
-## 2. Executar o PortalBackend
-
-Entrar na pasta do backend:
-
-```bash
-cd PortalBackend/api
-```
-
-Criar e ativar um ambiente virtual:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-Instalar o Django:
-
-```bash
-pip install django==6.0.4
-```
-
-Executar as migrações:
-
-```bash
-python manage.py migrate
-```
-
-Arrancar o servidor:
-
-```bash
-python manage.py runserver 127.0.0.1:8001
-```
-
-URL de acesso:
-
-- `http://127.0.0.1:8001/`
-- `http://127.0.0.1:8001/admin/`
-
-## 3. Executar o PortalFrontend
+## 2. Executar o Portal (ASP.NET Core MVC)
 
 Entre na pasta do frontend:
 
 ```bash
-cd PortalFrontend
+cd Portal
 ```
 
-Restaurar as dependências e arranque a aplicação:
+Restaurar dependências e arrancar a aplicação:
 
 ```bash
 dotnet restore
-dotnet run
-```
-
-A aplicação arranca com estes endpoints:
-
-- `http://localhost:5000`
-- `https://localhost:5001`
-
-Para usar o perfil HTTP:
-
-```bash
 dotnet run --launch-profile http
 ```
 
-Para usar o perfil HTTPS:
+Para usar HTTPS:
 
 ```bash
 dotnet run --launch-profile https
 ```
 
-## Arranque rápido dos 3 servidores
+## Arranque rápido dos 2 servidores
 
-Abra 3 terminais separados.
+Abra 2 terminais separados.
 
-Terminal 1:
+Terminal 1 (Django):
 
 ```bash
 cd MS-CAFIN/calc_service
@@ -158,28 +105,16 @@ python manage.py migrate
 python manage.py runserver 127.0.0.1:8000
 ```
 
-Terminal 2:
+Terminal 2 (ASP.NET):
 
 ```bash
-cd PortalBackend/api
-python3 -m venv .venv
-source .venv/bin/activate
-pip install django==6.0.4
-python manage.py migrate
-python manage.py runserver 127.0.0.1:8001
-```
-
-Terminal 3:
-
-```bash
-cd PortalFrontend
+cd Portal
 dotnet restore
 dotnet run --launch-profile http
 ```
 
 ## Estado atual do repositório
 
-
-- o `PortalFrontend` é o único projeto presente na solução `.sln`
-- os dois projetos Django têm apenas a rota padrão de administração ativa
-- não existe ainda ficheiro de dependências Python no repositório
+- Existe 1 projeto Django (`MS-CAFIN/calc_service`).
+- Existe 1 projeto ASP.NET Core MVC (`Portal`).
+- Não existe ainda ficheiro de dependências Python no repositório.
