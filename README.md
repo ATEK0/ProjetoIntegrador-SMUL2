@@ -11,6 +11,7 @@ Este repositório contém atualmente 2 componentes ativos:
 ProjetoIntegrador-SMUL2/
 |- MS-CAFIN/calc_service
 |- Portal
+| - Docs
 ```
 
 ## Pré-requisitos
