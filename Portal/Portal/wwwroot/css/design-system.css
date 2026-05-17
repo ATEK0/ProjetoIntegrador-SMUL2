@@ -110,6 +110,7 @@ a:hover {
 
 .btn-primary:hover {
     background-color: var(--light-blue);
+    color:white;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
