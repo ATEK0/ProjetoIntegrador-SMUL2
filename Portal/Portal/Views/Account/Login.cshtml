@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_AuthLayout";
+}
+
+<form action="/Dashboard/Aluno" method="get">
+    <div class="form-group">
+        <label class="form-label" for="email">E-mail</label>
+        <input class="form-control" type="email" id="email" placeholder="Insira o seu e-mail" required />
+    </div>
+    
+    <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" type="password" id="password" placeholder="Insira a sua password" required />
+    </div>
+    
+    <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
+        <label class="flex items-center gap-sm text-muted" style="font-size: 0.875rem;">
+            <input type="checkbox" /> Lembrar-me
+        </label>
+        <a href="#" style="font-size: 0.875rem;">Esqueceu a password?</a>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%;">Entrar</button>
+    
+    <div class="text-center text-muted" style="margin-top: var(--spacing-lg); font-size: 0.875rem;">
+        Não tem conta? <a href="/Account/Register">Registe-se aqui</a>
+    </div>
+</form>
