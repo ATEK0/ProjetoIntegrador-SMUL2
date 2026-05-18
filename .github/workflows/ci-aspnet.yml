@@ -1,0 +1,72 @@
+name: CI - ASP.NET Portal
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'Portal/**'        # Ajusta para a pasta do teu projeto ASP.NET
+      - '.github/workflows/ci-aspnet.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'Portal/**'
+
+jobs:
+  lint-and-test:
+    name: Lint & Testes ASP.NET
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'   # Muda para a versão que usas
+
+      - name: Restaurar dependências
+        run: dotnet restore
+        working-directory: ./Portal/Portal  # Ajusta para a tua pasta
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+        working-directory: ./Portal/Portal
+
+      - name: Linting (formato do código)
+        run: dotnet format --verify-no-changes --no-restore
+        working-directory: ./Portal/Portal
+
+      - name: Executar testes
+        run: dotnet test --no-build --configuration Release --verbosity normal
+        working-directory: ./Portal/Portal
+
+  docker-build:
+    name: Build Docker Image (ASP.NET)
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e Push da imagem ASP.NET
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Portal/Portal         # Pasta com o Dockerfile do ASP.NET
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/smul2-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/smul2-frontend:${{ github.sha }}

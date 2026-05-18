@@ -1,0 +1,100 @@
+name: CI - Django Microserviço
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'MS-CAFIN/**'         # Ajusta para a pasta do teu projeto Django
+      - '.github/workflows/ci-django.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'MS-CAFIN/**'
+
+jobs:
+  lint-and-test:
+    name: Lint & Testes Django
+    runs-on: ubuntu-latest
+
+    services:
+      # Base de dados para os testes (ajusta se usares outra)
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'   # Muda para a versão que usas
+          cache: 'pip'
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+        working-directory: ./MS-CAFIN/calc_service   # Ajusta para a tua pasta
+
+      - name: Linting com flake8
+        run: |
+          pip install flake8
+          flake8 . --max-line-length=120 --exclude=migrations,__pycache__
+        working-directory: ./MS-CAFIN/calc_service
+
+      - name: Formatação com black
+        run: |
+          pip install black
+          black --check . --exclude="migrations|__pycache__"
+        working-directory: ./MS-CAFIN/calc_service
+
+      - name: Executar testes Django
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+          DJANGO_SETTINGS_MODULE: calc_service.settings   # Ajusta para o teu módulo de settings
+          SECRET_KEY: github-actions-secret-key-para-testes
+          DEBUG: "True"
+        run: |
+          python manage.py migrate
+          python manage.py test --verbosity=2
+        working-directory: ./MS-CAFIN/calc_service
+
+  docker-build:
+    name: Build Docker Image (Django)
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build e Push da imagem Django
+        uses: docker/build-push-action@v5
+        with:
+          context: ./MS-CAFIN/calc_service          # Pasta com o Dockerfile do Django
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/smul2-backend:latest
+            ghcr.io/${{ github.repository_owner }}/smul2-backend:${{ github.sha }}

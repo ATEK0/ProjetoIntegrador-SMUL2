@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+
+  frontend:
+    image: ghcr.io/atek0/smul2-frontend:latest
+    # Para desenvolvimento local, usa build em vez de image:
+    # build:
+    #   context: ./Portal/Portal
+    ports:
+      - "8080:80"       # Ajusta a porta exposta pelo ASP.NET
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - BACKEND_URL=http://backend:8000   # URL interna do microserviço
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/atek0/smul2-backend:latest
+    # Para desenvolvimento local:
+    # build:
+    #   context: ./MS-CAFIN/calc_service
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=calc_service.settings   # Ajusta para o teu módulo
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@db:5432/smul2
+      - DEBUG=False
+    depends_on:
+      - db
+    restart: unless-stopped
+    command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
+
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=smul2
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
