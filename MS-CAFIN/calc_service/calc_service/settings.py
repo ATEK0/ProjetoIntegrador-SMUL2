@@ -37,7 +37,18 @@ TEMPLATES = [
 
 ROOT_URLCONF = 'calc_service.urls'
 
-DATABASES = {}
+import os
+
+# Create data dir for sqlite volume if it doesn't exist
+DATA_DIR = BASE_DIR / 'data'
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': DATA_DIR / 'db.sqlite3',
+    }
+}
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'

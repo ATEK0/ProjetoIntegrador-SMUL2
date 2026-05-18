@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'Portal/**'        # Ajusta para a pasta do teu projeto ASP.NET
+      - 'Portal/**'        # pasta do projeto ASP.NET
       - '.github/workflows/ci-aspnet.yml'
   pull_request:
     branches: [main, develop]
@@ -23,11 +23,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'   # Muda para a versão que usas
+          dotnet-version: '10.0.x'   # versao do .NET   
 
       - name: Restaurar dependências
         run: dotnet restore
-        working-directory: ./Portal/Portal  # Ajusta para a tua pasta
+        working-directory: ./Portal/Portal  # pasta do ASP.NET
 
       - name: Build
         run: dotnet build --no-restore --configuration Release

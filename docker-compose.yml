@@ -12,8 +12,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - BACKEND_URL=http://backend:8000   # URL interna do microserviço
+      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};
     depends_on:
       - backend
+      - mysql_db
     restart: unless-stopped
 
   backend:
@@ -23,25 +25,24 @@ services:
     #   context: ./MS-CAFIN/calc_service
     ports:
       - "8000:8000"
+    volumes:
+      - django_data:/app/data
     environment:
       - DJANGO_SETTINGS_MODULE=calc_service.settings   # Ajusta para o teu módulo
       - SECRET_KEY=${SECRET_KEY}
-      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD}@db:5432/smul2
       - DEBUG=False
-    depends_on:
-      - db
     restart: unless-stopped
     command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
 
-  db:
-    image: postgres:16
+  mysql_db:
+    image: mysql:8.0
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=smul2
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+      - MYSQL_DATABASE=dec
     restart: unless-stopped
 
 volumes:
-  postgres_data:
+  mysql_data:
+  django_data:

@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - 'MS-CAFIN/**'         # Ajusta para a pasta do teu projeto Django
+      - 'MS-CAFIN/**'         # pasta do projeto Django
       - '.github/workflows/ci-django.yml'
   pull_request:
     branches: [main, develop]
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      # Base de dados para os testes (ajusta se usares outra)
+      # Base de dados para os testes 
       postgres:
         image: postgres:16
         env:
@@ -39,12 +39,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'   # Muda para a versão que usas
+          python-version: '3.12'   # versao do python
           cache: 'pip'
 
       - name: Instalar dependências
         run: pip install -r requirements.txt
-        working-directory: ./MS-CAFIN/calc_service   # Ajusta para a tua pasta
+        working-directory: ./MS-CAFIN/calc_service   # pasta 
 
       - name: Linting com flake8
         run: |
@@ -61,7 +61,7 @@ jobs:
       - name: Executar testes Django
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
-          DJANGO_SETTINGS_MODULE: calc_service.settings   # Ajusta para o teu módulo de settings
+          DJANGO_SETTINGS_MODULE: calc_service.settings   #módulo de settings
           SECRET_KEY: github-actions-secret-key-para-testes
           DEBUG: "True"
         run: |

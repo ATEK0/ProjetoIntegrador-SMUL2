@@ -22,7 +22,7 @@ ProjetoIntegrador-SMUL2/
 
 Notas importantes:
 
-- Em Docker, a base de dados usada é PostgreSQL. Se correres o projeto localmente via comando direto, o Django cria e usar um SQLite local por defeito.
+- Em Docker, a base de dados usada pelo frontend ASP.NET é **MySQL**. O backend Django utiliza uma base de dados **SQLite** partilhada via volume no Docker.
 - O frontend está configurado para `net10.0`; versões mais antigas do SDK .NET não compilam o projeto.
 
 ## Portas
@@ -115,7 +115,7 @@ dotnet run --launch-profile http
 
 ## 3. Executar com Docker Compose
 
-O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (PostgreSQL) simultaneamente, isolando todas as dependências do teu sistema.
+O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (MySQL) simultaneamente, isolando todas as dependências do teu sistema.
 
 Para iniciar tudo de uma vez com as imagens do GitHub Registry:
 
