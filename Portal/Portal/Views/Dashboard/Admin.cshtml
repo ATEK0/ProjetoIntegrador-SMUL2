@@ -1,58 +1,132 @@
+@model Portal.Models.ViewModels.AdminDashboardViewModel
+
 @{
-    ViewData["Title"] = "Administração de Sistema";
+    ViewData["Title"] = "Administração de System";
 }
 
-<div class="dashboard-grid">
-    <!-- System Health -->
-    <div class="card glass-panel" style="grid-column: span 2;">
-        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Estado da Infraestrutura</h3>
-        <div class="flex gap-lg">
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon" style="color: #10b981; background-color: rgba(16,185,129,0.1);"><i class="fas fa-server"></i></div>
-                <div class="stat-details">
-                    <h3>Servidores</h3>
-                    <div class="value" style="color: #10b981;">Online</div>
+<style>
+    .admin-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: var(--spacing-xl);
+        gap: var(--spacing-md);
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-decoration: none;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .tab-btn:hover {
+        color: var(--primary-blue);
+    }
+
+    .tab-btn.active {
+        color: var(--primary-blue);
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--primary-blue);
+    }
+
+    .table-row-hover:hover {
+        background-color: rgba(12, 115, 183, 0.02);
+    }
+
+    .badge-status {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-xl) 0;">
+
+    <div class="admin-tabs">
+        <a href="/admin" class="tab-btn active">
+            <i class="fas fa-server"></i> Infraestrutura & Saúde
+        </a>
+        <a href="/admin/classes" class="tab-btn">
+            <i class="fas fa-graduation-cap"></i> Gestão de Turmas (@Model.Classes.Count())
+        </a>
+        <a href="/admin/challenges" class="tab-btn">
+            <i class="fas fa-trophy"></i> Gestão de Desafios (@Model.Challenges.Count())
+        </a>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="card glass-panel" style="grid-column: span 2;">
+            <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Estado da Infraestrutura</h3>
+            <div class="flex gap-lg">
+                <div class="stat-card" style="flex: 1;">
+                    <div class="stat-icon" style="color: #10b981; background-color: rgba(16,185,129,0.1);"><i class="fas fa-server"></i></div>
+                    <div class="stat-details">
+                        <h3>Servidores</h3>
+                        <div class="value" style="color: #10b981;">Online</div>
+                    </div>
+                </div>
+                <div class="stat-card" style="flex: 1;">
+                    <div class="stat-icon" style="color: #3b82f6; background-color: rgba(59,130,246,0.1);"><i class="fas fa-database"></i></div>
+                    <div class="stat-details">
+                        <h3>Base de Dados</h3>
+                        <div class="value">Sincronizada</div>
+                    </div>
+                </div>
+                <div class="stat-card" style="flex: 1;">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-details">
+                        <h3>Utilizadores Ativos</h3>
+                        <div class="value">458</div>
+                    </div>
                 </div>
             </div>
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon" style="color: #3b82f6; background-color: rgba(59,130,246,0.1);"><i class="fas fa-database"></i></div>
-                <div class="stat-details">
-                    <h3>Base de Dados</h3>
-                    <div class="value">Sincronizada</div>
-                </div>
-            </div>
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-details">
-                    <h3>Utilizadores Ativos</h3>
-                    <div class="value">458</div>
-                </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: var(--spacing-md);">Ações de Gestão</h3>
+            <div class="flex flex-col gap-sm">
+                <button class="btn btn-primary" style="justify-content: flex-start;"><i class="fas fa-user-shield" style="margin-right: 8px;"></i> Gerir Utilizadores</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cloud-download-alt" style="margin-right: 8px;"></i> Backup Manual</button>
+                <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cogs" style="margin-right: 8px;"></i> Configurações do Sistema</button>
             </div>
         </div>
     </div>
 
-    <!-- Admin Actions -->
-    <div class="card">
-        <h3 style="margin-bottom: var(--spacing-md);">Ações de Gestão</h3>
-        <div class="flex flex-col gap-sm">
-            <button class="btn btn-primary" style="justify-content: flex-start;"><i class="fas fa-user-shield" style="margin-right: 8px;"></i> Gerir Utilizadores</button>
-            <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cloud-download-alt" style="margin-right: 8px;"></i> Backup Manual</button>
-            <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cogs" style="margin-right: 8px;"></i> Configurações do Sistema</button>
+    <div class="card glass-panel" style="margin-top: var(--spacing-lg);">
+        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md);">
+            <h3>Logs do Sistema Recentes</h3>
+            <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver Todos</button>
         </div>
-    </div>
-</div>
-
-<div class="card glass-panel">
-    <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md);">
-        <h3>Logs do Sistema Recentes</h3>
-        <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver Todos</button>
-    </div>
-    
-    <div style="background-color: var(--dark-grey); color: var(--white); padding: var(--spacing-md); border-radius: var(--radius-md); font-family: monospace; font-size: 0.875rem; height: 200px; overflow-y: auto;">
-        <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:58:01 - System backup completed successfully.</div>
-        <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:55:12 - User professor_silva successfully logged in.</div>
-        <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:50:45 - User aluno_martins successfully logged in.</div>
-        <div style="margin-bottom: 4px;"><span style="color: #f59e0b;">[WARN]</span> 2026-05-17 19:42:10 - High CPU usage detected on Python Microservice container (85%).</div>
-        <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:30:00 - API endpoint /api/simulacoes/credito accessed.</div>
+        
+        <div style="background-color: var(--dark-grey); color: var(--white); padding: var(--spacing-md); border-radius: var(--radius-md); font-family: monospace; font-size: 0.875rem; height: 200px; overflow-y: auto;">
+            <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:58:01 - System backup completed successfully.</div>
+            <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:55:12 - User professor_silva successfully logged in.</div>
+            <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:50:45 - User aluno_martins successfully logged in.</div>
+            <div style="margin-bottom: 4px;"><span style="color: #f59e0b;">[WARN]</span> 2026-05-17 19:42:10 - High CPU usage detected on Python Microservice container (85%).</div>
+            <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:30:00 - API endpoint /api/simulacoes/credito accessed.</div>
+        </div>
     </div>
 </div>

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Portal.Data;
 using Portal.Models;
+using Portal.Models.ViewModels;
 
 namespace Portal.Controllers
 {
@@ -12,19 +13,21 @@ namespace Portal.Controllers
         {
             _context = context;
         }
+        [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return Redirect("/admin/classes");
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(string name)
+        public IActionResult Create(CreateClassViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError("Name", "O nome da turma é obrigatório.");
-                return View();
+                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage 
+                                 ?? "O nome da turma é obrigatório.";
+                TempData["Error"] = firstError;
+                return Redirect("/admin/classes");
             }
 
             try
@@ -32,17 +35,17 @@ namespace Portal.Controllers
                 string code = GenerateMembershipCode();
 
                 int teacherId = 1;
-                var newClass = new SchoolClass(teacherId, name, code);       
+                var newClass = new SchoolClass(teacherId, model.Name, code);       
                 _context.Classes.Add(newClass);
                 _context.SaveChanges();
   
-                return RedirectToAction("Index", "Home");
+                TempData["Success"] = "Turma criada com sucesso!";
+                return Redirect("/admin/classes");
             }
             catch (Exception ex)
             {
-
-                ModelState.AddModelError("", $"Erro ao criar turma: {ex.Message}");
-                return View();
+                TempData["Error"] = $"Erro ao criar turma: {ex.Message}";
+                return Redirect("/admin/classes");
             }
         }
 
