@@ -1,0 +1,78 @@
+﻿@model IEnumerable<Portal.Models.TeacherClassViewModel>
+
+@{
+    ViewData["Title"] = "As Minhas Turmas";
+}
+
+<div class="dashboard-grid">
+    <div class="card glass-panel" style="grid-column: span 2;">
+
+        <div class="flex" style="justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+            <h3 style="margin: 0; color: var(--primary-blue);">As Minhas Turmas e Alunos</h3>
+
+            <a asp-action="Create" class="btn btn-primary" style="text-decoration: none;">
+                <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Turma
+            </a>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <th style="padding: var(--spacing-sm); color: var(--text-muted);">Turma / Desafio</th>
+                    <th style="padding: var(--spacing-sm); color: var(--text-muted);">Código de Adesão</th>
+                    <th style="padding: var(--spacing-sm); color: var(--text-muted);">Alunos Inscritos</th>
+                    <th style="padding: var(--spacing-sm); color: var(--text-muted);">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
+                            Ainda não tens turmas criadas.
+                        </td>
+                    </tr>
+                }
+
+                @foreach (var turma in Model)
+                {
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: var(--spacing-sm); font-weight: bold;">@turma.ClassName</td>
+                        <td style="padding: var(--spacing-sm);">
+                            <span style="background-color: rgba(12, 115, 183, 0.1); color: var(--primary-blue); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; letter-spacing: 2px;">
+                                @turma.MembershipCode
+                            </span>
+                        </td>
+                        <td style="padding: var(--spacing-sm);">
+                            @if (turma.StudentNames.Any())
+                            {
+                                <details style="cursor: pointer; outline: none;">
+                                    <summary style="color: var(--primary-blue); font-weight: 600; user-select: none;">
+                                        @turma.StudentNames.Count aluno(s)
+                                    </summary>
+                                    <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; color: var(--text-muted); font-size: 0.9rem;">
+                                        @foreach (var student in turma.StudentNames)
+                                        {
+                                            <li style="margin-bottom: 4px;">@student</li>
+                                        }
+                                    </ul>
+                                </details>
+                            }
+                            else
+                            {
+                                <span style="color: var(--text-muted); font-size: 0.9rem; font-style: italic;">
+                                    Nenhum aluno
+                                </span>
+                            }
+                        </td>
+                        <td style="padding: var(--spacing-sm);">
+                            <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                                Detalhes
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

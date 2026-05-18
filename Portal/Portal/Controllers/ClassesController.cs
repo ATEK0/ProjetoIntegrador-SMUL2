@@ -16,6 +16,29 @@ namespace Portal.Controllers
         {
             return View();
         }
+        public IActionResult Index()
+        {
+            
+            int currentTeacherId = 1;
+
+            
+            var myClasses = _context.Classes
+                .Where(c => c.TeacherId == currentTeacherId)
+                .Select(c => new TeacherClassViewModel
+                {
+                    ClassId = c.Id,
+                    ClassName = c.Name,
+                    MembershipCode = c.MembershipCode,
+                    StudentNames = _context.ClassEnrollments
+                        .Where(ce => ce.ClassId == c.Id)
+                        .Select(ce => ce.Student.Name)
+                        .ToList()
+                })
+                .ToList();
+
+            return View(myClasses);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -111,5 +134,7 @@ namespace Portal.Controllers
                 return View();
             }
         }
+
+
     }
 }
