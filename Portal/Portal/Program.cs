@@ -36,7 +36,6 @@ namespace Portal
 
             app.UseAuthorization();
 
-            // 5. Rotas MVC
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
