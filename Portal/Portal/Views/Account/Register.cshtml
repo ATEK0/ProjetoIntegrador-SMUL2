@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Registo";
+    Layout = "_AuthLayout";
+}
+
+<form action="/Account/Login" method="get">
+    <div class="form-group">
+        <label class="form-label" for="name">Nome Completo</label>
+        <input class="form-control" type="text" id="name" placeholder="Insira o seu nome" required />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="email">E-mail</label>
+        <input class="form-control" type="email" id="email" placeholder="Insira o seu e-mail" required />
+    </div>
+    
+    <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input class="form-control" type="password" id="password" placeholder="Crie uma password" required />
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="role">Tipo de Conta</label>
+        <select class="form-control" id="role" required>
+            <option value="">Selecione...</option>
+            <option value="aluno">Aluno</option>
+            <option value="professor">Professor</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--spacing-md);">Criar Conta</button>
+    
+    <div class="text-center text-muted" style="margin-top: var(--spacing-lg); font-size: 0.875rem;">
+        Já tem conta? <a href="/Account/Login">Entre aqui</a>
+    </div>
+</form>

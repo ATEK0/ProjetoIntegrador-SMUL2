@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DEC Dinheiro em Casa</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/design-system.css" />
+    <link rel="stylesheet" href="~/css/layout.css" />
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="~/images/logo.png" alt="DEC Logo" />
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"].ToString() == "Aluno" ? "active" : "")">
+                    <i class="fas fa-home"></i> Dashboard Aluno
+                </a>
+                <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"].ToString() == "Professor" ? "active" : "")">
+                    <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor
+                </a>
+                <a href="/Dashboard/Admin" class="nav-item @(ViewContext.RouteData.Values["action"].ToString() == "Admin" ? "active" : "")">
+                    <i class="fas fa-cog"></i> Administração
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/Account/Login" class="nav-item text-muted">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div class="page-title">
+                    <h2>@ViewData["Title"]</h2>
+                </div>
+                <div class="user-profile">
+                    <span class="text-muted">Utilizador</span>
+                    <div class="avatar">U</div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+</body>
+</html>
