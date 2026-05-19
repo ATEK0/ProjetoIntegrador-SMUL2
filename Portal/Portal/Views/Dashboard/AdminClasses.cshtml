@@ -1,0 +1,330 @@
+@model Portal.Models.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Gestão de Turmas - Administração";
+}
+
+<style>
+    .admin-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: var(--spacing-xl);
+        gap: var(--spacing-md);
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-decoration: none;
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+
+    .tab-btn:hover {
+        color: var(--primary-blue);
+    }
+
+    .tab-btn.active {
+        color: var(--primary-blue);
+    }
+
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--primary-blue);
+    }
+
+    .table-row-hover:hover {
+        background-color: rgba(12, 115, 183, 0.02);
+    }
+
+    .badge-status {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+        padding: var(--spacing-md);
+    }
+
+    .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .modal-card {
+        background: var(--surface-color);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: var(--spacing-xl);
+        position: relative;
+        transform: scale(0.95) translateY(15px);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-overlay.active .modal-card {
+        transform: scale(1) translateY(0);
+    }
+
+    .modal-close-btn {
+        position: absolute;
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: var(--transition);
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        color: var(--text-main);
+    }
+
+    .input-icon-group {
+        position: relative;
+    }
+
+    .input-icon-group i {
+        position: absolute;
+        left: var(--spacing-md);
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        transition: var(--transition);
+        font-size: 1.1rem;
+    }
+
+    .input-icon-group .form-control {
+        padding-left: 2.75rem;
+        font-size: 1.05rem;
+        height: 50px;
+    }
+
+    .input-icon-group .form-control:focus + i {
+        color: var(--primary-blue);
+    }
+
+    .premium-label {
+        font-weight: 600;
+        color: var(--dark-grey);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+        margin-bottom: var(--spacing-xs);
+        font-size: 0.95rem;
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-xl) 0;">
+
+    <div class="admin-tabs">
+        <a href="/admin" class="tab-btn">
+            <i class="fas fa-server"></i> Infraestrutura & Saúde
+        </a>
+        <a href="/admin/classes" class="tab-btn active">
+            <i class="fas fa-graduation-cap"></i> Gestão de Turmas (@Model.Classes.Count())
+        </a>
+        <a href="/admin/challenges" class="tab-btn">
+            <i class="fas fa-trophy"></i> Gestão de Desafios
+        </a>
+    </div>
+
+    <div>
+        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
+            <div>
+                <h3 style="color: var(--primary-blue); margin-bottom: 4px; font-size: 1.4rem;">Gestão de Turmas Simulação</h3>
+                <p class="text-muted" style="font-size: 0.875rem; margin: 0;">Visualize e crie turmas para os desafios de literacia financeira.</p>
+            </div>
+            <button type="button" id="openClassModalBtn" class="btn btn-primary" style="font-weight: 600; box-shadow: var(--shadow-sm);">
+                <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Nova Turma
+            </button>
+        </div>
+
+        <div class="card glass-panel" style="padding: var(--spacing-lg);">
+            @if (!Model.Classes.Any())
+            {
+                <div class="text-center" style="padding: var(--spacing-xxl) 0;">
+                    <div style="background-color: rgba(12, 115, 183, 0.05); width: 80px; height: 80px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: var(--primary-blue); margin-bottom: var(--spacing-md);">
+                        <i class="fas fa-graduation-cap fa-3x"></i>
+                    </div>
+                    <h4 style="font-size: 1.2rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Nenhuma Turma Configurada</h4>
+                    <p class="text-muted" style="max-width: 450px; margin: 0 auto var(--spacing-lg) auto; font-size: 0.875rem; line-height: 1.4;">Ainda não existem turmas de simulação registadas no sistema. Comece por criar o primeiro espaço escolar clicando abaixo.</p>
+                    <button type="button" id="openClassModalBtnEmpty" class="btn btn-primary">Criar Primeira Turma</button>
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Nome da Turma</th>
+                                <th style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Código de Adesão</th>
+                                <th style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Professor ID</th>
+                                <th style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Estado</th>
+                                <th style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted); font-weight: 600; text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Classes)
+                            {
+                                <tr style="border-bottom: 1px solid var(--border-color); transition: var(--transition);" class="table-row-hover">
+                                    <td style="padding: var(--spacing-md) var(--spacing-sm); font-weight: 600; color: var(--primary-blue);">@c.Name</td>
+                                    <td style="padding: var(--spacing-md) var(--spacing-sm);">
+                                        <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.15rem; font-weight: 700; letter-spacing: 1px; background: rgba(12, 115, 183, 0.08); color: var(--primary-blue); padding: 4px 10px; border-radius: var(--radius-sm); border: 1px dashed rgba(12, 115, 183, 0.25);">@c.MembershipCode</span>
+                                    </td>
+                                    <td style="padding: var(--spacing-md) var(--spacing-sm);">
+                                        <div style="display: flex; align-items: center; gap: 6px;">
+                                            <div style="width: 26px; height: 26px; border-radius: var(--radius-full); background: #e0e8eb; color: var(--text-main); font-size: 0.75rem; font-weight: bold; display: flex; align-items: center; justify-content: center;"><i class="fas fa-user-tie" style="font-size: 0.8rem; color: var(--primary-blue);"></i></div>
+                                            <span>Professor ID: @c.TeacherId</span>
+                                        </div>
+                                    </td>
+                                    <td style="padding: var(--spacing-md) var(--spacing-sm);">
+                                        <span class="badge-status">Ativa</span>
+                                    </td>
+                                    <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: right;">
+                                        <button class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: var(--radius-sm);">
+                                            <i class="fas fa-edit"></i> Detalhes
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div id="createClassModal" class="modal-overlay">
+    <div class="modal-card glass-panel">
+        <button type="button" class="modal-close-btn" id="closeClassModalBtn">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div style="text-align: left;">
+            <div class="flex items-center gap-md mb-2">
+                <div style="background-color: rgba(12, 115, 183, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
+                    <i class="fas fa-graduation-cap fa-lg"></i>
+                </div>
+                <div>
+                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Criar Nova Turma</h3>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Configure uma nova turma de simulação.</p>
+                </div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
+
+            <form asp-controller="Classes" asp-action="Create" method="post" id="createClassForm">
+                <div class="form-group">
+                    <label for="classNameInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
+                        <i class="fas fa-edit"></i> Nome da Turma
+                    </label>
+                    <div class="input-icon-group">
+                        <input type="text" name="name" id="classNameInput" class="form-control" placeholder="Ex: 11º B - Economia A" required autocomplete="off" maxlength="255" style="height: 44px; font-size: 0.95rem;" />
+                        <i class="fas fa-chalkboard"></i>
+                    </div>
+                    <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
+                        <i class="fas fa-info-circle"></i> Será gerado automaticamente um código de adesão único com 6 dígitos para os alunos.
+                    </span>
+                </div>
+
+                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" id="cancelModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm);">
+                        Criar Turma <i class="fas fa-plus-circle" style="margin-left: 5px;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const classModal = document.getElementById("createClassModal");
+        const openClassModalBtn = document.getElementById("openClassModalBtn");
+        const openClassModalBtnEmpty = document.getElementById("openClassModalBtnEmpty");
+        const closeClassModalBtn = document.getElementById("closeClassModalBtn");
+        const cancelClassModalBtn = document.getElementById("cancelModalBtn");
+        const classNameInput = document.getElementById("classNameInput");
+
+        function openClassModal() {
+            classModal.classList.add("active");
+            if (classNameInput) classNameInput.focus();
+        }
+
+        function closeClassModal() {
+            classModal.classList.remove("active");
+            if (classNameInput) classNameInput.value = "";
+        }
+
+        if (openClassModalBtn) openClassModalBtn.addEventListener("click", openClassModal);
+        if (openClassModalBtnEmpty) openClassModalBtnEmpty.addEventListener("click", openClassModal);
+        if (closeClassModalBtn) closeClassModalBtn.addEventListener("click", closeClassModal);
+        if (cancelClassModalBtn) cancelClassModalBtn.addEventListener("click", closeClassModal);
+        
+        classModal.addEventListener("click", function(e) {
+            if (e.target === classModal) {
+                closeClassModal();
+            }
+        });
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape" && classModal.classList.contains("active")) {
+                closeClassModal();
+            }
+        });
+    });
+</script>
