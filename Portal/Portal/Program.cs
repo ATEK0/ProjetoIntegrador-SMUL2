@@ -21,8 +21,14 @@ namespace Portal
                 });
             });
 
-// Configurar a autenticação por JWT Bearer com suporte a Cookies (HTTP-Only)
-            var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "SuaChaveSecretaSuperProtegidaComPeloMenos32CaracteresDEC!";
+            // Configurar a autenticação por JWT Bearer com suporte a Cookies (HTTP-Only)
+            var jwtSecret = builder.Configuration["Jwt:Secret"];
+            
+            if (string.IsNullOrEmpty(jwtSecret))
+            {
+                throw new InvalidOperationException("Chave JWT não configurada em appsettings.json");
+            }
+            
             var key = System.Text.Encoding.UTF8.GetBytes(jwtSecret);
 
             builder.Services.AddAuthentication(options =>
