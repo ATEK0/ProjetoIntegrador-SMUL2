@@ -1,6 +1,6 @@
 services:
 
-  # --- AMBIENTE MAIN (PRODUÇÃO / ESTÁVEL) ---
+  # --- AMBIENTE MAIN (PRODUÇÃO / Development) ---
   frontend-main:
     image: ghcr.io/atek0/smul2-frontend:latest
     profiles: ["main"]
