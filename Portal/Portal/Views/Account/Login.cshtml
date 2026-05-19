@@ -3,20 +3,36 @@
     Layout = "_AuthLayout";
 }
 
-<form action="/Dashboard/Aluno" method="get">
+@if (TempData["Error"] != null)
+{
+    <div style="color: #ff6b6b; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.2); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); font-size: 0.875rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>@TempData["Error"]</span>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div style="color: #2ecc71; background-color: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.2); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); font-size: 0.875rem; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-check-circle"></i>
+        <span>@TempData["Success"]</span>
+    </div>
+}
+
+<form action="/Account/Login" method="post">
     <div class="form-group">
         <label class="form-label" for="email">E-mail</label>
-        <input class="form-control" type="email" id="email" placeholder="Insira o seu e-mail" required />
+        <input class="form-control" type="email" id="email" name="email" placeholder="Insira o seu e-mail" required />
     </div>
     
     <div class="form-group">
         <label class="form-label" for="password">Password</label>
-        <input class="form-control" type="password" id="password" placeholder="Insira a sua password" required />
+        <input class="form-control" type="password" id="password" name="password" placeholder="Insira a sua password" required />
     </div>
     
     <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
         <label class="flex items-center gap-sm text-muted" style="font-size: 0.875rem;">
-            <input type="checkbox" /> Lembrar-me
+            <input type="checkbox" name="rememberMe" value="true" /> Lembrar-me
         </label>
         <a href="#" style="font-size: 0.875rem;">Esqueceu a password?</a>
     </div>

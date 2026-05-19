@@ -24,19 +24,28 @@
             </div>
             
             <nav class="sidebar-nav">
-                <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"].ToString() == "Aluno" ? "active" : "")">
-                    <i class="fas fa-home"></i> Dashboard Aluno
-                </a>
-                <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"].ToString() == "Professor" ? "active" : "")">
-                    <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor
-                </a>
-                <a href="/Dashboard/Admin" class="nav-item @(ViewContext.RouteData.Values["action"].ToString() == "Admin" ? "active" : "")">
-                    <i class="fas fa-cog"></i> Administração
-                </a>
+                @if (User.IsInRole("Aluno") || User.IsInRole("Admin"))
+                {
+                    <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
+                        <i class="fas fa-home"></i> Dashboard Aluno
+                    </a>
+                }
+                @if (User.IsInRole("Professor") || User.IsInRole("Admin"))
+                {
+                    <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Professor" ? "active" : "")">
+                        <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor
+                    </a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="/Dashboard/Admin" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Admin" ? "active" : "")">
+                        <i class="fas fa-cog"></i> Administração
+                    </a>
+                }
             </nav>
             
             <div class="sidebar-footer">
-                <a href="/Account/Login" class="nav-item text-muted">
+                <a href="/Account/Logout" class="nav-item text-muted">
                     <i class="fas fa-sign-out-alt"></i> Sair
                 </a>
             </div>
@@ -49,8 +58,8 @@
                     <h2>@ViewData["Title"]</h2>
                 </div>
                 <div class="user-profile">
-                    <span class="text-muted">Utilizador</span>
-                    <div class="avatar">U</div>
+                    <span class="text-muted">@User.Identity?.Name</span>
+                    <div class="avatar">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")</div>
                 </div>
             </header>
 
