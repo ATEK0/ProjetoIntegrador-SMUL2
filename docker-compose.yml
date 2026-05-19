@@ -33,7 +33,8 @@ services:
 
   # --- AMBIENTE DEVELOP (TESTES / DESENVOLVIMENTO) ---
   frontend-develop:
-    image: ghcr.io/atek0/smul2-frontend:develop
+    # image: ghcr.io/atek0/smul2-frontend:develop
+    build: ./Portal/Portal
     profiles: ["develop"]
     ports:
       - "8081:80"       # Porta diferente para a develop
@@ -47,7 +48,8 @@ services:
     restart: unless-stopped
 
   backend-develop:
-    image: ghcr.io/atek0/smul2-backend:develop
+    # image: ghcr.io/atek0/smul2-backend:develop
+    build: ./MS-CAFIN/calc_service
     profiles: ["develop"]
     ports:
       - "8001:8000"     # Porta diferente para a develop
