@@ -64,5 +64,55 @@ namespace Portal.Controllers
 
             return code;
         }
+
+        public IActionResult Join()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Join(string membershipCode)
+        {
+            if (string.IsNullOrWhiteSpace(membershipCode))
+            {
+                ModelState.AddModelError("MembershipCode", "O código de adesão é obrigatório.");
+                return View();
+            }
+
+            var targetClass = _context.Classes
+                .FirstOrDefault(c => c.MembershipCode == membershipCode.Trim().ToUpper());
+
+            if (targetClass == null)
+            {
+                ModelState.AddModelError("", "Código inválido. Não foi encontrada nenhuma turma ou desafio com este código.");
+                return View();
+            }
+            int studentId = 2;
+
+            bool alreadyJoined = _context.ClassEnrollments
+        .Any(ce => ce.ClassId == targetClass.Id && ce.StudentId == studentId);
+
+            if (alreadyJoined)
+            {
+                ModelState.AddModelError("", "Já estás inscrito nesta turma / desafio!");
+                return View();
+            }
+
+            try
+            {
+                var newEnrollment = new ClassEnrollment(targetClass.Id, studentId);
+
+                _context.ClassEnrollments.Add(newEnrollment);
+                _context.SaveChanges();
+
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", $"Erro inesperado ao aderir à turma: {ex.Message}");
+                return View();
+            }
+        }
     }
 }

@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Aderir a uma Turma";
+}
+
+<div class="dashboard-grid">
+    <div class="card glass-panel" style="grid-column: span 2;">
+        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Aceder a uma Turma / Desafio</h3>
+        <div class="flex gap-lg" style="align-items: center;">
+
+            <div class="stat-details" style="flex: 1.5;">
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                    Introduz o código exclusivo de 6 caracteres fornecido pelo teu professor para te juntares à turma e desbloqueares os conteúdos pedagógicos, cenários e simulações financeiras associadas.
+                </p>
+            </div>
+
+            <div class="stat-card" style="flex: 1; border-left-color: var(--primary-blue);">
+                <div class="stat-icon" style="color: var(--primary-blue); background-color: rgba(12, 115, 183, 0.08);">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="stat-details">
+                    <h3>Formatação</h3>
+                    <div class="value" style="font-size: 0.875rem; font-weight: normal; color: var(--text-muted); margin-top: 4px;">
+                        O código será convertido automaticamente para maiúsculas.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom: var(--spacing-md);">Validação de Código</h3>
+
+        <form asp-action="Join" method="post" novalidate class="flex flex-col gap-sm">
+
+            <div asp-validation-summary="All" class="text-danger small" style="font-size: 0.85rem; list-style: none; padding: 0; margin-bottom: var(--spacing-xs);"></div>
+
+            <div class="flex flex-col" style="margin-bottom: var(--spacing-sm);">
+                <label class="form-label" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">
+                    Código de Adesão
+                </label>
+                <input name="membershipCode" maxlength="6" required autocomplete="off"
+                       class="form-control"
+                       placeholder="EX: K9X2WP"
+                       style="width: 100%; text-align: center; letter-spacing: 6px; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); background-color: transparent;" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="justify-content: flex-start; width: 100%;">
+                <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i> Validar e Entrar
+            </button>
+
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline" style="justify-content: flex-start; width: 100%; text-decoration: none; color: inherit;">
+                <i class="fas fa-times" style="margin-right: 8px;"></i> Cancelar
+            </a>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    (function(){
+        var input = document.querySelector('input[name="membershipCode"]');
+        if(!input) return;
+
+        input.addEventListener('input', function(e){
+           
+            var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+            if(v.length > 6) v = v.slice(0,6);
+            e.target.value = v;
+        });
+
+        setTimeout(function(){ input.focus(); }, 250);
+    })();
+</script>
