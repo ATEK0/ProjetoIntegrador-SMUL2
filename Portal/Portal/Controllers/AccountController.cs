@@ -190,9 +190,9 @@ namespace Portal.Controllers
 
             var vm = new ProfileViewModel
             {
-                Name      = user.Name,
-                Email     = user.Email,
-                Role      = user.Role?.RoleName ?? "—",
+                Name = user.Name,
+                Email = user.Email,
+                Role = user.Role?.RoleName ?? "—",
                 CreatedAt = user.CreatedAt
             };
 
@@ -214,7 +214,7 @@ namespace Portal.Controllers
             if (user == null) return RedirectToAction(nameof(Login));
 
             // Repopular campos de apresentação antes de devolver a view em caso de erro
-            vm.Role      = user.Role?.RoleName ?? "—";
+            vm.Role = user.Role?.RoleName ?? "—";
             vm.CreatedAt = user.CreatedAt;
 
             if (!ModelState.IsValid)
@@ -233,7 +233,7 @@ namespace Portal.Controllers
                 return View(vm);
             }
 
-            user.Name  = vm.Name.Trim();
+            user.Name = vm.Name.Trim();
             user.Email = vm.Email.Trim().ToLower();
             await _context.SaveChangesAsync();
 
@@ -242,9 +242,9 @@ namespace Portal.Controllers
             Response.Cookies.Append("JWT_Token", newToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure   = false,
+                Secure = false,
                 SameSite = SameSiteMode.Strict,
-                Expires  = DateTime.UtcNow.AddDays(7)
+                Expires = DateTime.UtcNow.AddDays(7)
             });
 
             TempData["ProfileSuccess"] = "Perfil atualizado com sucesso!";
