@@ -58,6 +58,85 @@ namespace Portal.Controllers
             return View("AdminChallenges", viewModel);
         }
 
+        [Authorize(Roles = "Admin")]
+        public IActionResult AdminUsers()
+        {
+            _logger.LogInformation("Utilizador '{UserName}' acedeu ao painel de Administração de Utilizadores.", User.Identity?.Name ?? "Anónimo");
+
+            var users = _context.Users
+                .Include(u => u.Role)
+                .Select(u => new AdminUserDetailViewModel
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email,
+                    RoleName = u.Role.RoleName,
+                    Enrollments = _context.ClassEnrollments
+                        .Where(ce => ce.StudentId == u.Id)
+                        .Select(ce => new UserClassEnrollmentDetail
+                        {
+                            ClassId = ce.ClassId,
+                            ClassName = ce.Class.Name
+                        })
+                        .ToList()
+                })
+                .ToList();
+
+            var viewModel = new AdminUsersViewModel
+            {
+                Users = users,
+                Classes = _context.Classes.ToList()
+            };
+
+            return View("AdminUsers", viewModel);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult ChangeUserRole(int userId, string newRoleName)
+        {
+            try
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                {
+                    TempData["Error"] = "Utilizador não encontrado.";
+                    return RedirectToAction("AdminUsers");
+                }
+
+                int currentUserId = GetUserId();
+                if (userId == currentUserId)
+                {
+                    TempData["Error"] = "Não pode alterar o seu próprio papel de administrador.";
+                    return RedirectToAction("AdminUsers");
+                }
+
+                if (newRoleName != "Professor" && newRoleName != "Aluno" && newRoleName != "Admin")
+                {
+                    TempData["Error"] = "Função/Role inválida.";
+                    return RedirectToAction("AdminUsers");
+                }
+
+                var role = _context.Roles.FirstOrDefault(r => r.RoleName == newRoleName);
+                if (role == null)
+                {
+                    TempData["Error"] = "Função/Role não existe na base de dados.";
+                    return RedirectToAction("AdminUsers");
+                }
+
+                user.RoleId = role.Id;
+                _context.SaveChanges();
+
+                TempData["Success"] = $"Papel do utilizador {user.Name} alterado para {newRoleName} com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao alterar papel do utilizador: {ex.Message}";
+            }
+
+            return RedirectToAction("AdminUsers");
+        }
+
         [Authorize(Roles = "Aluno,Admin")]
         public IActionResult Aluno()
         {

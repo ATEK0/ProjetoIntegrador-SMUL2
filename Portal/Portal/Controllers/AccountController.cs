@@ -121,12 +121,17 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string name, string email, string password, string role)
+        public async Task<IActionResult> Register(string name, string email, string password, string role = "aluno")
         {
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(role))
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 TempData["Error"] = "Por favor, preencha todos os campos.";
                 return View();
+            }
+
+            if (string.IsNullOrWhiteSpace(role))
+            {
+                role = "aluno";
             }
 
             _logger.LogInformation("Tentativa de registo iniciada para o e-mail: {Email} (Role sugerida: {Role})", email, role);

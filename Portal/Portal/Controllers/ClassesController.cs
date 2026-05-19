@@ -169,5 +169,72 @@ namespace Portal.Controllers
                 return View();
             }
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult EnrollUser(int userId, int classId)
+        {
+            try
+            {
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user == null)
+                {
+                    TempData["Error"] = "Utilizador não encontrado.";
+                    return RedirectToAction("AdminUsers", "Dashboard");
+                }
+
+                var schoolClass = _context.Classes.FirstOrDefault(c => c.Id == classId);
+                if (schoolClass == null)
+                {
+                    TempData["Error"] = "Turma não encontrada.";
+                    return RedirectToAction("AdminUsers", "Dashboard");
+                }
+
+                bool alreadyEnrolled = _context.ClassEnrollments.Any(ce => ce.ClassId == classId && ce.StudentId == userId);
+                if (alreadyEnrolled)
+                {
+                    TempData["Error"] = "O utilizador já está inscrito nesta turma.";
+                    return RedirectToAction("AdminUsers", "Dashboard");
+                }
+
+                var enrollment = new ClassEnrollment(classId, userId);
+                _context.ClassEnrollments.Add(enrollment);
+                _context.SaveChanges();
+
+                TempData["Success"] = $"Utilizador {user.Name} adicionado à turma {schoolClass.Name} com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao inscrever utilizador: {ex.Message}";
+            }
+
+            return RedirectToAction("AdminUsers", "Dashboard");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult RemoveUserFromClass(int userId, int classId)
+        {
+            try
+            {
+                var enrollment = _context.ClassEnrollments.FirstOrDefault(ce => ce.ClassId == classId && ce.StudentId == userId);
+                if (enrollment == null)
+                {
+                    TempData["Error"] = "Inscrição não encontrada.";
+                    return RedirectToAction("AdminUsers", "Dashboard");
+                }
+
+                _context.ClassEnrollments.Remove(enrollment);
+                _context.SaveChanges();
+
+                TempData["Success"] = "Utilizador removido da turma com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao remover utilizador: {ex.Message}";
+            }
+
+            return RedirectToAction("AdminUsers", "Dashboard");
+        }
     }
 }
