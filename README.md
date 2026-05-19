@@ -127,14 +127,14 @@ MYSQL_ROOT_PASSWORD=root
 ```bash
 docker compose --profile main up -d
 ```
-- **Frontend (Portal)**: `http://localhost:8080`
+- **Frontend (Portal)**: `http://localhost:5100`
 - **Backend (MS-CAFIN)**: `http://localhost:8000`
 
 ### Iniciar o ambiente de Develop (Imagens `:develop`)
 ```bash
 docker compose --profile develop up -d
 ```
-- **Frontend (Portal)**: `http://localhost:8081`
+- **Frontend (Portal)**: `http://localhost:5101`
 - **Backend (MS-CAFIN)**: `http://localhost:8001`
 
 *(Se pretenderes compilar as imagens localmente com base no teu código, podes editar o `docker-compose.yml` e adicionar a opção `build: context: ...` nos respetivos serviços).*

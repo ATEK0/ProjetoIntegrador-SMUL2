@@ -30,9 +30,10 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
-            return Redirect("/admin/classes");
+            return RedirectToAction("AdminClasses", "Dashboard");
         }
 
         public IActionResult Index()
@@ -57,6 +58,7 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create(CreateClassViewModel model)
         {
             int teacherId = GetUserId();
@@ -67,7 +69,7 @@ namespace Portal.Controllers
                                  ?? "O nome da turma é obrigatório.";
                 _logger.LogWarning("Professor ID {TeacherId} tentou criar turma com dados inválidos. Erro: {Error}", teacherId, firstError);
                 TempData["Error"] = firstError;
-                return Redirect("/admin/classes");
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
 
             _logger.LogInformation("Professor ID {TeacherId} está a tentar criar a turma '{ClassName}'", teacherId, model.Name);
@@ -83,13 +85,13 @@ namespace Portal.Controllers
                 _logger.LogInformation("Turma '{ClassName}' criada com sucesso por Professor ID {TeacherId}. Código gerado: {Code}", model.Name, teacherId, code);
 
                 TempData["Success"] = "Turma criada com sucesso!";
-                return Redirect("/admin/classes");
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao criar turma '{ClassName}' por Professor ID {TeacherId}", model.Name, teacherId);
                 TempData["Error"] = $"Erro ao criar turma: {ex.Message}";
-                return Redirect("/admin/classes");
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
         }
 
