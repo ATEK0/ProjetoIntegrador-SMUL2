@@ -1,41 +1,67 @@
-version: '3.9'
-
 services:
 
-  frontend:
+  # --- AMBIENTE MAIN (PRODUÇÃO / ESTÁVEL) ---
+  frontend-main:
     image: ghcr.io/atek0/smul2-frontend:latest
-    # Para desenvolvimento local, usa build em vez de image:
-    # build:
-    #   context: ./Portal/Portal
+    profiles: ["main"]
     ports:
-      - "8080:80"       # Ajusta a porta exposta pelo ASP.NET
+      - "8080:80"       # Porta para a main
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - BACKEND_URL=http://backend:8000   # URL interna do microserviço
+      - BACKEND_URL=http://backend-main:8000
       - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};
     depends_on:
-      - backend
+      - backend-main
       - mysql_db
     restart: unless-stopped
 
-  backend:
+  backend-main:
     image: ghcr.io/atek0/smul2-backend:latest
-    # Para desenvolvimento local:
-    # build:
-    #   context: ./MS-CAFIN/calc_service
+    profiles: ["main"]
     ports:
       - "8000:8000"
     volumes:
-      - django_data:/app/data
+      - django_data_main:/app/data
     environment:
-      - DJANGO_SETTINGS_MODULE=calc_service.settings   # Ajusta para o teu módulo
+      - DJANGO_SETTINGS_MODULE=calc_service.settings
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
     restart: unless-stopped
     command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
 
+  # --- AMBIENTE DEVELOP (TESTES / DESENVOLVIMENTO) ---
+  frontend-develop:
+    image: ghcr.io/atek0/smul2-frontend:develop
+    profiles: ["develop"]
+    ports:
+      - "8081:80"       # Porta diferente para a develop
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - BACKEND_URL=http://backend-develop:8001
+      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};
+    depends_on:
+      - backend-develop
+      - mysql_db
+    restart: unless-stopped
+
+  backend-develop:
+    image: ghcr.io/atek0/smul2-backend:develop
+    profiles: ["develop"]
+    ports:
+      - "8001:8000"     # Porta diferente para a develop
+    volumes:
+      - django_data_dev:/app/data
+    environment:
+      - DJANGO_SETTINGS_MODULE=calc_service.settings
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=True
+    restart: unless-stopped
+    command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
+
+  # --- BASE DE DADOS PARTILHADA ---
   mysql_db:
     image: mysql:8.0
+    profiles: ["main", "develop"]
     volumes:
       - mysql_data:/var/lib/mysql
     environment:
@@ -45,4 +71,5 @@ services:
 
 volumes:
   mysql_data:
-  django_data:
+  django_data_main:
+  django_data_dev:
