@@ -75,7 +75,7 @@ namespace Portal.Controllers
         public IActionResult Professor()
         {
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao Dashboard do Professor.", User.Identity?.Name ?? "Anónimo");
-            return View();
+
             int teacherId = GetUserId();
 
             var teacherClasses = _context.Classes
