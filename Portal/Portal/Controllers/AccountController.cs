@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Portal.Controllers
 {
@@ -23,11 +24,13 @@ namespace Portal.Controllers
         private readonly ApplicationDbContext _context;
         private readonly PasswordHasher<User> _passwordHasher = new();
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ApplicationDbContext context, IConfiguration configuration)
+        public AccountController(ApplicationDbContext context, IConfiguration configuration, ILogger<AccountController> logger)
         {
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -49,6 +52,8 @@ namespace Portal.Controllers
                 return View();
             }
 
+            _logger.LogInformation("Tentativa de login iniciada para o e-mail: {Email}", email);
+
             try
             {
                 var user = await _context.Users
@@ -58,6 +63,7 @@ namespace Portal.Controllers
 
                 if (user == null)
                 {
+                    _logger.LogWarning("Falha no login: o e-mail {Email} não foi encontrado na base de dados.", email);
                     TempData["Error"] = "E-mail ou password incorretos.";
                     return View();
                 }
@@ -66,12 +72,14 @@ namespace Portal.Controllers
                 var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
                 if (verificationResult == PasswordVerificationResult.Failed)
                 {
+                    _logger.LogWarning("Falha no login para {Email}: a password introduzida está incorreta.", email);
                     TempData["Error"] = "E-mail ou password incorretos.";
                     return View();
                 }
 
                 if (user.UserStatus?.StatusName != "Ativo")
                 {
+                    _logger.LogWarning("Falha no login para {Email}: a conta encontra-se com o estado '{Status}', não estando Ativa.", email, user.UserStatus?.StatusName ?? "desconhecido");
                     TempData["Error"] = "A sua conta não está ativa. Por favor, contacte o administrador.";
                     return View();
                 }
@@ -90,10 +98,13 @@ namespace Portal.Controllers
 
                 Response.Cookies.Append("JWT_Token", token, cookieOptions);
 
+                _logger.LogInformation("Login bem-sucedido para {Email} (ID: {UserId}). Role: {Role}.", email, user.Id, user.Role?.RoleName);
+
                 return RedirectUserBasedOnRole(user.Role?.RoleName);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro grave durante a tentativa de login para o e-mail: {Email}", email);
                 TempData["Error"] = $"Erro ao tentar iniciar sessão: {ex.Message}";
                 return View();
             }
@@ -118,12 +129,15 @@ namespace Portal.Controllers
                 return View();
             }
 
+            _logger.LogInformation("Tentativa de registo iniciada para o e-mail: {Email} (Role sugerida: {Role})", email, role);
+
             try
             {
                 // Verificar se o e-mail já existe
                 var existingUser = await _context.Users.AnyAsync(u => u.Email == email.Trim().ToLower());
                 if (existingUser)
                 {
+                    _logger.LogWarning("Falha no registo: e-mail já registado: {Email}", email);
                     TempData["Error"] = "Este e-mail já está registado na plataforma.";
                     return View();
                 }
@@ -133,6 +147,7 @@ namespace Portal.Controllers
                 var dbRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == dbRoleName);
                 if (dbRole == null)
                 {
+                    _logger.LogError("Falha no registo para {Email}: a função '{dbRoleName}' não existe na BD.", email, dbRoleName);
                     TempData["Error"] = $"A função '{dbRoleName}' selecionada não é válida. Por favor, verifique se a base de dados está inicializada.";
                     return View();
                 }
@@ -141,6 +156,7 @@ namespace Portal.Controllers
                 var status = await _context.UserStatuses.FirstOrDefaultAsync(s => s.StatusName == "Ativo");
                 if (status == null)
                 {
+                    _logger.LogError("Falha no registo para {Email}: o estado 'Ativo' não foi encontrado na BD.", email);
                     TempData["Error"] = "Não foi possível encontrar o estado 'Ativo' na base de dados. Por favor, verifique se a base de dados está inicializada.";
                     return View();
                 }
@@ -155,11 +171,14 @@ namespace Portal.Controllers
                 _context.Users.Add(newUser);
                 await _context.SaveChangesAsync();
 
+                _logger.LogInformation("Registo concluído com sucesso para o utilizador: {Email} (ID: {UserId}, Função: {Role}).", email, newUser.Id, dbRole.RoleName);
+
                 TempData["Success"] = "Conta criada com sucesso! Faça login abaixo.";
                 return RedirectToAction(nameof(Login));
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro grave ao tentar registar utilizador com e-mail: {Email}", email);
                 TempData["Error"] = $"Erro ao criar conta: {ex.Message}";
                 return View();
             }
@@ -207,11 +226,17 @@ namespace Portal.Controllers
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction(nameof(Login));
 
+            _logger.LogInformation("Tentativa de atualização de perfil para utilizador ID: {UserId}", userId);
+
             var user = await _context.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == userId.Value);
 
-            if (user == null) return RedirectToAction(nameof(Login));
+            if (user == null)
+            {
+                _logger.LogWarning("Atualização de perfil falhou: utilizador com ID {UserId} não encontrado.", userId);
+                return RedirectToAction(nameof(Login));
+            }
 
             // Repopular campos de apresentação antes de devolver a view em caso de erro
             vm.Role = user.Role?.RoleName ?? "—";
@@ -219,6 +244,7 @@ namespace Portal.Controllers
 
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("Atualização de perfil falhou para ID {UserId} devido a erros de validação no formulário.", userId);
                 TempData["ProfileError"] = "Por favor, corrija os erros no formulário.";
                 return View(vm);
             }
@@ -229,13 +255,17 @@ namespace Portal.Controllers
 
             if (emailTaken)
             {
+                _logger.LogWarning("Atualização de perfil falhou para ID {UserId}: e-mail '{Email}' já está registado noutra conta.", userId, vm.Email);
                 TempData["ProfileError"] = "Este e-mail já está em uso por outra conta.";
                 return View(vm);
             }
 
+            string oldEmail = user.Email;
             user.Name = vm.Name.Trim();
             user.Email = vm.Email.Trim().ToLower();
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Perfil atualizado com sucesso para ID {UserId}. Nome: '{Name}', E-mail: '{OldEmail}' -> '{NewEmail}'.", userId, user.Name, oldEmail, user.Email);
 
             // Re-emitir o token JWT com os dados atualizados
             var newToken = GenerateJwtToken(user);
@@ -259,13 +289,20 @@ namespace Portal.Controllers
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction(nameof(Login));
 
+            _logger.LogInformation("Tentativa de alteração de password para o utilizador ID: {UserId}", userId);
+
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == userId.Value);
 
-            if (user == null) return RedirectToAction(nameof(Login));
+            if (user == null)
+            {
+                _logger.LogWarning("Alteração de password falhou: utilizador com ID {UserId} não encontrado.", userId);
+                return RedirectToAction(nameof(Login));
+            }
 
             if (!ModelState.IsValid)
             {
+                _logger.LogWarning("Alteração de password falhou para ID {UserId} devido a erros de validação no formulário.", userId);
                 TempData["PasswordError"] = "Por favor, corrija os erros no formulário.";
                 return RedirectToAction(nameof(Profile));
             }
@@ -274,12 +311,15 @@ namespace Portal.Controllers
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, vm.CurrentPassword);
             if (result == PasswordVerificationResult.Failed)
             {
+                _logger.LogWarning("Alteração de password falhou para ID {UserId}: a password atual fornecida está incorreta.", userId);
                 TempData["PasswordError"] = "A password atual está incorreta.";
                 return RedirectToAction(nameof(Profile));
             }
 
             user.PasswordHash = _passwordHasher.HashPassword(user, vm.NewPassword);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Password alterada com sucesso para o utilizador ID: {UserId}.", userId);
 
             TempData["PasswordSuccess"] = "Password alterada com sucesso!";
             return RedirectToAction(nameof(Profile));
