@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Portal.Data;
 using Portal.Models;
 using Portal.Models.ViewModels;
@@ -7,6 +9,7 @@ using System.Linq;
 
 namespace Portal.Controllers
 {
+    [Authorize]
     public class ChallengesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -14,6 +17,12 @@ namespace Portal.Controllers
         public ChallengesController(ApplicationDbContext context)
         {
             _context = context;
+        }
+
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 1;
         }
 
         [HttpPost]
@@ -30,7 +39,7 @@ namespace Portal.Controllers
             try
             {
                 string code = GenerateAccessCode();
-                int teacherId = 1; // Default fallback to system administrator/teacher user
+                int teacherId = GetUserId();
 
                 var challenge = new Challenge(teacherId, model.Title, code)
                 {

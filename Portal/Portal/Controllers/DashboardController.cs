@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using Portal.Data;
 using Portal.Models;
 using Portal.Models.ViewModels;
@@ -7,6 +8,7 @@ using System.Linq;
 
 namespace Portal.Controllers
 {
+    [Authorize]
     public class DashboardController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -16,6 +18,7 @@ namespace Portal.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Admin")]
         [Route("/admin")]
         public IActionResult Admin()
         {
@@ -27,6 +30,7 @@ namespace Portal.Controllers
             return View("Admin", viewModel);
         }
 
+        [Authorize(Roles = "Admin")]
         [Route("/admin/classes")]
         public IActionResult AdminClasses()
         {
@@ -38,6 +42,7 @@ namespace Portal.Controllers
             return View("AdminClasses", viewModel);
         }
 
+        [Authorize(Roles = "Admin")]
         [Route("/admin/challenges")]
         public IActionResult AdminChallenges()
         {
@@ -49,11 +54,13 @@ namespace Portal.Controllers
             return View("AdminChallenges", viewModel);
         }
 
+        [Authorize(Roles = "Aluno,Admin")]
         public IActionResult Aluno()
         {
             return View();
         }
 
+        [Authorize(Roles = "Professor,Admin")]
         public IActionResult Professor()
         {
             return View();

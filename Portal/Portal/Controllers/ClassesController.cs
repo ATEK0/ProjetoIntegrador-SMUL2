@@ -1,10 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Portal.Data;
 using Portal.Models;
 using Portal.Models.ViewModels;
+using System;
+using System.Linq;
 
 namespace Portal.Controllers
 {
+    [Authorize]
     public class ClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -13,17 +18,23 @@ namespace Portal.Controllers
         {
             _context = context;
         }
+
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 1;
+        }
+
         [HttpGet]
         public IActionResult Create()
         {
             return Redirect("/admin/classes");
         }
+
         public IActionResult Index()
         {
-            
-            int currentTeacherId = 1;
+            int currentTeacherId = GetUserId();
 
-            
             var myClasses = _context.Classes
                 .Where(c => c.TeacherId == currentTeacherId)
                 .Select(c => new TeacherClassViewModel
@@ -41,7 +52,6 @@ namespace Portal.Controllers
             return View(myClasses);
         }
 
-
         [HttpPost]
         public IActionResult Create(CreateClassViewModel model)
         {
@@ -56,8 +66,8 @@ namespace Portal.Controllers
             try
             {
                 string code = GenerateMembershipCode();
+                int teacherId = GetUserId();
 
-                int teacherId = 1;
                 var newClass = new SchoolClass(teacherId, model.Name, code);
                 _context.Classes.Add(newClass);
                 _context.SaveChanges();
@@ -111,10 +121,11 @@ namespace Portal.Controllers
                 ModelState.AddModelError("", "Código inválido. Não foi encontrada nenhuma turma ou desafio com este código.");
                 return View();
             }
-            int studentId = 2;
+
+            int studentId = GetUserId();
 
             bool alreadyJoined = _context.ClassEnrollments
-        .Any(ce => ce.ClassId == targetClass.Id && ce.StudentId == studentId);
+                .Any(ce => ce.ClassId == targetClass.Id && ce.StudentId == studentId);
 
             if (alreadyJoined)
             {
@@ -137,7 +148,5 @@ namespace Portal.Controllers
                 return View();
             }
         }
-
-
     }
 }
