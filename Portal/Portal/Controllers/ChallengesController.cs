@@ -29,6 +29,15 @@ namespace Portal.Controllers
             return claim != null ? int.Parse(claim.Value) : 1;
         }
 
+        private IActionResult RedirectBasedOnRole()
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("AdminChallenges", "Dashboard");
+            }
+            return RedirectToAction("Professor", "Dashboard");
+        }
+
         [HttpPost]
         public IActionResult Create(CreateChallengeViewModel model)
         {
@@ -40,7 +49,7 @@ namespace Portal.Controllers
                                  ?? "Dados inválidos para criação do desafio.";
                 _logger.LogWarning("Professor ID {TeacherId} tentou criar desafio com dados inválidos. Erro: {Error}", teacherId, firstError);
                 TempData["Error"] = firstError;
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
 
             _logger.LogInformation("Professor ID {TeacherId} está a tentar criar o desafio '{Title}'", teacherId, model.Title);
@@ -61,13 +70,13 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' criado com sucesso por Professor ID {TeacherId}. Código gerado: {Code}", model.Title, teacherId, code);
 
                 TempData["Success"] = "Desafio criado com sucesso!";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao criar desafio '{Title}' por Professor ID {TeacherId}", model.Title, teacherId);
                 TempData["Error"] = $"Erro ao criar desafio: {ex.Message}";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
         }
 
@@ -84,7 +93,7 @@ namespace Portal.Controllers
                 {
                     _logger.LogWarning("Associação falhou: desafio ID {ChallengeId} não encontrado.", challengeId);
                     TempData["Error"] = "Desafio não encontrado.";
-                    return Redirect("/admin/challenges");
+                    return RedirectBasedOnRole();
                 }
 
                 challenge.ClassId = classId;
@@ -93,13 +102,13 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' (ID: {ChallengeId}) associado com sucesso à turma ID {ClassId}", challenge.Title, challengeId, classId);
 
                 TempData["Success"] = "Desafio associado com sucesso!";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao associar desafio ID {ChallengeId} à turma ID {ClassId}", challengeId, classId);
                 TempData["Error"] = $"Erro ao associar desafio: {ex.Message}";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
         }
 
@@ -116,7 +125,7 @@ namespace Portal.Controllers
                 {
                     _logger.LogWarning("Remoção falhou: desafio ID {ChallengeId} não encontrado.", id);
                     TempData["Error"] = "Desafio não encontrado.";
-                    return Redirect("/admin/challenges");
+                    return RedirectBasedOnRole();
                 }
 
                 _context.Challenges.Remove(challenge);
@@ -125,13 +134,13 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' (ID: {ChallengeId}) eliminado com sucesso por utilizador ID {UserId}.", challenge.Title, id, userId);
 
                 TempData["Success"] = "Desafio eliminado com sucesso!";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao eliminar desafio ID {ChallengeId} por utilizador ID {UserId}", id, userId);
                 TempData["Error"] = $"Erro ao eliminar desafio: {ex.Message}";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
         }
 

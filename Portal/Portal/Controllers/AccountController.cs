@@ -362,7 +362,7 @@ namespace Portal.Controllers
         {
             if (string.Equals(roleName, "Admin", StringComparison.OrdinalIgnoreCase))
             {
-                return Redirect("/admin");
+                return RedirectToAction("Admin", "Dashboard");
             }
             else if (string.Equals(roleName, "Professor", StringComparison.OrdinalIgnoreCase))
             {

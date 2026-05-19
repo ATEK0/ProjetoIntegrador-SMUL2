@@ -23,7 +23,6 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [Route("/admin")]
         public IActionResult Admin()
         {
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao Dashboard de Administração Geral.", User.Identity?.Name ?? "Anónimo");
@@ -36,7 +35,6 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [Route("/admin/classes")]
         public IActionResult AdminClasses()
         {
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao painel de Administração de Turmas.", User.Identity?.Name ?? "Anónimo");
@@ -49,7 +47,6 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [Route("/admin/challenges")]
         public IActionResult AdminChallenges()
         {
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao painel de Administração de Desafios.", User.Identity?.Name ?? "Anónimo");
@@ -68,11 +65,50 @@ namespace Portal.Controllers
             return View();
         }
 
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 1;
+        }
+
         [Authorize(Roles = "Professor,Admin")]
         public IActionResult Professor()
         {
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao Dashboard do Professor.", User.Identity?.Name ?? "Anónimo");
             return View();
+            int teacherId = GetUserId();
+
+            var teacherClasses = _context.Classes
+                .Where(c => c.TeacherId == teacherId)
+                .ToList();
+
+            var classIds = teacherClasses.Select(c => c.Id).ToList();
+
+            var classDetails = teacherClasses.Select(c => new TeacherClassDetailViewModel
+            {
+                ClassId = c.Id,
+                ClassName = c.Name,
+                MembershipCode = c.MembershipCode,
+                StudentCount = _context.ClassEnrollments.Count(ce => ce.ClassId == c.Id)
+            }).ToList();
+
+            var teacherChallenges = _context.Challenges
+                .Include(c => c.Class)
+                .Where(c => c.TeacherId == teacherId)
+                .ToList();
+
+            var totalStudents = _context.ClassEnrollments
+                .Count(ce => classIds.Contains(ce.ClassId));
+
+            var viewModel = new TeacherDashboardViewModel
+            {
+                TotalStudents = totalStudents,
+                TotalChallenges = teacherChallenges.Count,
+                Classes = classDetails,
+                Challenges = teacherChallenges
+            };
+
+            return View(viewModel);
         }
     }
 }
