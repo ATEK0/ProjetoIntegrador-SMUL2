@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Portal.Data;
 using System;
+using Microsoft.Extensions.Logging;
 
 namespace Portal
 {
@@ -97,14 +98,17 @@ namespace Portal
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
+                var logger = services.GetRequiredService<ILogger<Program>>();
                 try
                 {
+                    logger.LogInformation("Iniciando a inicialização e semeadura da base de dados...");
                     var context = services.GetRequiredService<ApplicationDbContext>();
                     DbInitializer.Initialize(context);
+                    logger.LogInformation("Base de dados inicializada e semeada com sucesso!");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Erro no escopo de inicialização da BD: {ex.Message}");
+                    logger.LogError(ex, "Erro no escopo de inicialização da BD.");
                 }
             }
 
