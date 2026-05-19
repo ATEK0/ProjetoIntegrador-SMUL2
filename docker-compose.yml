@@ -2,7 +2,8 @@ services:
 
   # --- AMBIENTE MAIN (PRODUÇÃO / Development) ---
   frontend-main:
-    image: ghcr.io/atek0/smul2-frontend:latest
+    # image: ghcr.io/atek0/smul2-frontend:latest
+    build: ./Portal/Portal
     profiles: ["main"]
     ports:
       - "8080:80"       # Porta para a main
@@ -16,7 +17,8 @@ services:
     restart: unless-stopped
 
   backend-main:
-    image: ghcr.io/atek0/smul2-backend:latest
+    # image: ghcr.io/atek0/smul2-backend:latest
+    build: ./MS-CAFIN/calc_service
     profiles: ["main"]
     ports:
       - "8000:8000"
