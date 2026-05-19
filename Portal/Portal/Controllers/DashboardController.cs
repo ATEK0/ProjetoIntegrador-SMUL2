@@ -19,7 +19,6 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [Route("/admin")]
         public IActionResult Admin()
         {
             var viewModel = new AdminDashboardViewModel
@@ -31,7 +30,6 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [Route("/admin/classes")]
         public IActionResult AdminClasses()
         {
             var viewModel = new AdminDashboardViewModel
@@ -43,7 +41,6 @@ namespace Portal.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [Route("/admin/challenges")]
         public IActionResult AdminChallenges()
         {
             var viewModel = new AdminDashboardViewModel
@@ -60,10 +57,48 @@ namespace Portal.Controllers
             return View();
         }
 
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            return claim != null ? int.Parse(claim.Value) : 1;
+        }
+
         [Authorize(Roles = "Professor,Admin")]
         public IActionResult Professor()
         {
-            return View();
+            int teacherId = GetUserId();
+
+            var teacherClasses = _context.Classes
+                .Where(c => c.TeacherId == teacherId)
+                .ToList();
+
+            var classIds = teacherClasses.Select(c => c.Id).ToList();
+
+            var classDetails = teacherClasses.Select(c => new TeacherClassDetailViewModel
+            {
+                ClassId = c.Id,
+                ClassName = c.Name,
+                MembershipCode = c.MembershipCode,
+                StudentCount = _context.ClassEnrollments.Count(ce => ce.ClassId == c.Id)
+            }).ToList();
+
+            var teacherChallenges = _context.Challenges
+                .Include(c => c.Class)
+                .Where(c => c.TeacherId == teacherId)
+                .ToList();
+
+            var totalStudents = _context.ClassEnrollments
+                .Count(ce => classIds.Contains(ce.ClassId));
+
+            var viewModel = new TeacherDashboardViewModel
+            {
+                TotalStudents = totalStudents,
+                TotalChallenges = teacherChallenges.Count,
+                Classes = classDetails,
+                Challenges = teacherChallenges
+            };
+
+            return View(viewModel);
         }
     }
 }

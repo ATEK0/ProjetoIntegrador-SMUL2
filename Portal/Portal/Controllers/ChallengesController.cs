@@ -25,6 +25,15 @@ namespace Portal.Controllers
             return claim != null ? int.Parse(claim.Value) : 1;
         }
 
+        private IActionResult RedirectBasedOnRole()
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("AdminChallenges", "Dashboard");
+            }
+            return RedirectToAction("Professor", "Dashboard");
+        }
+
         [HttpPost]
         public IActionResult Create(CreateChallengeViewModel model)
         {
@@ -33,7 +42,7 @@ namespace Portal.Controllers
                 var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
                                  ?? "Dados inválidos para criação do desafio.";
                 TempData["Error"] = firstError;
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
 
             try
@@ -51,12 +60,12 @@ namespace Portal.Controllers
                 _context.SaveChanges();
 
                 TempData["Success"] = "Desafio criado com sucesso!";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Erro ao criar desafio: {ex.Message}";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
         }
 
@@ -69,19 +78,19 @@ namespace Portal.Controllers
                 if (challenge == null)
                 {
                     TempData["Error"] = "Desafio não encontrado.";
-                    return Redirect("/admin/challenges");
+                    return RedirectBasedOnRole();
                 }
 
                 challenge.ClassId = classId;
                 _context.SaveChanges();
 
                 TempData["Success"] = "Desafio associado com sucesso!";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Erro ao associar desafio: {ex.Message}";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
         }
 
@@ -94,19 +103,19 @@ namespace Portal.Controllers
                 if (challenge == null)
                 {
                     TempData["Error"] = "Desafio não encontrado.";
-                    return Redirect("/admin/challenges");
+                    return RedirectBasedOnRole();
                 }
 
                 _context.Challenges.Remove(challenge);
                 _context.SaveChanges();
 
                 TempData["Success"] = "Desafio eliminado com sucesso!";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Erro ao eliminar desafio: {ex.Message}";
-                return Redirect("/admin/challenges");
+                return RedirectBasedOnRole();
             }
         }
 
