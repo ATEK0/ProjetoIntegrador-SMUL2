@@ -21,7 +21,7 @@ namespace Portal.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage 
+                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
                                  ?? "Dados inválidos para criação do desafio.";
                 TempData["Error"] = firstError;
                 return Redirect("/admin/challenges");

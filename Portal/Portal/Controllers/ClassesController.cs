@@ -24,7 +24,7 @@ namespace Portal.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage 
+                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
                                  ?? "O nome da turma é obrigatório.";
                 TempData["Error"] = firstError;
                 return Redirect("/admin/classes");
@@ -35,10 +35,10 @@ namespace Portal.Controllers
                 string code = GenerateMembershipCode();
 
                 int teacherId = 1;
-                var newClass = new SchoolClass(teacherId, model.Name, code);       
+                var newClass = new SchoolClass(teacherId, model.Name, code);
                 _context.Classes.Add(newClass);
                 _context.SaveChanges();
-  
+
                 TempData["Success"] = "Turma criada com sucesso!";
                 return Redirect("/admin/classes");
             }

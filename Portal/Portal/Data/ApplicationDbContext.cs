@@ -36,7 +36,7 @@ namespace Portal.Data
             modelBuilder.Entity<Entry>().Property(e => e.EntryType).HasConversion<string>();
             modelBuilder.Entity<Entry>().Property(e => e.Recurrence).HasConversion<string>();
 
-            
+
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
                 .SelectMany(t => t.GetForeignKeys())
                 .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
