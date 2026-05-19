@@ -11,6 +11,7 @@ namespace Portal.Models
         private string _description;
         private string _accessLinkCode;
 
+
         public int TeacherId
         {
             get { return _teacherId; }
