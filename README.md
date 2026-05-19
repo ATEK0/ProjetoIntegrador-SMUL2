@@ -151,7 +151,7 @@ O repositório utiliza **GitHub Actions** para automação, cujos workflows est�
 1. **CI - Django Microserviço (`ci-django.yml`)**:
    - É ativado em pushes/pull requests para as pastas do backend (`MS-CAFIN/**`).
    - Garante que a formatação do código (com *black* e *flake8*) está correta e executa testes ao Django.
-   - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), gerando as tags `:latest` e `:develop` respetivamente.
+   - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), e gera as tags `:latest` e `:develop` respetivamente.
 
 2. **CI - ASP.NET Portal (`ci-aspnet.yml`)**:
    - É ativado em pushes/pull requests para a diretoria frontend (`Portal/**`).
