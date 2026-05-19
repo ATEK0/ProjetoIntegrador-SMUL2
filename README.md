@@ -11,19 +11,18 @@ Este repositório contém atualmente 2 componentes ativos:
 ProjetoIntegrador-SMUL2/
 |- MS-CAFIN/calc_service
 |- Portal
-| - Docs
+|- Docs
 ```
 
 ## Pré-requisitos
 
-- Python 3.12+ recomendado
-- pip
-- .NET SDK 10.0
+- Docker e Docker Compose (para correr o projeto de forma simplificada)
+- Python 3.12+ e pip (caso corras o backend localmente)
+- .NET SDK 10.0 (caso corras o frontend localmente)
 
 Notas importantes:
 
-- O projeto Django usa SQLite local. A base de dados é criada após as migrações.
-- Não existe ficheiro de dependências Python (`requirements.txt`) no repositório.
+- Em Docker, a base de dados usada pelo frontend ASP.NET é **MySQL**. O backend Django utiliza uma base de dados **SQLite** partilhada via volume no Docker.
 - O frontend está configurado para `net10.0`; versões mais antigas do SDK .NET não compilam o projeto.
 
 ## Portas
@@ -40,7 +39,7 @@ Entre na pasta do serviço:
 cd MS-CAFIN/calc_service
 ```
 
-Criar e ativar um ambiente virtual:
+Criar e ativar um ambiente virtual (opcional):
 
 ```bash
 python3 -m venv .venv
@@ -114,8 +113,53 @@ dotnet restore
 dotnet run --launch-profile http
 ```
 
+## 3. Executar com Docker Compose
+
+O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (MySQL) simultaneamente. A configuração está dividida em dois ambientes através de profiles do Docker Compose: **main** e **develop**.
+
+Antes de arrancar os contentores, tens de criar um ficheiro `.env` na raiz do projeto com as variáveis obrigatórias:
+```env
+SECRET_KEY=uma-chave-muito-secreta-para-o-django
+MYSQL_ROOT_PASSWORD=root
+```
+
+### Iniciar o ambiente da Main (Imagens `:latest`)
+```bash
+docker compose --profile main up -d
+```
+- **Frontend (Portal)**: `http://localhost:8080`
+- **Backend (MS-CAFIN)**: `http://localhost:8000`
+
+### Iniciar o ambiente de Develop (Imagens `:develop`)
+```bash
+docker compose --profile develop up -d
+```
+- **Frontend (Portal)**: `http://localhost:8081`
+- **Backend (MS-CAFIN)**: `http://localhost:8001`
+
+*(Se pretenderes compilar as imagens localmente com base no teu código, podes editar o `docker-compose.yml` e adicionar a opção `build: context: ...` nos respetivos serviços).*
+
+Para parar todos os contentores:
+```bash
+docker compose --profile main --profile develop down
+```
+
+## Integração Contínua (CI/CD)
+
+O repositório utiliza **GitHub Actions** para automação, cujos workflows estão guardados na diretoria `.github/workflows/`:
+
+1. **CI - Django Microserviço (`ci-django.yml`)**:
+   - É ativado em pushes/pull requests para as pastas do backend (`MS-CAFIN/**`).
+   - Garante que a formatação do código (com *black* e *flake8*) está correta e executa testes ao Django.
+   - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), e gera as tags `:latest` e `:develop` respetivamente.
+
+2. **CI - ASP.NET Portal (`ci-aspnet.yml`)**:
+   - É ativado em pushes/pull requests para a diretoria frontend (`Portal/**`).
+   - Garante que a aplicação .NET 10 compila sem erros, verifica regras de estilo (`dotnet format`) e executa testes unitários/integrados.
+   - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), gerando as tags `:latest` e `:develop` respetivamente.
+
 ## Estado atual do repositório
 
-- Existe 1 projeto Django (`MS-CAFIN/calc_service`).
-- Existe 1 projeto ASP.NET Core MVC (`Portal`).
-- Não existe ainda ficheiro de dependências Python no repositório.
+- Existe 1 projeto Django (`MS-CAFIN/calc_service`), já com `requirements.txt` e `Dockerfile`.
+- Existe 1 projeto ASP.NET Core MVC (`Portal`), já atualizado para `.NET 10.0` e com `Dockerfile`.
+- O ficheiro `docker-compose.yml` está na raiz preparado para orquestrar os dois projetos.
