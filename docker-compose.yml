@@ -6,11 +6,12 @@ services:
     build: ./Portal/Portal
     profiles: ["main"]
     ports:
-      - "8080:80"       # Porta para a main
+      - "5100:80"       # Porta para a main
     environment:
+      - ASPNETCORE_URLS=http://+:80 
       - ASPNETCORE_ENVIRONMENT=Production
       - BACKEND_URL=http://backend-main:8000
-      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};
+      - "ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
     depends_on:
       - backend-main
       - mysql_db
@@ -37,11 +38,12 @@ services:
     build: ./Portal/Portal
     profiles: ["develop"]
     ports:
-      - "8081:80"       # Porta diferente para a develop
+      - "5101:80"       # Porta diferente para a develop
     environment:
+      - ASPNETCORE_URLS=http://+:80 
       - ASPNETCORE_ENVIRONMENT=Development
-      - BACKEND_URL=http://backend-develop:8001
-      - ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};
+      - BACKEND_URL=http://backend-develop:8000
+      - "ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
     depends_on:
       - backend-develop
       - mysql_db
