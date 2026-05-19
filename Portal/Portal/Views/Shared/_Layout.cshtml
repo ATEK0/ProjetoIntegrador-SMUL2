@@ -60,6 +60,7 @@
                 <div class="user-profile">
                     <span class="text-muted">@User.Identity?.Name</span>
                     <div class="avatar">@(User.Identity?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")</div>
+                    <a href="/Account/Profile" class="btn btn-sm btn-outline-primary ms-3" style="font-size:0.85rem;">Perfil</a>
                 </div>
             </header>
 

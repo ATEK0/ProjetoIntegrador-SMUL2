@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Portal.Data;
 using Portal.Models;
+using Portal.Models.ViewModels;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -169,6 +171,128 @@ namespace Portal.Controllers
         {
             Response.Cookies.Delete("JWT_Token");
             return RedirectToAction(nameof(Login));
+        }
+
+        // ── PERFIL ───────────────────────────────────────────────────────────────
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction(nameof(Login));
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+            if (user == null) return RedirectToAction(nameof(Login));
+
+            var vm = new ProfileViewModel
+            {
+                Name      = user.Name,
+                Email     = user.Email,
+                Role      = user.Role?.RoleName ?? "—",
+                CreatedAt = user.CreatedAt
+            };
+
+            return View(vm);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(ProfileViewModel vm)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction(nameof(Login));
+
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+            if (user == null) return RedirectToAction(nameof(Login));
+
+            // Repopular campos de apresentação antes de devolver a view em caso de erro
+            vm.Role      = user.Role?.RoleName ?? "—";
+            vm.CreatedAt = user.CreatedAt;
+
+            if (!ModelState.IsValid)
+            {
+                TempData["ProfileError"] = "Por favor, corrija os erros no formulário.";
+                return View(vm);
+            }
+
+            // Verificar se o e-mail já está em uso por outro utilizador
+            bool emailTaken = await _context.Users
+                .AnyAsync(u => u.Email == vm.Email.Trim().ToLower() && u.Id != userId.Value);
+
+            if (emailTaken)
+            {
+                TempData["ProfileError"] = "Este e-mail já está em uso por outra conta.";
+                return View(vm);
+            }
+
+            user.Name  = vm.Name.Trim();
+            user.Email = vm.Email.Trim().ToLower();
+            await _context.SaveChangesAsync();
+
+            // Re-emitir o token JWT com os dados atualizados
+            var newToken = GenerateJwtToken(user);
+            Response.Cookies.Append("JWT_Token", newToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = false,
+                SameSite = SameSiteMode.Strict,
+                Expires  = DateTime.UtcNow.AddDays(7)
+            });
+
+            TempData["ProfileSuccess"] = "Perfil atualizado com sucesso!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction(nameof(Login));
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+
+            if (user == null) return RedirectToAction(nameof(Login));
+
+            if (!ModelState.IsValid)
+            {
+                TempData["PasswordError"] = "Por favor, corrija os erros no formulário.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            // Verificar password atual
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, vm.CurrentPassword);
+            if (result == PasswordVerificationResult.Failed)
+            {
+                TempData["PasswordError"] = "A password atual está incorreta.";
+                return RedirectToAction(nameof(Profile));
+            }
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, vm.NewPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["PasswordSuccess"] = "Password alterada com sucesso!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        // ── HELPERS ───────────────────────────────────────────────────────────────
+
+        private int? GetCurrentUserId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim != null && int.TryParse(claim.Value, out int id))
+                return id;
+            return null;
         }
 
         private string GenerateJwtToken(User user)
