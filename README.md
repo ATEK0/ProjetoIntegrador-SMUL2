@@ -115,27 +115,33 @@ dotnet run --launch-profile http
 
 ## 3. Executar com Docker Compose
 
-O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (MySQL) simultaneamente, isolando todas as dependências do teu sistema.
+O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (MySQL) simultaneamente. A configuração está dividida em dois ambientes através de profiles do Docker Compose: **main** e **develop**.
 
-Para iniciar tudo de uma vez com as imagens do GitHub Registry:
-
-```bash
-docker-compose up -d
+Antes de arrancar os contentores, tens de criar um ficheiro `.env` na raiz do projeto com as variáveis obrigatórias:
+```env
+SECRET_KEY=uma-chave-muito-secreta-para-o-django
+MYSQL_ROOT_PASSWORD=root
 ```
 
-Se quiseres compilar as imagens a partir do teu código fonte local, descomenta as propriedades `build` e `context` presentes no ficheiro `docker-compose.yml` e executa:
-
+### Iniciar o ambiente da Main (Imagens `:latest`)
 ```bash
-docker-compose up -d --build
+docker compose --profile main up -d
 ```
-
-Os serviços ficarão disponíveis em:
 - **Frontend (Portal)**: `http://localhost:8080`
 - **Backend (MS-CAFIN)**: `http://localhost:8000`
 
+### Iniciar o ambiente de Develop (Imagens `:develop`)
+```bash
+docker compose --profile develop up -d
+```
+- **Frontend (Portal)**: `http://localhost:8081`
+- **Backend (MS-CAFIN)**: `http://localhost:8001`
+
+*(Se pretenderes compilar as imagens localmente com base no teu código, podes editar o `docker-compose.yml` e adicionar a opção `build: context: ...` nos respetivos serviços).*
+
 Para parar todos os contentores:
 ```bash
-docker-compose down
+docker compose --profile main --profile develop down
 ```
 
 ## Integração Contínua (CI/CD)
@@ -145,12 +151,12 @@ O repositório utiliza **GitHub Actions** para automação, cujos workflows est�
 1. **CI - Django Microserviço (`ci-django.yml`)**:
    - É ativado em pushes/pull requests para as pastas do backend (`MS-CAFIN/**`).
    - Garante que a formatação do código (com *black* e *flake8*) está correta e executa testes ao Django.
-   - Na *branch main*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`).
+   - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), gerando as tags `:latest` e `:develop` respetivamente.
 
 2. **CI - ASP.NET Portal (`ci-aspnet.yml`)**:
    - É ativado em pushes/pull requests para a diretoria frontend (`Portal/**`).
    - Garante que a aplicação .NET 10 compila sem erros, verifica regras de estilo (`dotnet format`) e executa testes unitários/integrados.
-   - Na *branch main*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`).
+   - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), gerando as tags `:latest` e `:develop` respetivamente.
 
 ## Estado atual do repositório
 
