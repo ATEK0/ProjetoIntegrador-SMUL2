@@ -26,9 +26,10 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
-            return Redirect("/admin/classes");
+            return RedirectToAction("AdminClasses", "Dashboard");
         }
 
         public IActionResult Index()
@@ -53,6 +54,7 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create(CreateClassViewModel model)
         {
             if (!ModelState.IsValid)
@@ -60,7 +62,7 @@ namespace Portal.Controllers
                 var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
                                  ?? "O nome da turma é obrigatório.";
                 TempData["Error"] = firstError;
-                return Redirect("/admin/classes");
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
 
             try
@@ -73,12 +75,12 @@ namespace Portal.Controllers
                 _context.SaveChanges();
 
                 TempData["Success"] = "Turma criada com sucesso!";
-                return Redirect("/admin/classes");
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Erro ao criar turma: {ex.Message}";
-                return Redirect("/admin/classes");
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
         }
 
