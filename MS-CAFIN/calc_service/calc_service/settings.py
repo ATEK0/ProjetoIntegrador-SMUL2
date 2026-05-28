@@ -16,7 +16,7 @@ INSTALLED_APPS = [
     # Bibliotecas da API
     "rest_framework",
     "drf_spectacular",
-    # A tua app local
+    # app local
     "api",
 ]
 
@@ -33,19 +33,38 @@ TEMPLATES = [
     },
 ]
 
+import os
+
 ROOT_URLCONF = "calc_service.urls"
 
 
-# Create data dir for sqlite volume if it doesn't exist
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": DATA_DIR / "db.sqlite3",
+# Base de dados — MySQL via variáveis de ambiente (Docker)
+# Fallback para SQLite quando a correr localmente sem Docker
+if os.environ.get("DB_HOST"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.environ.get("DB_NAME", "calc_service"),
+            "USER": os.environ.get("DB_USER", "root"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", ""),
+            "HOST": os.environ.get("DB_HOST", "mysql_db"),
+            "PORT": os.environ.get("DB_PORT", "3306"),
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
     }
-}
+else:
+    # Fallback SQLite para desenvolvimento local
+    DATA_DIR = BASE_DIR / "data"
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": DATA_DIR / "db.sqlite3",
+        }
+    }
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"

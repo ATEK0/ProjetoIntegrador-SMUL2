@@ -2,3 +2,4 @@ Django
 djangorestframework
 drf-spectacular
 gunicorn
+mysqlclient

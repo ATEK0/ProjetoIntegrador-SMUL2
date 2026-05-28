@@ -62,14 +62,22 @@ services:
     # Sem portas expostas — acessível apenas via nginx-main
     expose:
       - "8000"
-    volumes:
-      - django_data_main:/app/data
     environment:
       - DJANGO_SETTINGS_MODULE=calc_service.settings
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=False
+      # Ligação à base de dados MySQL partilhada
+      - DB_HOST=mysql_db
+      - DB_PORT=3306
+      - DB_NAME=calc_service
+      - DB_USER=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+    depends_on:
+      - mysql_db
     restart: unless-stopped
-    command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
+    command: >-
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000"
 
   # ============================================================
   # AMBIENTE DEVELOP (TESTES / DESENVOLVIMENTO)
@@ -99,14 +107,22 @@ services:
     # Sem portas expostas — acessível apenas via nginx-develop
     expose:
       - "8000"
-    volumes:
-      - django_data_dev:/app/data
     environment:
       - DJANGO_SETTINGS_MODULE=calc_service.settings
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=True
+      # Ligação à base de dados MySQL partilhada
+      - DB_HOST=mysql_db
+      - DB_PORT=3306
+      - DB_NAME=calc_service
+      - DB_USER=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+    depends_on:
+      - mysql_db
     restart: unless-stopped
-    command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
+    command: >-
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000"
 
   # ============================================================
   # BASE DE DADOS PARTILHADA
@@ -117,6 +133,7 @@ services:
     profiles: ["main", "develop"]
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
       - MYSQL_DATABASE=dec
@@ -124,5 +141,3 @@ services:
 
 volumes:
   mysql_data:
-  django_data_main:
-  django_data_dev:
