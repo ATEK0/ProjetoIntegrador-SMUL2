@@ -1,12 +1,50 @@
 services:
 
-  # --- AMBIENTE MAIN (PRODUÇÃO / Development) ---
+  # ============================================================
+  # REVERSE PROXY — Nginx com TLS
+  # ============================================================
+
+  # --- Nginx para o ambiente MAIN (portas 80/443) ---
+  nginx-main:
+    image: nginx:alpine
+    profiles: ["main"]
+    ports:
+      - "80:80"        # HTTP → redirect para HTTPS
+      - "443:443"      # HTTPS (TLS termination)
+    volumes:
+      - ./nginx/main.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend-main
+      - backend-main
+    restart: unless-stopped
+
+  # --- Nginx para o ambiente DEVELOP (portas 8080/8443) ---
+  nginx-develop:
+    image: nginx:alpine
+    profiles: ["develop"]
+    ports:
+      - "8080:80"      # HTTP → redirect para HTTPS
+      - "8443:443"     # HTTPS (TLS termination)
+    volumes:
+      - ./nginx/develop.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend-develop
+      - backend-develop
+    restart: unless-stopped
+
+  # ============================================================
+  # AMBIENTE MAIN (PRODUÇÃO)
+  # ============================================================
+
   frontend-main:
     # image: ghcr.io/atek0/smul2-frontend:latest
     build: ./Portal/Portal
     profiles: ["main"]
-    ports:
-      - "5100:80"       # Porta para a main
+    # Sem portas expostas — acessível apenas via nginx-main
+    expose:
+      - "80"
     environment:
       - ASPNETCORE_URLS=http://+:80 
       - ASPNETCORE_ENVIRONMENT=Production
@@ -21,8 +59,9 @@ services:
     # image: ghcr.io/atek0/smul2-backend:latest
     build: ./MS-CAFIN/calc_service
     profiles: ["main"]
-    ports:
-      - "8000:8000"
+    # Sem portas expostas — acessível apenas via nginx-main
+    expose:
+      - "8000"
     volumes:
       - django_data_main:/app/data
     environment:
@@ -32,13 +71,17 @@ services:
     restart: unless-stopped
     command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
 
-  # --- AMBIENTE DEVELOP (TESTES / DESENVOLVIMENTO) ---
+  # ============================================================
+  # AMBIENTE DEVELOP (TESTES / DESENVOLVIMENTO)
+  # ============================================================
+
   frontend-develop:
     # image: ghcr.io/atek0/smul2-frontend:develop
     build: ./Portal/Portal
     profiles: ["develop"]
-    ports:
-      - "5101:80"       # Porta diferente para a develop
+    # Sem portas expostas — acessível apenas via nginx-develop
+    expose:
+      - "80"
     environment:
       - ASPNETCORE_URLS=http://+:80 
       - ASPNETCORE_ENVIRONMENT=Development
@@ -53,8 +96,9 @@ services:
     # image: ghcr.io/atek0/smul2-backend:develop
     build: ./MS-CAFIN/calc_service
     profiles: ["develop"]
-    ports:
-      - "8001:8000"     # Porta diferente para a develop
+    # Sem portas expostas — acessível apenas via nginx-develop
+    expose:
+      - "8000"
     volumes:
       - django_data_dev:/app/data
     environment:
@@ -64,7 +108,10 @@ services:
     restart: unless-stopped
     command: gunicorn calc_service.wsgi:application --bind 0.0.0.0:8000
 
-  # --- BASE DE DADOS PARTILHADA ---
+  # ============================================================
+  # BASE DE DADOS PARTILHADA
+  # ============================================================
+
   mysql_db:
     image: mysql:8.0
     profiles: ["main", "develop"]

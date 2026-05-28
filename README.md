@@ -115,29 +115,58 @@ dotnet run --launch-profile http
 
 ## 3. Executar com Docker Compose
 
-O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (MySQL) simultaneamente. A configuração está dividida em dois ambientes através de profiles do Docker Compose: **main** e **develop**.
+O projeto suporta **Docker Compose** para correr o backend (Django), o frontend (ASP.NET) e a base de dados (MySQL) simultaneamente. A configuração está dividida em dois ambientes através de profiles do Docker Compose: **main** e **develop**. Ambos os ambientes utilizam **Nginx como reverse proxy com TLS**.
 
-Antes de arrancar os contentores, tens de criar um ficheiro `.env` na raiz do projeto com as variáveis obrigatórias:
+### Pré-requisitos
+
+Antes de arrancar os contentores, tens de:
+
+1. Criar um ficheiro `.env` na raiz do projeto com as variáveis obrigatórias:
 ```env
 SECRET_KEY=uma-chave-muito-secreta-para-o-django
 MYSQL_ROOT_PASSWORD=root
+COMPOSE_PROFILES=main
 ```
 
-### Iniciar o ambiente da Main (Imagens `:latest`)
+2. Gerar os certificados TLS auto-assinados (apenas na primeira vez):
+```powershell
+.\nginx\generate-certs.ps1
+```
+> **Nota**: Requer Docker em execução. O script utiliza o container `alpine/openssl` para gerar os certificados.
+
+### Arquitectura de Rede
+
+Todos os serviços internos (frontend, backend, base de dados) estão isolados na rede Docker. Apenas o Nginx está exposto ao exterior, a servir como ponto de entrada único com TLS.
+
+```
+Cliente → Nginx (HTTPS :443) → Frontend ASP.NET (:80 interno)
+                               → Backend Django (:8000 interno)
+```
+
+### Iniciar o ambiente da Main
 ```bash
 docker compose --profile main up -d
 ```
-- **Frontend (Portal)**: `http://localhost:5100`
-- **Backend (MS-CAFIN)**: `http://localhost:8000`
+- **Frontend (Portal)**: `https://localhost`
+- **Backend (MS-CAFIN)**: `https://api.localhost`
 
-### Iniciar o ambiente de Develop (Imagens `:develop`)
+### Iniciar o ambiente de Develop
 ```bash
 docker compose --profile develop up -d
 ```
-- **Frontend (Portal)**: `http://localhost:5101`
-- **Backend (MS-CAFIN)**: `http://localhost:8001`
+- **Frontend (Portal)**: `https://localhost:8443`
+- **Backend (MS-CAFIN)**: `https://api.localhost:8443`
 
-*(Se pretenderes compilar as imagens localmente com base no teu código, podes editar o `docker-compose.yml` e adicionar a opção `build: context: ...` nos respetivos serviços).*
+> **Nota**: Como os certificados são auto-assinados, o browser irá mostrar um aviso de segurança. É seguro aceitar para ambiente local.
+
+### Portas Expostas
+
+| Ambiente | HTTP (redirect) | HTTPS |
+|----------|-----------------|-------|
+| Main     | `80`            | `443` |
+| Develop  | `8080`          | `8443`|
+
+> As portas anteriores (`5100`, `5101`, `8000`, `8001`) já **não estão expostas**. Todo o tráfego passa pelo Nginx.
 
 Para parar todos os contentores:
 ```bash

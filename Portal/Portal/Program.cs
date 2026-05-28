@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Portal.Data;
 using System;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,7 @@ namespace Portal
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // Em produção deve ser true
+                options.RequireHttpsMetadata = true;
                 options.SaveToken = true;
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
@@ -82,6 +83,12 @@ namespace Portal
             var app = builder.Build();
 
             app.UseStaticFiles();
+
+            // Reconhecer headers do reverse proxy (Nginx)
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
 
             app.UseRouting();
             app.UseCors("AllowAll");
