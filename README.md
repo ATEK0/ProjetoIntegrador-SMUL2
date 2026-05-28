@@ -187,6 +187,30 @@ O repositório utiliza **GitHub Actions** para automação, cujos workflows est�
    - Garante que a aplicação .NET 10 compila sem erros, verifica regras de estilo (`dotnet format`) e executa testes unitários/integrados.
    - Nas *branches main e develop*, cria e publica a imagem Docker no GitHub Container Registry (`ghcr.io`), gerando as tags `:latest` e `:develop` respetivamente.
 
+### Lint Local (Pre-commit Hook)
+
+O repositório inclui um **Git pre-commit hook** que executa as mesmas verificações de lint do CI **antes de cada commit**. O commit é bloqueado se alguma verificação falhar.
+
+**Setup (uma vez após clonar):**
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup-hooks.ps1
+```
+
+Ou manualmente:
+```bash
+git config core.hooksPath .githooks
+pip install flake8 black
+```
+
+**Verificações executadas:**
+
+| Projeto | Ferramenta | Comando |
+|---------|-----------|---------|
+| MS-CAFIN (Python) | flake8 | `flake8 . --max-line-length=120 --exclude=migrations,__pycache__` |
+| MS-CAFIN (Python) | black | `black --check . --exclude="migrations\|__pycache__"` |
+| Portal (C#) | dotnet format | `dotnet format --verify-no-changes --no-restore` |
+
+> As verificações só correm para os ficheiros que foram alterados no commit. Se só alterares ficheiros Python, apenas o flake8 e black serão executados.
 ## Estado atual do repositório
 
 - Existe 1 projeto Django (`MS-CAFIN/calc_service`), já com `requirements.txt` e `Dockerfile`.
