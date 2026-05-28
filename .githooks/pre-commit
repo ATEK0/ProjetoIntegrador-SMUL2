@@ -1,0 +1,125 @@
+#!/bin/sh
+# ============================================================
+# Git pre-commit hook
+# Executa verificações de lint antes de cada commit.
+# O commit é bloqueado se alguma verificação falhar.
+#
+# Linters alinhados com os workflows CI:
+#   - Django: flake8 + black
+#   - ASP.NET: dotnet format
+# ============================================================
+
+set -e
+
+# Cores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo ""
+echo "=========================================="
+echo "  Pre-commit hook - Verificacao de lint"
+echo "=========================================="
+echo ""
+
+# Obter ficheiros staged (apenas os que vao no commit)
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Verificar se há ficheiros Python alterados (MS-CAFIN)
+PYTHON_FILES=$(echo "$STAGED_FILES" | grep -E '^MS-CAFIN/.*\.py$' || true)
+
+# Verificar se há ficheiros C# alterados (Portal)
+CSHARP_FILES=$(echo "$STAGED_FILES" | grep -E '^Portal/.*\.cs$' || true)
+
+EXIT_CODE=0
+
+# ============================================================
+# DJANGO: flake8 + black
+# ============================================================
+if [ -n "$PYTHON_FILES" ]; then
+    echo "${YELLOW}[Python] Ficheiros alterados detetados em MS-CAFIN/${NC}"
+    echo ""
+
+    # --- flake8 ---
+    echo "  [1/2] A executar flake8..."
+    if command -v flake8 >/dev/null 2>&1; then
+        if ! flake8 MS-CAFIN/calc_service --max-line-length=120 --exclude=migrations,__pycache__ 2>&1; then
+            echo "  ${RED}[FALHOU] flake8 encontrou problemas.${NC}"
+            EXIT_CODE=1
+        else
+            echo "  ${GREEN}[OK] flake8 passou.${NC}"
+        fi
+    else
+        echo "  ${RED}[ERRO] flake8 nao esta instalado. Instala com: pip install flake8${NC}"
+        EXIT_CODE=1
+    fi
+
+    echo ""
+
+    # --- black ---
+    echo "  [2/2] A executar black --check..."
+    if command -v black >/dev/null 2>&1; then
+        if ! black --check MS-CAFIN/calc_service --exclude="migrations|__pycache__" 2>&1; then
+            echo ""
+            echo "  ${RED}[FALHOU] black encontrou ficheiros mal formatados.${NC}"
+            echo "  ${YELLOW}Corrige com: black MS-CAFIN/calc_service --exclude=\"migrations|__pycache__\"${NC}"
+            EXIT_CODE=1
+        else
+            echo "  ${GREEN}[OK] black passou.${NC}"
+        fi
+    else
+        echo "  ${RED}[ERRO] black nao esta instalado. Instala com: pip install black${NC}"
+        EXIT_CODE=1
+    fi
+
+    echo ""
+fi
+
+# ============================================================
+# ASP.NET: dotnet format
+# ============================================================
+if [ -n "$CSHARP_FILES" ]; then
+    echo "${YELLOW}[C#] Ficheiros alterados detetados em Portal/${NC}"
+    echo ""
+
+    echo "  [1/1] A executar dotnet format --verify-no-changes..."
+    if command -v dotnet >/dev/null 2>&1; then
+        if ! dotnet format Portal/Portal --verify-no-changes --no-restore 2>&1; then
+            echo ""
+            echo "  ${RED}[FALHOU] dotnet format encontrou problemas de formatacao.${NC}"
+            echo "  ${YELLOW}Corrige com: dotnet format Portal/Portal${NC}"
+            EXIT_CODE=1
+        else
+            echo "  ${GREEN}[OK] dotnet format passou.${NC}"
+        fi
+    else
+        echo "  ${RED}[ERRO] dotnet SDK nao esta instalado.${NC}"
+        EXIT_CODE=1
+    fi
+
+    echo ""
+fi
+
+# ============================================================
+# RESULTADO FINAL
+# ============================================================
+if [ -z "$PYTHON_FILES" ] && [ -z "$CSHARP_FILES" ]; then
+    echo "${GREEN}Nenhum ficheiro .py ou .cs alterado - nada a verificar.${NC}"
+    echo ""
+fi
+
+if [ $EXIT_CODE -ne 0 ]; then
+    echo "=========================================="
+    echo "  ${RED}COMMIT BLOQUEADO - Corrige os erros acima${NC}"
+    echo "=========================================="
+    echo ""
+    exit 1
+else
+    echo "=========================================="
+    echo "  ${GREEN}Todas as verificacoes passaram!${NC}"
+    echo "=========================================="
+    echo ""
+fi
+
+exit 0
