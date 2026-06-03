@@ -94,7 +94,7 @@ namespace Portal.Controllers
                 {
                     _logger.LogWarning("Associação falhou: desafio ID {ChallengeId} não encontrado.", challengeId);
                     TempData["Error"] = "Desafio não encontrado.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectBasedOnRole();
                 }
 
@@ -104,14 +104,14 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' (ID: {ChallengeId}) associado com sucesso à turma ID {ClassId}", challenge.Title, challengeId, classId);
 
                 TempData["Success"] = "Desafio associado com sucesso!";
-                if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao associar desafio ID {ChallengeId} à turma ID {ClassId}", challengeId, classId);
                 TempData["Error"] = $"Erro ao associar desafio: {ex.Message}";
-                if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
         }
@@ -129,7 +129,7 @@ namespace Portal.Controllers
                 {
                     _logger.LogWarning("Remoção falhou: desafio ID {ChallengeId} não encontrado.", id);
                     TempData["Error"] = "Desafio não encontrado.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectBasedOnRole();
                 }
 
@@ -139,14 +139,14 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' (ID: {ChallengeId}) eliminado com sucesso por utilizador ID {UserId}.", challenge.Title, id, userId);
 
                 TempData["Success"] = "Desafio eliminado com sucesso!";
-                if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao eliminar desafio ID {ChallengeId} por utilizador ID {UserId}", id, userId);
                 TempData["Error"] = $"Erro ao eliminar desafio: {ex.Message}";
-                if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
         }
@@ -202,7 +202,7 @@ namespace Portal.Controllers
 
                 challenge.Title = title.Trim();
                 challenge.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
-                
+
                 _context.SaveChanges();
                 TempData["Success"] = "Desafio atualizado com sucesso!";
             }

@@ -221,7 +221,7 @@ namespace Portal.Controllers
                 if (enrollment == null)
                 {
                     TempData["Error"] = "Inscrição não encontrada.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers", "Dashboard");
                 }
 
@@ -229,13 +229,13 @@ namespace Portal.Controllers
                 _context.SaveChanges();
 
                 TempData["Success"] = "Utilizador removido da turma com sucesso!";
-                if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectToAction("AdminUsers", "Dashboard");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Erro ao remover utilizador: {ex.Message}";
-                if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectToAction("AdminUsers", "Dashboard");
             }
         }
@@ -298,7 +298,7 @@ namespace Portal.Controllers
             var teacher = _context.Users
                 .Include(u => u.Role)
                 .FirstOrDefault(u => u.Id == teacherId && (u.Role.RoleName == "Professor" || u.Role.RoleName == "Admin"));
-                
+
             if (teacher == null)
             {
                 TempData["Error"] = "Professor inválido ou não tem permissões.";
@@ -307,7 +307,7 @@ namespace Portal.Controllers
 
             schoolClass.Name = name;
             schoolClass.TeacherId = teacherId;
-            
+
             _context.SaveChanges();
 
             TempData["Success"] = "Detalhes da turma atualizados com sucesso.";
@@ -327,7 +327,7 @@ namespace Portal.Controllers
 
             var enrollments = _context.ClassEnrollments.Where(ce => ce.ClassId == id);
             _context.ClassEnrollments.RemoveRange(enrollments);
-            
+
             _context.Classes.Remove(schoolClass);
             _context.SaveChanges();
 

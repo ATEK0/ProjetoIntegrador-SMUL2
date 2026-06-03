@@ -110,7 +110,7 @@ namespace Portal.Controllers
                 if (user == null)
                 {
                     TempData["Error"] = "Utilizador não encontrado.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
@@ -118,14 +118,14 @@ namespace Portal.Controllers
                 if (userId == currentUserId)
                 {
                     TempData["Error"] = "Não pode alterar o seu próprio papel de administrador.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
                 if (newRoleName != "Professor" && newRoleName != "Aluno" && newRoleName != "Admin")
                 {
                     TempData["Error"] = "Função/Role inválida.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
@@ -133,7 +133,7 @@ namespace Portal.Controllers
                 if (role == null)
                 {
                     TempData["Error"] = "Função/Role não existe na base de dados.";
-                    if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
@@ -147,7 +147,7 @@ namespace Portal.Controllers
                 TempData["Error"] = $"Erro ao alterar papel do utilizador: {ex.Message}";
             }
 
-            if(!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+            if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
             return RedirectToAction("AdminUsers");
         }
 
@@ -166,7 +166,7 @@ namespace Portal.Controllers
             }
 
             var roles = _context.Roles.ToList();
-            
+
             var taughtClasses = _context.Classes
                 .Where(c => c.TeacherId == id)
                 .ToList();
