@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Portal.Data;
 using Portal.Models;
 using Portal.Models.ViewModels;
@@ -141,7 +142,22 @@ namespace Portal.Controllers
         public IActionResult Aluno()
         {
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao Dashboard do Aluno.", User.Identity?.Name ?? "Anónimo");
-            return View();
+
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            int studentId = claim != null && int.TryParse(claim.Value, out int sid) ? sid : 0;
+
+            var scenarios = _context.Scenarios
+                .Where(s => s.StudentId == studentId)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToList();
+
+            var vm = new StudentDashboardViewModel
+            {
+                StudentName = User.Identity?.Name ?? "Aluno",
+                Scenarios = scenarios
+            };
+
+            return View(vm);
         }
 
         private int GetUserId()
