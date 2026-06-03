@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models
@@ -18,6 +18,9 @@ namespace Portal.Models
 
         [ForeignKey(nameof(TeacherId))]
         public User Teacher { get; set; }
+
+        public ICollection<ClassEnrollment> Enrollments { get; set; }
+        public ICollection<Challenge> Challenges { get; set; }
 
         [Required]
         [MaxLength(255)]

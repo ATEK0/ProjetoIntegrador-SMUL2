@@ -44,7 +44,7 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password, bool rememberMe)
+        public IActionResult Login(string email, string password, bool rememberMe)
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
@@ -56,10 +56,10 @@ namespace Portal.Controllers
 
             try
             {
-                var user = await _context.Users
+                var user = _context.Users
                     .Include(u => u.Role)
                     .Include(u => u.UserStatus)
-                    .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower());
+                    .FirstOrDefault(u => u.Email == email.Trim().ToLower());
 
                 if (user == null)
                 {
@@ -121,7 +121,7 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string name, string email, string password, string role = "aluno")
+        public IActionResult Register(string name, string email, string password)
         {
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
@@ -129,17 +129,12 @@ namespace Portal.Controllers
                 return View();
             }
 
-            if (string.IsNullOrWhiteSpace(role))
-            {
-                role = "aluno";
-            }
-
-            _logger.LogInformation("Tentativa de registo iniciada para o e-mail: {Email} (Role sugerida: {Role})", email, role);
+            _logger.LogInformation("Tentativa de registo iniciada para o e-mail: {Email}", email);
 
             try
             {
                 // Verificar se o e-mail já existe
-                var existingUser = await _context.Users.AnyAsync(u => u.Email == email.Trim().ToLower());
+                var existingUser = _context.Users.Any(u => u.Email == email.Trim().ToLower());
                 if (existingUser)
                 {
                     _logger.LogWarning("Falha no registo: e-mail já registado: {Email}", email);
@@ -147,9 +142,9 @@ namespace Portal.Controllers
                     return View();
                 }
 
-                // Determinar a Role correspondente
-                string dbRoleName = role.Equals("professor", StringComparison.OrdinalIgnoreCase) ? "Professor" : "Aluno";
-                var dbRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == dbRoleName);
+                // Determinar a Role correspondente (Por defeito é Aluno)
+                string dbRoleName = "Aluno";
+                var dbRole = _context.Roles.FirstOrDefault(r => r.RoleName == dbRoleName);
                 if (dbRole == null)
                 {
                     _logger.LogError("Falha no registo para {Email}: a função '{dbRoleName}' não existe na BD.", email, dbRoleName);
@@ -158,7 +153,7 @@ namespace Portal.Controllers
                 }
 
                 // Determinar o Estado correspondente (Ativo por padrão)
-                var status = await _context.UserStatuses.FirstOrDefaultAsync(s => s.StatusName == "Ativo");
+                var status = _context.UserStatuses.FirstOrDefault(s => s.StatusName == "Ativo");
                 if (status == null)
                 {
                     _logger.LogError("Falha no registo para {Email}: o estado 'Ativo' não foi encontrado na BD.", email);
@@ -174,7 +169,7 @@ namespace Portal.Controllers
                 newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
 
                 _context.Users.Add(newUser);
-                await _context.SaveChangesAsync();
+                _context.SaveChanges();
 
                 _logger.LogInformation("Registo concluído com sucesso para o utilizador: {Email} (ID: {UserId}, Função: {Role}).", email, newUser.Id, dbRole.RoleName);
 
@@ -201,14 +196,14 @@ namespace Portal.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Profile()
+        public IActionResult Profile()
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction(nameof(Login));
 
-            var user = await _context.Users
+            var user = _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+                .FirstOrDefault(u => u.Id == userId.Value);
 
             if (user == null) return RedirectToAction(nameof(Login));
 
@@ -226,16 +221,16 @@ namespace Portal.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Profile(ProfileViewModel vm)
+        public IActionResult Profile(ProfileViewModel vm)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction(nameof(Login));
 
             _logger.LogInformation("Tentativa de atualização de perfil para utilizador ID: {UserId}", userId);
 
-            var user = await _context.Users
+            var user = _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+                .FirstOrDefault(u => u.Id == userId.Value);
 
             if (user == null)
             {
@@ -255,8 +250,8 @@ namespace Portal.Controllers
             }
 
             // Verificar se o e-mail já está em uso por outro utilizador
-            bool emailTaken = await _context.Users
-                .AnyAsync(u => u.Email == vm.Email.Trim().ToLower() && u.Id != userId.Value);
+            bool emailTaken = _context.Users
+                .Any(u => u.Email == vm.Email.Trim().ToLower() && u.Id != userId.Value);
 
             if (emailTaken)
             {
@@ -268,7 +263,7 @@ namespace Portal.Controllers
             string oldEmail = user.Email;
             user.Name = vm.Name.Trim();
             user.Email = vm.Email.Trim().ToLower();
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             _logger.LogInformation("Perfil atualizado com sucesso para ID {UserId}. Nome: '{Name}', E-mail: '{OldEmail}' -> '{NewEmail}'.", userId, user.Name, oldEmail, user.Email);
 
@@ -289,15 +284,15 @@ namespace Portal.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
+        public IActionResult ChangePassword(ChangePasswordViewModel vm)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction(nameof(Login));
 
             _logger.LogInformation("Tentativa de alteração de password para o utilizador ID: {UserId}", userId);
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId.Value);
+            var user = _context.Users
+                .FirstOrDefault(u => u.Id == userId.Value);
 
             if (user == null)
             {
@@ -322,7 +317,7 @@ namespace Portal.Controllers
             }
 
             user.PasswordHash = _passwordHasher.HashPassword(user, vm.NewPassword);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
 
             _logger.LogInformation("Password alterada com sucesso para o utilizador ID: {UserId}.", userId);
 
