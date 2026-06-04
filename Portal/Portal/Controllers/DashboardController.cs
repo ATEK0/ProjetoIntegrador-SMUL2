@@ -151,13 +151,81 @@ namespace Portal.Controllers
                 .OrderByDescending(s => s.CreatedAt)
                 .ToList();
 
+            var scenarioIds = scenarios.Select(s => s.Id).ToList();
+
+            var recentIncomes = _context.Entries
+                .Where(e => scenarioIds.Contains(e.ScenarioId) && e.EntryType == EntryType.Income)
+                .OrderByDescending(e => e.CreatedAt)
+                .Take(10)
+                .ToList();
+
+            int currentMonth = DateTime.Now.Month;
+            decimal totalMonthlyIncome = _context.Entries
+                .Where(e => scenarioIds.Contains(e.ScenarioId) && e.EntryType == EntryType.Income)
+                .Where(e => e.Recurrence == RecurrenceType.Monthly || e.EntryMonth == currentMonth)
+                .Sum(e => e.Amount);
+
             var vm = new StudentDashboardViewModel
             {
                 StudentName = User.Identity?.Name ?? "Aluno",
-                Scenarios = scenarios
+                Scenarios = scenarios,
+                RecentIncomes = recentIncomes,
+                TotalMonthlyIncome = totalMonthlyIncome
             };
 
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Aluno,Admin")]
+        public IActionResult RegisterIncome(int scenarioId, string category, decimal amount, int entryMonth, RecurrenceType recurrence)
+        {
+            try
+            {
+                int studentId = GetUserId();
+
+                // Garantir que o cenário pertence ao aluno
+                var scenario = _context.Scenarios
+                    .FirstOrDefault(s => s.Id == scenarioId && s.StudentId == studentId);
+
+                if (scenario == null)
+                {
+                    TempData["Error"] = "Cenário não encontrado ou sem permissão.";
+                    return RedirectToAction("Aluno");
+                }
+
+                if (string.IsNullOrWhiteSpace(category))
+                {
+                    TempData["Error"] = "A categoria é obrigatória.";
+                    return RedirectToAction("Aluno");
+                }
+
+                if (amount <= 0)
+                {
+                    TempData["Error"] = "O valor deve ser positivo.";
+                    return RedirectToAction("Aluno");
+                }
+
+                var entry = new Entry(scenarioId, EntryType.Income, category, amount, entryMonth, recurrence);
+                _context.Entries.Add(entry);
+                
+                scenario.InitialBalance += amount;
+                
+                _context.SaveChanges();
+
+                _logger.LogInformation("Rendimento registado: Cenário {ScenarioId}, Categoria '{Category}', Valor {Amount}.",
+                    scenarioId, category, amount);
+
+                TempData["Success"] = $"Rendimento de €{amount:N2} registado com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao registar rendimento.");
+                TempData["Error"] = "Erro ao registar o rendimento. Tenta novamente.";
+            }
+
+            return RedirectToAction("Aluno");
         }
 
         private int GetUserId()

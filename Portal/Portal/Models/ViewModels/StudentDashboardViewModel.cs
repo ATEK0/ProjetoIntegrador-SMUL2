@@ -7,5 +7,7 @@ namespace Portal.Models.ViewModels
     {
         public string StudentName { get; set; }
         public List<Scenario> Scenarios { get; set; } = new List<Scenario>();
+        public List<Entry> RecentIncomes { get; set; } = new List<Entry>();
+        public decimal TotalMonthlyIncome { get; set; }
     }
 }
