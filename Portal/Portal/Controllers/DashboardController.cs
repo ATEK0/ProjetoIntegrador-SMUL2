@@ -159,9 +159,20 @@ namespace Portal.Controllers
                 .Take(10)
                 .ToList();
 
+            var recentExpenses = _context.Entries
+                .Where(e => scenarioIds.Contains(e.ScenarioId) && e.EntryType == EntryType.Expense)
+                .OrderByDescending(e => e.CreatedAt)
+                .Take(10)
+                .ToList();
+
             int currentMonth = DateTime.Now.Month;
             decimal totalMonthlyIncome = _context.Entries
                 .Where(e => scenarioIds.Contains(e.ScenarioId) && e.EntryType == EntryType.Income)
+                .Where(e => e.Recurrence == RecurrenceType.Monthly || e.EntryMonth == currentMonth)
+                .Sum(e => e.Amount);
+
+            decimal totalMonthlyExpense = _context.Entries
+                .Where(e => scenarioIds.Contains(e.ScenarioId) && e.EntryType == EntryType.Expense)
                 .Where(e => e.Recurrence == RecurrenceType.Monthly || e.EntryMonth == currentMonth)
                 .Sum(e => e.Amount);
 
@@ -170,7 +181,9 @@ namespace Portal.Controllers
                 StudentName = User.Identity?.Name ?? "Aluno",
                 Scenarios = scenarios,
                 RecentIncomes = recentIncomes,
-                TotalMonthlyIncome = totalMonthlyIncome
+                TotalMonthlyIncome = totalMonthlyIncome,
+                RecentExpenses = recentExpenses,
+                TotalMonthlyExpense = totalMonthlyExpense
             };
 
             return View(vm);
@@ -223,6 +236,57 @@ namespace Portal.Controllers
             {
                 _logger.LogError(ex, "Erro ao registar rendimento.");
                 TempData["Error"] = "Erro ao registar o rendimento. Tenta novamente.";
+            }
+
+            return RedirectToAction("Aluno");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Aluno,Admin")]
+        public IActionResult RegisterExpense(int scenarioId, string category, decimal amount, int entryMonth, RecurrenceType recurrence)
+        {
+            try
+            {
+                int studentId = GetUserId();
+
+                var scenario = _context.Scenarios
+                    .FirstOrDefault(s => s.Id == scenarioId && s.StudentId == studentId);
+
+                if (scenario == null)
+                {
+                    TempData["Error"] = "Cenário não encontrado ou sem permissão.";
+                    return RedirectToAction("Aluno");
+                }
+
+                if (string.IsNullOrWhiteSpace(category))
+                {
+                    TempData["Error"] = "A categoria é obrigatória.";
+                    return RedirectToAction("Aluno");
+                }
+
+                if (amount <= 0)
+                {
+                    TempData["Error"] = "O valor deve ser positivo.";
+                    return RedirectToAction("Aluno");
+                }
+
+                var entry = new Entry(scenarioId, EntryType.Expense, category, amount, entryMonth, recurrence);
+                _context.Entries.Add(entry);
+                
+                scenario.InitialBalance -= amount; // Diminuir o saldo com a despesa
+                
+                _context.SaveChanges();
+
+                _logger.LogInformation("Despesa registada: Cenário {ScenarioId}, Categoria '{Category}', Valor {Amount}.",
+                    scenarioId, category, amount);
+
+                TempData["Success"] = $"Despesa de €{amount:N2} registada com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao registar despesa.");
+                TempData["Error"] = "Erro ao registar a despesa. Tenta novamente.";
             }
 
             return RedirectToAction("Aluno");

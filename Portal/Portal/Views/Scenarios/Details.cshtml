@@ -1,0 +1,331 @@
+@model Portal.Models.ViewModels.ScenarioDetailsViewModel
+
+@{
+    ViewData["Title"] = "Detalhes do Cenário";
+    var months = new[] { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
+}
+
+<style>
+    .entries-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    @@media (min-width: 1024px) {
+        .entries-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .entry-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .entry-table th {
+        text-align: left;
+        padding: 8px 10px;
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .entry-table td {
+        padding: 10px 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+        vertical-align: middle;
+    }
+
+    .entry-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+    
+    .entry-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        color: var(--text-muted);
+        transition: var(--transition);
+    }
+    
+    .entry-actions button:hover {
+        background: rgba(0,0,0,0.05);
+        color: var(--primary-blue);
+    }
+    
+    .entry-actions button.delete-btn:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-lg) 0;">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: 16px;">
+        <div>
+            <a href="/Dashboard/Aluno" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.3rem 0.75rem; text-decoration: none; display: inline-flex; margin-bottom: 8px;">
+                <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> Voltar ao Dashboard
+            </a>
+            <h2 style="color: var(--primary-blue); font-weight: 700; margin-bottom: 4px;">
+                @Model.Scenario.FamilyName
+            </h2>
+            <p class="text-muted" style="margin: 0; font-size: 0.9rem;">
+                Saldo Atual: <strong style="color: var(--primary-blue);">€ @Model.Scenario.InitialBalance.ToString("N2")</strong>
+            </p>
+        </div>
+        <div style="display: flex; gap: var(--spacing-sm);">
+            <button class="btn btn-outline" onclick="document.getElementById('editScenarioModal').classList.add('active');">
+                <i class="fas fa-edit" style="margin-right: 6px;"></i> Editar
+            </button>
+            <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="document.getElementById('deleteScenarioModal').classList.add('active');">
+                <i class="fas fa-trash" style="margin-right: 6px;"></i> Eliminar
+            </button>
+        </div>
+    </div>
+
+    <div class="entries-grid">
+        <!-- Incomes -->
+        <div class="card glass-panel" style="padding: var(--spacing-lg);">
+            <h3 style="color: #10b981; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px;">
+                <i class="fas fa-arrow-trend-up" style="margin-right: 8px;"></i> Rendimentos
+            </h3>
+            
+            @if (!Model.Incomes.Any())
+            {
+                <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                    Nenhum rendimento registado.
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table class="entry-table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Mês</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.Incomes)
+                            {
+                                <tr>
+                                    <td><span style="font-weight:600;">@entry.Category</span></td>
+                                    <td><span style="color:var(--text-muted);">@months[entry.EntryMonth - 1]</span></td>
+                                    <td><span style="color: #10b981; font-weight:700;">€ @entry.Amount.ToString("N2")</span></td>
+                                    <td class="entry-actions">
+                                        <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- Expenses -->
+        <div class="card glass-panel" style="padding: var(--spacing-lg);">
+            <h3 style="color: #ef4444; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px;">
+                <i class="fas fa-arrow-trend-down" style="margin-right: 8px;"></i> Despesas
+            </h3>
+            
+            @if (!Model.Expenses.Any())
+            {
+                <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                    Nenhuma despesa registada.
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table class="entry-table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Mês</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.Expenses)
+                            {
+                                <tr>
+                                    <td><span style="font-weight:600;">@entry.Category</span></td>
+                                    <td><span style="color:var(--text-muted);">@months[entry.EntryMonth - 1]</span></td>
+                                    <td><span style="color: #ef4444; font-weight:700;">€ @entry.Amount.ToString("N2")</span></td>
+                                    <td class="entry-actions">
+                                        <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Edit Scenario Modal -->
+<div id="editScenarioModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Editar Cenário</h3>
+        <form action="/Scenarios/Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Scenario.Id" />
+            <div class="form-group">
+                <label class="premium-label">Nome de Família</label>
+                <input type="text" name="familyName" class="form-control" value="@Model.Scenario.FamilyName" required />
+            </div>
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Scenario Modal -->
+<div id="deleteScenarioModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="color: #ef4444; margin-bottom: 16px;"><i class="fas fa-exclamation-triangle fa-3x"></i></div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Eliminar Cenário</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza que deseja eliminar o cenário <strong>@Model.Scenario.FamilyName</strong>? Esta ação removerá todas as despesas e rendimentos associados e não pode ser revertida.</p>
+        <form action="/Scenarios/Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Scenario.Id" />
+            <div class="flex gap-md" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Sim, Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Entry Modal -->
+<div id="editEntryModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Editar Registo</h3>
+        <form action="/Scenarios/EditEntry" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="editEntryId" />
+            
+            <div class="form-group">
+                <label class="premium-label">Categoria</label>
+                <input type="text" name="category" id="editEntryCategory" class="form-control" required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label class="premium-label">Valor (€)</label>
+                    <input type="number" name="amount" id="editEntryAmount" class="form-control" min="0.01" step="0.01" required />
+                </div>
+                <div class="form-group">
+                    <label class="premium-label">Mês</label>
+                    <select name="entryMonth" id="editEntryMonth" class="form-control" required>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m">@months[m - 1]</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+                <label class="premium-label">Recorrência</label>
+                <select name="recurrence" id="editEntryRecurrence" class="form-control" required>
+                    <option value="Monthly">Mensal</option>
+                    <option value="Once">Pontual</option>
+                    <option value="Yearly">Anual</option>
+                </select>
+            </div>
+
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Entry Modal -->
+<div id="deleteEntryModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="color: #ef4444; margin-bottom: 16px;"><i class="fas fa-trash fa-3x"></i></div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Eliminar Registo</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza que deseja eliminar este registo? O saldo do cenário será ajustado em conformidade.</p>
+        <form action="/Scenarios/DeleteEntry" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="deleteEntryId" />
+            <div class="flex gap-md" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Sim, Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditEntryModal(id, category, amount, month, recurrence) {
+        document.getElementById('editEntryId').value = id;
+        document.getElementById('editEntryCategory').value = category;
+        document.getElementById('editEntryAmount').value = amount;
+        document.getElementById('editEntryMonth').value = month;
+        document.getElementById('editEntryRecurrence').value = recurrence;
+        document.getElementById('editEntryModal').classList.add('active');
+    }
+
+    function openDeleteEntryModal(id) {
+        document.getElementById('deleteEntryId').value = id;
+        document.getElementById('deleteEntryModal').classList.add('active');
+    }
+
+    // Auto dismiss flash
+    setTimeout(function() {
+        var flashes = document.querySelectorAll('.alert-flash');
+        flashes.forEach(f => {
+            f.style.transition = "opacity 0.4s";
+            f.style.opacity = "0";
+            setTimeout(() => f.remove(), 400);
+        });
+    }, 5000);
+</script>
