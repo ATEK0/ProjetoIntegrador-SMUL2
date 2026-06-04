@@ -1,5 +1,6 @@
 from .factories import InterestFactory, AmortizationFactory
 
+
 class SimulatorFacade:
     """
     Facade to simplify interaction with the complex subsystem of simulators
@@ -25,7 +26,9 @@ class SimulatorFacade:
         return strategy.calculate(principal, rate, time)
 
     @staticmethod
-    def simulate_amortization(principal: float, rate: float, periods: int, amortization_type: str) -> list:
+    def simulate_amortization(
+        principal: float, rate: float, periods: int, amortization_type: str
+    ) -> list:
         """
         Simulates loan amortization based on the type ('french', 'sac', 'american').
         """

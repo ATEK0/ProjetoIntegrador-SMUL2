@@ -37,11 +37,11 @@ class InterestSimulationView(APIView):
         if serializer.is_valid():
             try:
                 result = SimulatorFacade.simulate_interest(
-                    principal=serializer.validated_data['principal'],
-                    rate=serializer.validated_data['rate'],
-                    time=serializer.validated_data['time'],
-                    interest_type=serializer.validated_data['type'],
-                    rate_tiers=serializer.validated_data.get('rate_tiers'),
+                    principal=serializer.validated_data["principal"],
+                    rate=serializer.validated_data["rate"],
+                    time=serializer.validated_data["time"],
+                    interest_type=serializer.validated_data["type"],
+                    rate_tiers=serializer.validated_data.get("rate_tiers"),
                 )
                 return Response(result, status=status.HTTP_200_OK)
             except ValueError as e:
@@ -65,10 +65,10 @@ class AmortizationSimulationView(APIView):
         if serializer.is_valid():
             try:
                 result = SimulatorFacade.simulate_amortization(
-                    principal=serializer.validated_data['principal'],
-                    rate=serializer.validated_data['rate'],
-                    periods=serializer.validated_data['periods'],
-                    amortization_type=serializer.validated_data['type'],
+                    principal=serializer.validated_data["principal"],
+                    rate=serializer.validated_data["rate"],
+                    periods=serializer.validated_data["periods"],
+                    amortization_type=serializer.validated_data["type"],
                 )
                 return Response(result, status=status.HTTP_200_OK)
             except ValueError as e:
