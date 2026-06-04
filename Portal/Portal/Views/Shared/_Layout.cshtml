@@ -14,6 +14,8 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/design-system.css" />
     <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/dropdown.css" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <div class="dashboard-layout">
@@ -28,6 +30,9 @@
                 {
                     <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
                         <i class="fas fa-home"></i> Dashboard Aluno
+                    </a>
+                    <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" ? "active" : "")">
+                        <i class="fas fa-calculator"></i> Simulador Financeiro
                     </a>
                 }
                 @if (User.IsInRole("Professor") || User.IsInRole("Admin"))
@@ -69,5 +74,7 @@
             </div>
         </main>
     </div>
+    <script src="~/js/dropdown.js" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

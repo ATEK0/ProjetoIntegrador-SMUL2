@@ -1,0 +1,317 @@
+@model Portal.Models.SimulationRequest
+@{
+    ViewData["Title"] = "Simulador";
+    var mode = Model?.SimulationMode ?? "interest";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/simulator.css" />
+}
+
+<div class="sim-page">
+    <div class="sim-hero">
+        <div class="sim-hero-icon">
+            <i class="fas fa-calculator"></i>
+        </div>
+        <div>
+            <h3>Simulador Financeiro</h3>
+            <p>Calcule juros (simples ou compostos), com taxas que podem mudar ao longo do tempo, ou planos de amortização (Francês, SAC ou Americano).</p>
+        </div>
+    </div>
+
+    <div class="sim-layout">
+        <form action="/Simulator/Calculate" method="post" class="sim-form-card card glass-panel" novalidate>
+            @Html.AntiForgeryToken()
+
+            @{
+                var modelErrors = ViewData.ModelState[string.Empty]?.Errors;
+                if (modelErrors != null && modelErrors.Count > 0)
+                {
+                    <div class="sim-validation-summary">
+                        @foreach (var err in modelErrors)
+                        {
+                            <div>@err.ErrorMessage</div>
+                        }
+                    </div>
+                }
+            }
+
+            <section class="sim-section">
+                <h4 class="sim-section-title">Tipo de simulação</h4>
+                <div class="sim-mode-grid" role="radiogroup" aria-label="Tipo de simulação">
+                    <label class="sim-mode-card">
+                        <input type="radio" name="SimulationMode" value="interest" id="modeInterest" @(mode == "interest" ? "checked" : null) />
+                        <div class="sim-mode-inner">
+                            <div class="sim-mode-icon"><i class="fas fa-percent"></i></div>
+                            <strong>Juros</strong>
+                            <span>Rendimentos ou custos com capital e taxa ao longo do tempo.</span>
+                        </div>
+                    </label>
+                    <label class="sim-mode-card">
+                        <input type="radio" name="SimulationMode" value="amortization" id="modeAmortization" @(mode == "amortization" ? "checked" : null) />
+                        <div class="sim-mode-inner">
+                            <div class="sim-mode-icon"><i class="fas fa-home"></i></div>
+                            <strong>Amortização</strong>
+                            <span>Prestações mensais e evolução do saldo devedor do empréstimo.</span>
+                        </div>
+                    </label>
+                </div>
+            </section>
+
+            <section class="sim-section">
+                <h4 class="sim-section-title">Parâmetros</h4>
+                <div class="sim-fields-grid">
+                    <div class="sim-field form-group">
+                        <label for="principal" class="form-label">Capital Inicial / Financiado (€)</label>
+                        <div class="sim-input-wrap">
+                            <span class="sim-input-prefix">€</span>
+                            <input id="principal" name="Principal" class="form-control" type="number" step="0.01" placeholder="10000" value="@(Model.Principal > 0 ? Model.Principal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                        </div>
+                    </div>
+
+                    <div class="sim-field form-group" id="singleRateField">
+                        <label for="ratePercentageInput" class="form-label">Taxa de Juro (em %)</label>
+                        <div class="sim-input-wrap">
+                            <input id="ratePercentageInput" name="RatePercentage" class="form-control" type="number" step="0.01" placeholder="3.5" value="@(Model.RatePercentage > 0 ? Model.RatePercentage.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                            <span class="sim-input-suffix">%</span>
+                        </div>
+                    </div>
+
+                    <div class="sim-field form-group">
+                        <label for="time" class="form-label">Tempo / N.º de Períodos</label>
+                        <input id="time" name="Time" class="form-control" type="number" step="1" placeholder="12" value="@(Model.Time > 0 ? Model.Time.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                    </div>
+
+                    <div class="sim-field form-group">
+                        <label for="typeSelect" class="form-label">Regime Específico</label>
+                        <select id="typeSelect" name="Type" class="form-control" data-ds-dropdown data-initial-type="@Model.Type"></select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="sim-section sim-interest-only" id="variableRatesSection" aria-label="Taxas variáveis">
+                <h4 class="sim-section-title">Taxas ao longo do tempo</h4>
+                <label class="sim-toggle">
+                    <input type="hidden" name="UseVariableRates" value="false" />
+                    <input type="checkbox" name="UseVariableRates" value="true" id="useVariableRates" @(Model.UseVariableRates ? "checked" : null) />
+                    <span class="sim-toggle-track"></span>
+                    <span class="sim-toggle-label">
+                        <strong>Taxas variáveis por período</strong>
+                        <small>Ex.: 3% no 1.º ano e 5% a partir do 2.º</small>
+                    </span>
+                </label>
+
+                <div class="sim-tiers-panel" id="rateTiersPanel" hidden>
+                    <p class="sim-tiers-hint">Defina em que período (ano/mês) cada taxa passa a aplicar-se. A primeira faixa deve começar no período 1.</p>
+                    <div id="rateTiersContainer">
+                        @if (Model.UseVariableRates && Model.RateTiers != null && Model.RateTiers.Count > 0)
+                        {
+                            for (var i = 0; i < Model.RateTiers.Count; i++)
+                            {
+                                <div class="sim-tier-row" data-tier-index="@i">
+                                    <div class="sim-tier-field">
+                                        <label class="form-label">A partir do período</label>
+                                        <input name="RateTiers[@i].FromPeriod" value="@Model.RateTiers[i].FromPeriod" class="form-control" type="number" step="1" required />
+                                    </div>
+                                    <div class="sim-tier-field">
+                                        <label class="form-label">Taxa (%)</label>
+                                        <div class="sim-input-wrap">
+                                            <input name="RateTiers[@i].RatePercentage" value="@Model.RateTiers[i].RatePercentage.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control" type="number" step="0.01" required />
+                                            <span class="sim-input-suffix">%</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="sim-tier-remove" title="Remover faixa" @(i == 0 ? "disabled" : "")>
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <button type="button" class="btn btn-outline sim-add-tier" id="addTierBtn">
+                        <i class="fas fa-plus"></i> Adicionar faixa
+                    </button>
+                </div>
+            </section>
+
+            <button type="submit" class="btn btn-primary sim-submit">
+                <i class="fas fa-play"></i>
+                Simular agora
+            </button>
+        </form>
+
+        <aside class="sim-aside card" id="simTipsAside">
+            <p class="sim-aside-title">Dica</p>
+            <ul id="simTipsList">
+                <li><i class="fas fa-circle-info"></i><span>Selecione o tipo de simulação para ver opções de regime.</span></li>
+            </ul>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modeRadios = document.querySelectorAll('input[name="SimulationMode"]');
+            const typeSelect = document.getElementById('typeSelect');
+            const initialType = typeSelect.getAttribute('data-initial-type') || 'simple';
+            const tipsList = document.getElementById('simTipsList');
+
+            const typeOptions = {
+                interest: [
+                    { value: 'simple', label: 'Juros simples' },
+                    { value: 'compound', label: 'Juros compostos' }
+                ],
+                amortization: [
+                    { value: 'french', label: 'Sistema Francês' },
+                    { value: 'sac', label: 'Sistema SAC' },
+                    { value: 'american', label: 'Sistema Americano' }
+                ]
+            };
+
+            const tips = {
+                interest: [
+                    'Juros simples: aplicam-se apenas sobre o capital inicial.',
+                    'Juros compostos: os juros acumulam e passam a integrar a base de cálculo.',
+                    'Ative «Taxas variáveis» para mudar a taxa a partir de um período (ex.: 3% no 1.º ano, 5% do 2.º em diante).'
+                ],
+                amortization: [
+                    'Sistema Francês: prestação constante; juros decrescem ao longo do tempo.',
+                    'SAC: amortização constante; prestações diminuem mês a mês.',
+                    'Americano: paga apenas juros até ao último período, com amortização total no fim.'
+                ]
+            };
+
+            function getMode() {
+                const checked = document.querySelector('input[name="SimulationMode"]:checked');
+                return checked ? checked.value : 'interest';
+            }
+
+            function updateTypes() {
+                const mode = getMode();
+                const current = typeSelect.value || initialType;
+                const options = typeOptions[mode] || [];
+                typeSelect.innerHTML = '';
+                options.forEach(function (opt) {
+                    typeSelect.add(new Option(opt.label, opt.value));
+                });
+                const stillValid = options.some(function (o) { return o.value === current; });
+                typeSelect.value = stillValid ? current : (options[0] ? options[0].value : '');
+                if (window.DsDropdown) DsDropdown.refresh(typeSelect);
+            }
+
+            function updateTips() {
+                const mode = getMode();
+                const items = tips[mode] || [];
+                tipsList.innerHTML = items.map(function (text) {
+                    return '<li><i class="fas fa-lightbulb"></i><span>' + text + '</span></li>';
+                }).join('');
+            }
+
+            const useVariableRates = document.getElementById('useVariableRates');
+            const variableRatesSection = document.getElementById('variableRatesSection');
+            const rateTiersPanel = document.getElementById('rateTiersPanel');
+            const rateTiersContainer = document.getElementById('rateTiersContainer');
+            const singleRateField = document.getElementById('singleRateField');
+            const ratePercentageInput = document.getElementById('ratePercentageInput');
+            const addTierBtn = document.getElementById('addTierBtn');
+            const simForm = document.querySelector('.sim-form-card');
+
+            function updateInterestSections() {
+                const isInterest = getMode() === 'interest';
+                variableRatesSection.classList.toggle('is-hidden', !isInterest);
+                if (!isInterest) {
+                    useVariableRates.checked = false;
+                    rateTiersPanel.hidden = true;
+                    singleRateField.style.display = '';
+                } else {
+                    syncVariableRatesUI();
+                }
+            }
+
+            function createTierRow(index, fromPeriod, ratePct) {
+                const row = document.createElement('div');
+                row.className = 'sim-tier-row';
+                row.dataset.tierIndex = String(index);
+                row.innerHTML =
+                    '<div class="sim-tier-field">' +
+                    '<label class="form-label">A partir do período</label>' +
+                    '<input name="RateTiers[' + index + '].FromPeriod" class="form-control" type="number" step="1" value="' + fromPeriod + '" required />' +
+                    '</div>' +
+                    '<div class="sim-tier-field">' +
+                    '<label class="form-label">Taxa (%)</label>' +
+                    '<div class="sim-input-wrap">' +
+                    '<input name="RateTiers[' + index + '].RatePercentage" class="form-control" type="number" step="0.01" value="' + ratePct + '" required />' +
+                    '<span class="sim-input-suffix">%</span>' +
+                    '</div></div>' +
+                    '<button type="button" class="sim-tier-remove" title="Remover faixa"' + (index === 0 ? ' disabled' : '') + '>' +
+                    '<i class="fas fa-trash-alt"></i></button>';
+                return row;
+            }
+
+            function reindexTierRows() {
+                rateTiersContainer.querySelectorAll('.sim-tier-row').forEach(function (row, idx) {
+                    row.dataset.tierIndex = String(idx);
+                    row.querySelector('[name$=".FromPeriod"]').name = 'RateTiers[' + idx + '].FromPeriod';
+                    row.querySelector('[name$=".RatePercentage"]').name = 'RateTiers[' + idx + '].RatePercentage';
+                    const removeBtn = row.querySelector('.sim-tier-remove');
+                    removeBtn.disabled = idx === 0;
+                });
+            }
+
+            function ensureDefaultTiers() {
+                if (rateTiersContainer.children.length === 0) {
+                    const baseRate = ratePercentageInput.value || '3';
+                    rateTiersContainer.appendChild(createTierRow(0, 1, baseRate));
+                    rateTiersContainer.appendChild(createTierRow(1, 2, ''));
+                }
+            }
+
+            function syncVariableRatesUI() {
+                const enabled = useVariableRates.checked;
+                rateTiersPanel.hidden = !enabled;
+                singleRateField.style.display = enabled ? 'none' : '';
+                if (enabled) ensureDefaultTiers();
+            }
+
+            useVariableRates.addEventListener('change', syncVariableRatesUI);
+            addTierBtn.addEventListener('click', function () {
+                const rows = rateTiersContainer.querySelectorAll('.sim-tier-row');
+                const lastFrom = rows.length
+                    ? parseInt(rows[rows.length - 1].querySelector('[name$=".FromPeriod"]').value, 10) || 1
+                    : 1;
+                rateTiersContainer.appendChild(createTierRow(rows.length, lastFrom + 1, ''));
+            });
+
+            if (simForm) {
+                simForm.addEventListener('submit', function () {
+                    if (getMode() === 'interest' && useVariableRates.checked) {
+                        const firstRate = rateTiersContainer.querySelector('[name$=".RatePercentage"]');
+                        if (firstRate && firstRate.value !== '') {
+                            ratePercentageInput.value = firstRate.value;
+                        }
+                    }
+                });
+            }
+
+            modeRadios.forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    updateTypes();
+                    updateTips();
+                    updateInterestSections();
+                });
+            });
+
+            rateTiersContainer.addEventListener('click', function (e) {
+                const btn = e.target.closest('.sim-tier-remove');
+                if (!btn || btn.disabled) return;
+                btn.closest('.sim-tier-row').remove();
+                reindexTierRows();
+            });
+
+            updateTypes();
+            updateTips();
+            updateInterestSections();
+            if (useVariableRates.checked) syncVariableRatesUI();
+        });
+    </script>
+}

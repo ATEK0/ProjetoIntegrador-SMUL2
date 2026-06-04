@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Portal.Data;
 using System;
 using Microsoft.Extensions.Logging;
+using Portal.Controllers;
+using Microsoft.Extensions.Configuration;
 
 namespace Portal
 {
@@ -73,6 +75,12 @@ namespace Portal
             });
 
             builder.Services.AddMvc();
+            builder.Services.AddHttpClient(SimulatorController.MsCafinHttpClientName, (services, client) =>
+            {
+                var config = services.GetRequiredService<IConfiguration>();
+                var baseUrl = config["MsCafinApiUrl"] ?? "http://127.0.0.1:8000/";
+                client.BaseAddress = new Uri(baseUrl);
+            });
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>

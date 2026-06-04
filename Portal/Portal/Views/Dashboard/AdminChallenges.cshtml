@@ -232,7 +232,7 @@
                                     <td style="padding: var(--spacing-md) var(--spacing-sm);">
                                         <form asp-controller="Challenges" asp-action="AssociateClass" method="post" style="display: inline-flex; align-items: center;">
                                             <input type="hidden" name="challengeId" value="@c.Id" />
-                                            <select name="classId" onchange="this.form.submit()" class="form-control" style="padding: 4px 10px; font-size: 0.85rem; height: 34px; width: auto; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--surface-color); font-weight: 600; color: var(--primary-blue);">
+                                            <select name="classId" onchange="this.form.submit()" class="form-control ds-dropdown-compact" data-ds-size="compact" data-ds-accent="true" data-ds-inline="true">
                                                 @if (c.ClassId == null)
                                                 {
                                                     <option value="" selected style="color: #f59e0b;">Independente (Por Código)</option>
@@ -314,7 +314,7 @@
                     <label for="challengeClassSelect" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-graduation-cap"></i> Associar a uma Turma (Opcional)
                     </label>
-                    <select name="classId" id="challengeClassSelect" class="form-control" style="height: 44px; font-size: 0.9rem; padding-left: 10px;">
+                    <select name="classId" id="challengeClassSelect" class="form-control">
                         <option value="">Nenhuma (Desafio Independente - Acesso por Código)</option>
                         @foreach (var cls in Model.Classes)
                         {

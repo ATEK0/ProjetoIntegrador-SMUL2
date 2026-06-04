@@ -1,0 +1,723 @@
+/* Simulador Financeiro — alinhado ao design system DEC */
+
+@keyframes simFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sim-page,
+.sim-results {
+    animation: simFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Cabeçalho da página */
+.sim-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    background: linear-gradient(135deg, rgba(12, 115, 183, 0.08) 0%, rgba(45, 167, 223, 0.04) 100%);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(12, 115, 183, 0.12);
+}
+
+.sim-hero-icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
+    background: var(--primary-blue);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.sim-hero h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--spacing-xs);
+    color: var(--dark-grey);
+}
+
+.sim-hero p {
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    margin: 0;
+    line-height: 1.55;
+}
+
+/* Layout principal */
+.sim-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .sim-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-form-card {
+    padding: var(--spacing-xl);
+}
+
+.sim-aside {
+    padding: var(--spacing-lg);
+    position: sticky;
+    top: var(--spacing-md);
+}
+
+.sim-aside-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--primary-blue);
+    margin-bottom: var(--spacing-md);
+}
+
+.sim-aside ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sim-aside li {
+    display: flex;
+    gap: var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.45;
+}
+
+.sim-aside li i {
+    color: var(--light-blue);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* Secções do formulário */
+.sim-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.sim-section:last-of-type {
+    margin-bottom: var(--spacing-lg);
+}
+
+.sim-section-title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Seleção de modo (cards) */
+.sim-mode-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+@media (max-width: 520px) {
+    .sim-mode-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-mode-card {
+    position: relative;
+    cursor: pointer;
+    display: block;
+}
+
+.sim-mode-card input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sim-mode-inner {
+    padding: var(--spacing-lg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.sim-mode-card input:checked + .sim-mode-inner {
+    border-color: var(--primary-blue);
+    background: rgba(12, 115, 183, 0.04);
+    box-shadow: 0 0 0 3px rgba(12, 115, 183, 0.12);
+}
+
+.sim-mode-card:hover .sim-mode-inner {
+    border-color: var(--light-blue);
+}
+
+.sim-mode-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: rgba(12, 115, 183, 0.1);
+    color: var(--primary-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.sim-mode-card input:checked + .sim-mode-inner .sim-mode-icon {
+    background: var(--primary-blue);
+    color: var(--white);
+}
+
+.sim-mode-inner strong {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--dark-grey);
+    margin-bottom: 4px;
+}
+
+.sim-mode-inner span {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* Campos */
+.sim-fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+@media (max-width: 600px) {
+    .sim-fields-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-field .form-label {
+    font-size: 0.875rem;
+}
+
+.sim-input-wrap {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--white);
+    transition: var(--transition);
+}
+
+.sim-input-wrap:focus-within {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(12, 115, 183, 0.15);
+}
+
+.sim-input-wrap .form-control {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.sim-input-wrap .form-control:focus {
+    box-shadow: none;
+}
+
+.sim-input-prefix,
+.sim-input-suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 var(--spacing-md);
+    background: rgba(12, 115, 183, 0.06);
+    color: var(--primary-blue);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    flex-shrink: 0;
+}
+
+.sim-field-error {
+    color: #dc2626;
+    font-size: 0.8125rem;
+    margin-top: var(--spacing-xs);
+    display: block;
+}
+
+.sim-validation-summary {
+    background: rgba(220, 38, 38, 0.06);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    color: #b91c1c;
+    font-size: 0.875rem;
+}
+
+.sim-submit {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    gap: var(--spacing-sm);
+}
+
+.sim-submit i {
+    font-size: 1rem;
+}
+
+/* —— Resultados —— */
+
+.sim-results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.sim-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.sim-back:hover {
+    color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    background: rgba(12, 115, 183, 0.04);
+}
+
+.sim-results-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.375rem 0.875rem;
+    background: rgba(12, 115, 183, 0.1);
+    color: var(--primary-blue);
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.sim-results-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--spacing-lg);
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .sim-results-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-summary-card {
+    padding: var(--spacing-lg);
+}
+
+.sim-summary-card h4 {
+    font-size: 1rem;
+    margin-bottom: var(--spacing-lg);
+    color: var(--dark-grey);
+}
+
+.sim-summary-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sim-summary-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: var(--spacing-md);
+}
+
+.sim-summary-list li:last-child {
+    border-bottom: none;
+}
+
+.sim-summary-list .label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.sim-summary-list .value {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--dark-grey);
+    text-align: right;
+}
+
+.sim-summary-list .value.highlight {
+    color: var(--primary-blue);
+}
+
+/* KPIs juros */
+.sim-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+}
+
+@media (max-width: 600px) {
+    .sim-kpi-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-kpi {
+    padding: var(--spacing-xl);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.sim-kpi:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.sim-kpi-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.sim-kpi--interest .sim-kpi-icon {
+    background: rgba(12, 115, 183, 0.12);
+    color: var(--primary-blue);
+}
+
+.sim-kpi--total .sim-kpi-icon {
+    background: rgba(16, 185, 129, 0.12);
+    color: #059669;
+}
+
+.sim-kpi-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.sim-kpi-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--dark-grey);
+    letter-spacing: -0.02em;
+}
+
+.sim-kpi--interest .sim-kpi-value {
+    color: var(--primary-blue);
+}
+
+.sim-kpi--total .sim-kpi-value {
+    color: #059669;
+}
+
+/* Amortização — resumo + tabela */
+.sim-amort-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+@media (max-width: 700px) {
+    .sim-amort-summary {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-amort-stat {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.sim-amort-stat .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.sim-amort-stat .value {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.sim-amort-stat--installment .value { color: var(--primary-blue); }
+.sim-amort-stat--interest .value { color: #dc2626; }
+.sim-amort-stat--amort .value { color: #059669; }
+
+.sim-table-card {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 560px;
+}
+
+.sim-table-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(12, 115, 183, 0.04);
+}
+
+.sim-table-header h4 {
+    font-size: 0.9375rem;
+    margin: 0;
+    color: var(--dark-grey);
+}
+
+.sim-table-scroll {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.sim-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.sim-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--white);
+    padding: 0.75rem 1rem;
+    text-align: right;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border-color);
+    box-shadow: 0 1px 0 var(--border-color);
+}
+
+.sim-table thead th:first-child {
+    text-align: center;
+}
+
+.sim-table tbody td {
+    padding: 0.625rem 1rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--dark-grey);
+    font-variant-numeric: tabular-nums;
+}
+
+.sim-table tbody td:first-child {
+    text-align: center;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.sim-table tbody tr:hover td {
+    background: rgba(12, 115, 183, 0.03);
+}
+
+.sim-table tbody tr:nth-child(even) td {
+    background: rgba(244, 247, 246, 0.6);
+}
+
+.sim-table tbody tr:nth-child(even):hover td {
+    background: rgba(12, 115, 183, 0.05);
+}
+
+.sim-table .col-interest { color: #dc2626; }
+.sim-table .col-amort { color: #059669; }
+.sim-table .col-balance { font-weight: 600; }
+
+.sim-table tfoot td {
+    position: sticky;
+    bottom: 0;
+    background: #f8fafb;
+    font-weight: 700;
+    padding: 0.875rem 1rem;
+    border-top: 2px solid var(--border-color);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.sim-table tfoot td:first-child {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+}
+
+/* Taxas variáveis — oculto só em modo amortização (.is-hidden) */
+.sim-interest-only.is-hidden {
+    display: none;
+}
+
+.sim-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    cursor: pointer;
+    user-select: none;
+}
+
+.sim-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sim-toggle-track {
+    flex-shrink: 0;
+    width: 44px;
+    height: 24px;
+    background: var(--border-color);
+    border-radius: var(--radius-full);
+    position: relative;
+    transition: var(--transition);
+    margin-top: 2px;
+}
+
+.sim-toggle-track::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    background: var(--white);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.sim-toggle input:checked + .sim-toggle-track {
+    background: var(--primary-blue);
+}
+
+.sim-toggle input:checked + .sim-toggle-track::after {
+    transform: translateX(20px);
+}
+
+.sim-toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sim-toggle-label strong {
+    font-size: 0.9375rem;
+    color: var(--dark-grey);
+}
+
+.sim-toggle-label small {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+.sim-tiers-panel {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background: rgba(12, 115, 183, 0.04);
+    border: 1px dashed rgba(12, 115, 183, 0.2);
+    border-radius: var(--radius-md);
+}
+
+.sim-tiers-hint {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin: 0 0 var(--spacing-md);
+}
+
+.sim-tier-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: var(--spacing-md);
+    align-items: end;
+    margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 600px) {
+    .sim-tier-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sim-tier-remove {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--white);
+    color: #dc2626;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sim-tier-remove:hover:not(:disabled) {
+    background: rgba(220, 38, 38, 0.08);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.sim-tier-remove:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.sim-add-tier {
+    width: 100%;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}

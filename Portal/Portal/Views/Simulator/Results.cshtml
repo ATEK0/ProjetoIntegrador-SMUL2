@@ -1,0 +1,187 @@
+@using System.Linq
+@{
+    ViewData["Title"] = "Resultado da Simulação";
+    var mode = ViewBag.SimulationMode as string;
+    var requestData = ViewBag.RequestData as Portal.Models.SimulationRequest;
+
+    string regimeLabel = requestData?.Type?.ToLower() switch
+    {
+        "simple" => "Juros simples",
+        "compound" => "Juros compostos",
+        "french" => "Sistema Francês",
+        "sac" => "Sistema SAC",
+        "american" => "Sistema Americano",
+        _ => requestData?.Type ?? "—"
+    };
+
+    var rateTiers = requestData?.GetEffectiveRateTiers()?.ToList() ?? new List<Portal.Models.InterestRateTier>();
+    string rateSummary = rateTiers.Any()
+        ? string.Join(" · ", rateTiers.Select(t => $"desde P{t.FromPeriod}: {t.RatePercentage:N2}%"))
+        : $"{requestData?.RatePercentage:N2} %";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/simulator.css" />
+}
+
+<div class="sim-results">
+    <div class="sim-results-header">
+        <a href="/Simulator" class="sim-back">
+            <i class="fas fa-arrow-left"></i>
+            Nova simulação
+        </a>
+        <span class="sim-results-badge">
+            <i class="fas fa-check-circle"></i>
+            @(mode == "interest" ? "Simulação de juros" : "Plano de amortização")
+        </span>
+    </div>
+
+    <div class="sim-results-grid">
+        <aside class="sim-summary-card card glass-panel">
+            <h4>Resumo</h4>
+            <ul class="sim-summary-list">
+                <li>
+                    <span class="label">Modo</span>
+                    <span class="value">@(mode == "interest" ? "Juros" : "Amortização")</span>
+                </li>
+                <li>
+                    <span class="label">Capital</span>
+                    <span class="value">@requestData.Principal.ToString("C")</span>
+                </li>
+                <li>
+                    <span class="label">@(rateTiers.Any() ? "Taxas" : "Taxa")</span>
+                    <span class="value @(rateTiers.Any() ? "highlight" : "")" style="@(rateTiers.Any() ? "font-size: 0.8rem; line-height: 1.4;" : "")">@rateSummary</span>
+                </li>
+                <li>
+                    <span class="label">Períodos</span>
+                    <span class="value">@requestData.Time</span>
+                </li>
+                <li>
+                    <span class="label">Regime</span>
+                    <span class="value highlight">@regimeLabel</span>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="sim-results-main">
+            @if (mode == "interest")
+            {
+                var interestResult = ViewBag.InterestResult as Portal.Models.InterestSimulationResponse;
+                <div class="sim-kpi-row">
+                    <div class="sim-kpi sim-kpi--interest card">
+                        <div class="sim-kpi-icon"><i class="fas fa-coins"></i></div>
+                        <div>
+                            <div class="sim-kpi-label">Total de juros</div>
+                            <div class="sim-kpi-value">@interestResult.Interest.ToString("C")</div>
+                        </div>
+                    </div>
+                    <div class="sim-kpi sim-kpi--total card">
+                        <div class="sim-kpi-icon"><i class="fas fa-chart-line"></i></div>
+                        <div>
+                            <div class="sim-kpi-label">Montante final</div>
+                            <div class="sim-kpi-value">@interestResult.Total_amount.ToString("C")</div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (interestResult.Breakdown != null && interestResult.Breakdown.Count > 0)
+                {
+                    <div class="sim-table-card card glass-panel" style="margin-top: var(--spacing-lg);">
+                        <div class="sim-table-header">
+                            <h4><i class="fas fa-layer-group" style="margin-right: 8px; color: var(--primary-blue);"></i> Evolução por período (taxas variáveis)</h4>
+                        </div>
+                        <div class="sim-table-scroll" style="max-height: none;">
+                            <table class="sim-table">
+                                <thead>
+                                    <tr>
+                                        <th>Período</th>
+                                        <th>Taxa</th>
+                                        <th>Juros do período</th>
+                                        <th>Montante acumulado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in interestResult.Breakdown)
+                                    {
+                                        <tr>
+                                            <td>@(row.Period)@(row.Partial ? "*" : "")</td>
+                                            <td>@((row.Rate * 100).ToString("N2")) %</td>
+                                            <td class="col-interest">@row.Interest.ToString("C")</td>
+                                            <td class="col-balance">@row.Amount.ToString("C")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            @if (interestResult.Breakdown.Any(b => b.Partial))
+                            {
+                                <p class="text-muted" style="font-size: 0.8rem; padding: var(--spacing-sm) var(--spacing-lg); margin: 0;">* Período parcial (proporcional ao tempo total introduzido)</p>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else if (mode == "amortization")
+            {
+                var amortizationResult = ViewBag.AmortizationResult as List<Portal.Models.AmortizationPeriod>;
+                var totalInstallment = amortizationResult.Sum(x => x.Installment);
+                var totalInterest = amortizationResult.Sum(x => x.Interest);
+                var totalAmort = amortizationResult.Sum(x => x.Amortization);
+
+                <div class="sim-amort-summary">
+                    <div class="sim-amort-stat sim-amort-stat--installment">
+                        <div class="label">Total prestações</div>
+                        <div class="value">@totalInstallment.ToString("C")</div>
+                    </div>
+                    <div class="sim-amort-stat sim-amort-stat--interest">
+                        <div class="label">Total juros</div>
+                        <div class="value">@totalInterest.ToString("C")</div>
+                    </div>
+                    <div class="sim-amort-stat sim-amort-stat--amort">
+                        <div class="label">Total amortizado</div>
+                        <div class="value">@totalAmort.ToString("C")</div>
+                    </div>
+                </div>
+
+                <div class="sim-table-card card glass-panel">
+                    <div class="sim-table-header">
+                        <h4><i class="fas fa-table-list" style="margin-right: 8px; color: var(--primary-blue);"></i> Plano de amortização por período</h4>
+                    </div>
+                    <div class="sim-table-scroll">
+                        <table class="sim-table">
+                            <thead>
+                                <tr>
+                                    <th>Período</th>
+                                    <th>Prestação</th>
+                                    <th>Juro</th>
+                                    <th>Amortização</th>
+                                    <th>Saldo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in amortizationResult)
+                                {
+                                    <tr>
+                                        <td>@p.Period</td>
+                                        <td>@p.Installment.ToString("C")</td>
+                                        <td class="col-interest">@p.Interest.ToString("C")</td>
+                                        <td class="col-amort">@p.Amortization.ToString("C")</td>
+                                        <td class="col-balance">@p.Balance.ToString("C")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td>Total</td>
+                                    <td>@totalInstallment.ToString("C")</td>
+                                    <td class="col-interest">@totalInterest.ToString("C")</td>
+                                    <td class="col-amort">@totalAmort.ToString("C")</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

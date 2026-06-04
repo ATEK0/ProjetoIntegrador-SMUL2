@@ -326,7 +326,7 @@
                     <label for="challengeClassSelect" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-graduation-cap"></i> Associar a uma Turma (Opcional)
                     </label>
-                    <select name="classId" id="challengeClassSelect" class="form-control" style="height: 44px; font-size: 0.9rem; padding-left: 10px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); background: var(--surface-color);">
+                    <select name="classId" id="challengeClassSelect" class="form-control">
                         <option value="">Nenhuma (Desafio Geral - Acesso por Código)</option>
                         @foreach (var cls in Model.Classes)
                         {

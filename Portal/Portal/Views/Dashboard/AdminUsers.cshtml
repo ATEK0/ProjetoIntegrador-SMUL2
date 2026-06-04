@@ -217,7 +217,7 @@
                                     {
                                         <form asp-controller="Dashboard" asp-action="ChangeUserRole" method="post" style="margin: 0; display: inline-block;">
                                             <input type="hidden" name="userId" value="@user.Id" />
-                                            <select name="newRoleName" onchange="this.form.submit()" style="font-size: 0.8rem; font-weight: 600; padding: 4px 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background-color: var(--surface-color); cursor: pointer; transition: var(--transition); outline: none;" class="@(user.RoleName == "Professor" ? "role-professor" : "role-aluno")">
+                                            <select name="newRoleName" onchange="this.form.submit()" class="ds-dropdown ds-dropdown-compact @(user.RoleName == "Professor" ? "role-professor" : "role-aluno")" data-ds-inline="true">
                                                 @if (user.RoleName == "Professor")
                                                 {
                                                     <option value="Professor" selected style="background-color: var(--surface-color); color: #f59e0b;">Professor</option>
@@ -275,7 +275,7 @@
                     <label for="enrollUserSelect" class="premium-label">
                         <i class="fas fa-user"></i> Selecionar Aluno
                     </label>
-                    <select name="userId" id="enrollUserSelect" class="form-control" required style="width: 100%; height: 44px; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding-left: 10px; background-color: var(--surface-color);">
+                    <select name="userId" id="enrollUserSelect" class="form-control" required>
                         <option value="">-- Selecione o Aluno --</option>
                         @foreach (var user in Model.Users.Where(u => u.RoleName == "Aluno"))
                         {
@@ -288,7 +288,7 @@
                     <label for="enrollClassSelect" class="premium-label">
                         <i class="fas fa-graduation-cap"></i> Selecionar Turma
                     </label>
-                    <select name="classId" id="enrollClassSelect" class="form-control" required style="width: 100%; height: 44px; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding-left: 10px; background-color: var(--surface-color);">
+                    <select name="classId" id="enrollClassSelect" class="form-control" required>
                         <option value="">-- Selecione a Turma --</option>
                         @foreach (var cls in Model.Classes)
                         {
