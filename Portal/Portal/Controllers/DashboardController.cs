@@ -40,7 +40,11 @@ namespace Portal.Controllers
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao painel de Administração de Turmas.", User.Identity?.Name ?? "Anónimo");
             var viewModel = new AdminDashboardViewModel
             {
-                Classes = _context.Classes.ToList(),
+                Classes = _context.Classes
+                            .Include(c => c.Teacher)
+                            .Include(c => c.Enrollments)
+                            .Include(c => c.Challenges)
+                            .ToList(),
                 Challenges = System.Linq.Enumerable.Empty<Challenge>()
             };
             return View("AdminClasses", viewModel);
@@ -52,8 +56,13 @@ namespace Portal.Controllers
             _logger.LogInformation("Utilizador '{UserName}' acedeu ao painel de Administração de Desafios.", User.Identity?.Name ?? "Anónimo");
             var viewModel = new AdminDashboardViewModel
             {
-                Classes = _context.Classes.ToList(),
-                Challenges = _context.Challenges.Include(c => c.Class).ToList()
+                Classes = _context.Classes.Include(c => c.Teacher).ToList(),
+                Challenges = _context.Challenges
+                                .Include(c => c.Class)
+                                .Include(c => c.Teacher)
+                                .Include(c => c.Scenarios)
+                                    .ThenInclude(s => s.Entries)
+                                .ToList()
             };
             return View("AdminChallenges", viewModel);
         }
@@ -93,7 +102,7 @@ namespace Portal.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public IActionResult ChangeUserRole(int userId, string newRoleName)
+        public IActionResult ChangeUserRole(int userId, string newRoleName, string returnUrl = null)
         {
             try
             {
@@ -101,6 +110,7 @@ namespace Portal.Controllers
                 if (user == null)
                 {
                     TempData["Error"] = "Utilizador não encontrado.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
@@ -108,12 +118,14 @@ namespace Portal.Controllers
                 if (userId == currentUserId)
                 {
                     TempData["Error"] = "Não pode alterar o seu próprio papel de administrador.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
                 if (newRoleName != "Professor" && newRoleName != "Aluno" && newRoleName != "Admin")
                 {
                     TempData["Error"] = "Função/Role inválida.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
@@ -121,6 +133,7 @@ namespace Portal.Controllers
                 if (role == null)
                 {
                     TempData["Error"] = "Função/Role não existe na base de dados.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers");
                 }
 
@@ -134,7 +147,58 @@ namespace Portal.Controllers
                 TempData["Error"] = $"Erro ao alterar papel do utilizador: {ex.Message}";
             }
 
+            if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
             return RedirectToAction("AdminUsers");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult UserDetails(int id)
+        {
+            var user = _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Id == id);
+
+            if (user == null)
+            {
+                TempData["Error"] = "Utilizador não encontrado.";
+                return RedirectToAction("AdminUsers");
+            }
+
+            var roles = _context.Roles.ToList();
+
+            var taughtClasses = _context.Classes
+                .Where(c => c.TeacherId == id)
+                .ToList();
+
+            var enrolledClasses = _context.ClassEnrollments
+                .Include(ce => ce.Class)
+                .Where(ce => ce.StudentId == id)
+                .Select(ce => ce.Class)
+                .ToList();
+
+            var createdChallenges = _context.Challenges
+                .Where(c => c.TeacherId == id)
+                .ToList();
+
+            var participatedChallenges = _context.Scenarios
+                .Include(s => s.Challenge)
+                .Where(s => s.StudentId == id && s.ChallengeId != null)
+                .Select(s => s.Challenge)
+                .Distinct()
+                .ToList();
+
+            var viewModel = new UserDetailsViewModel
+            {
+                User = user,
+                AvailableRoles = roles,
+                TaughtClasses = taughtClasses,
+                EnrolledClasses = enrolledClasses,
+                CreatedChallenges = createdChallenges,
+                ParticipatedChallenges = participatedChallenges
+            };
+
+            return View("UserDetails", viewModel);
         }
 
         [Authorize(Roles = "Aluno,Admin")]

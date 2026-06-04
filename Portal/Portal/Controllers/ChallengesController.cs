@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Portal.Data;
@@ -81,7 +82,7 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public IActionResult AssociateClass(int challengeId, int? classId)
+        public IActionResult AssociateClass(int challengeId, int? classId, string returnUrl = null)
         {
             int userId = GetUserId();
             _logger.LogInformation("Utilizador ID {UserId} a associar desafio ID {ChallengeId} à turma ID {ClassId}", userId, challengeId, classId);
@@ -93,6 +94,7 @@ namespace Portal.Controllers
                 {
                     _logger.LogWarning("Associação falhou: desafio ID {ChallengeId} não encontrado.", challengeId);
                     TempData["Error"] = "Desafio não encontrado.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectBasedOnRole();
                 }
 
@@ -102,18 +104,20 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' (ID: {ChallengeId}) associado com sucesso à turma ID {ClassId}", challenge.Title, challengeId, classId);
 
                 TempData["Success"] = "Desafio associado com sucesso!";
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao associar desafio ID {ChallengeId} à turma ID {ClassId}", challengeId, classId);
                 TempData["Error"] = $"Erro ao associar desafio: {ex.Message}";
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
         }
 
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, string returnUrl = null)
         {
             int userId = GetUserId();
             _logger.LogInformation("Utilizador ID {UserId} a tentar eliminar o desafio ID {ChallengeId}", userId, id);
@@ -125,6 +129,7 @@ namespace Portal.Controllers
                 {
                     _logger.LogWarning("Remoção falhou: desafio ID {ChallengeId} não encontrado.", id);
                     TempData["Error"] = "Desafio não encontrado.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectBasedOnRole();
                 }
 
@@ -134,14 +139,79 @@ namespace Portal.Controllers
                 _logger.LogInformation("Desafio '{Title}' (ID: {ChallengeId}) eliminado com sucesso por utilizador ID {UserId}.", challenge.Title, id, userId);
 
                 TempData["Success"] = "Desafio eliminado com sucesso!";
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Erro grave ao eliminar desafio ID {ChallengeId} por utilizador ID {UserId}", id, userId);
                 TempData["Error"] = $"Erro ao eliminar desafio: {ex.Message}";
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                 return RedirectBasedOnRole();
             }
+        }
+
+        [HttpGet]
+        public IActionResult Details(int id)
+        {
+            var challenge = _context.Challenges
+                .Include(c => c.Class)
+                .Include(c => c.Teacher)
+                .FirstOrDefault(c => c.Id == id);
+
+            if (challenge == null)
+            {
+                TempData["Error"] = "Desafio não encontrado.";
+                return RedirectBasedOnRole();
+            }
+
+            var scenarios = _context.Scenarios
+                .Include(s => s.Student)
+                .Where(s => s.ChallengeId == id)
+                .ToList();
+
+            var availableClasses = _context.Classes.ToList();
+
+            var viewModel = new ChallengeDetailsViewModel
+            {
+                Challenge = challenge,
+                Scenarios = scenarios,
+                AvailableClasses = availableClasses
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(int id, string title, string description)
+        {
+            try
+            {
+                var challenge = _context.Challenges.FirstOrDefault(c => c.Id == id);
+                if (challenge == null)
+                {
+                    TempData["Error"] = "Desafio não encontrado.";
+                    return RedirectToAction("Details", new { id = id });
+                }
+
+                if (string.IsNullOrWhiteSpace(title))
+                {
+                    TempData["Error"] = "O título é obrigatório.";
+                    return RedirectToAction("Details", new { id = id });
+                }
+
+                challenge.Title = title.Trim();
+                challenge.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+
+                _context.SaveChanges();
+                TempData["Success"] = "Desafio atualizado com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao atualizar o desafio: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = id });
         }
 
         private string GenerateAccessCode()

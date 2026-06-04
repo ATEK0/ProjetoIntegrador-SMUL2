@@ -6,7 +6,7 @@ using Portal.Models;
 using Portal.Models.ViewModels;
 using System;
 using System.Linq;
-
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Portal.Controllers
@@ -213,7 +213,7 @@ namespace Portal.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public IActionResult RemoveUserFromClass(int userId, int classId)
+        public IActionResult RemoveUserFromClass(int userId, int classId, string returnUrl = null)
         {
             try
             {
@@ -221,6 +221,7 @@ namespace Portal.Controllers
                 if (enrollment == null)
                 {
                     TempData["Error"] = "Inscrição não encontrada.";
+                    if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
                     return RedirectToAction("AdminUsers", "Dashboard");
                 }
 
@@ -228,13 +229,110 @@ namespace Portal.Controllers
                 _context.SaveChanges();
 
                 TempData["Success"] = "Utilizador removido da turma com sucesso!";
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                return RedirectToAction("AdminUsers", "Dashboard");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Erro ao remover utilizador: {ex.Message}";
+                if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
+                return RedirectToAction("AdminUsers", "Dashboard");
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Details(int id)
+        {
+            var schoolClass = _context.Classes
+                .Include(c => c.Teacher)
+                .FirstOrDefault(c => c.Id == id);
+
+            if (schoolClass == null)
+            {
+                TempData["Error"] = "Turma não encontrada.";
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
 
-            return RedirectToAction("AdminUsers", "Dashboard");
+            var enrolledStudents = _context.ClassEnrollments
+                .Where(ce => ce.ClassId == id)
+                .Select(ce => ce.Student)
+                .ToList();
+
+            var availableTeachers = _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Role.RoleName == "Professor" || u.Role.RoleName == "Admin")
+                .ToList();
+
+            var viewModel = new ClassDetailsViewModel
+            {
+                Id = schoolClass.Id,
+                Name = schoolClass.Name,
+                MembershipCode = schoolClass.MembershipCode,
+                TeacherId = schoolClass.TeacherId,
+                Teacher = schoolClass.Teacher,
+                EnrolledStudents = enrolledStudents,
+                AvailableTeachers = availableTeachers
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Edit(int id, string name, int teacherId)
+        {
+            var schoolClass = _context.Classes.FirstOrDefault(c => c.Id == id);
+            if (schoolClass == null)
+            {
+                TempData["Error"] = "Turma não encontrada.";
+                return RedirectToAction("AdminClasses", "Dashboard");
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                TempData["Error"] = "O nome da turma não pode estar vazio.";
+                return RedirectToAction("Details", new { id = id });
+            }
+
+            var teacher = _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Id == teacherId && (u.Role.RoleName == "Professor" || u.Role.RoleName == "Admin"));
+
+            if (teacher == null)
+            {
+                TempData["Error"] = "Professor inválido ou não tem permissões.";
+                return RedirectToAction("Details", new { id = id });
+            }
+
+            schoolClass.Name = name;
+            schoolClass.TeacherId = teacherId;
+
+            _context.SaveChanges();
+
+            TempData["Success"] = "Detalhes da turma atualizados com sucesso.";
+            return RedirectToAction("Details", new { id = id });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult Delete(int id)
+        {
+            var schoolClass = _context.Classes.FirstOrDefault(c => c.Id == id);
+            if (schoolClass == null)
+            {
+                TempData["Error"] = "Turma não encontrada.";
+                return RedirectToAction("AdminClasses", "Dashboard");
+            }
+
+            var enrollments = _context.ClassEnrollments.Where(ce => ce.ClassId == id);
+            _context.ClassEnrollments.RemoveRange(enrollments);
+
+            _context.Classes.Remove(schoolClass);
+            _context.SaveChanges();
+
+            TempData["Success"] = "Turma eliminada com sucesso.";
+            return RedirectToAction("AdminClasses", "Dashboard");
         }
     }
 }
