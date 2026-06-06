@@ -1,0 +1,260 @@
+@model Portal.Models.ViewModels.UserDetailsViewModel
+
+@{
+    ViewData["Title"] = "Detalhes de Utilizador";
+}
+
+<style>
+    .badge-role {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        text-transform: uppercase;
+        display: inline-block;
+        letter-spacing: 0.5px;
+    }
+
+    .role-admin {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+    }
+
+    .role-professor {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .role-aluno {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    .user-avatar-lg {
+        width: 80px;
+        height: 80px;
+        border-radius: var(--radius-full);
+        background-color: rgba(12, 115, 183, 0.1);
+        color: var(--primary-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 2.5rem;
+    }
+    
+    .info-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        height: 100%;
+    }
+    
+    .info-card h4 {
+        margin-top: 0;
+        margin-bottom: var(--spacing-md);
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: var(--spacing-sm);
+    }
+    
+    .list-item {
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px dashed var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .list-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+
+    <div style="margin-bottom: var(--spacing-lg);">
+        <a href="/Dashboard/AdminUsers" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;">
+            <i class="fas fa-arrow-left"></i> Voltar aos Utilizadores
+        </a>
+    </div>
+
+    <!-- Hero Header / Profile Banner -->
+    <div class="info-card" style="margin-bottom: var(--spacing-lg); display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-lg); background: linear-gradient(135deg, rgba(12, 115, 183, 0.03) 0%, rgba(12, 115, 183, 0.08) 100%);">
+        
+        <div style="display: flex; align-items: center; gap: var(--spacing-lg);">
+            <div class="user-avatar-lg" style="box-shadow: var(--shadow-md); background: white; border: 2px solid var(--primary-blue);">
+                @(!string.IsNullOrWhiteSpace(Model.User.Name) ? Model.User.Name.Substring(0, 1).ToUpper() : "U")
+            </div>
+            <div>
+                <h2 style="margin: 0; color: var(--dark-grey); font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">@Model.User.Name</h2>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <i class="fas fa-envelope text-muted" style="font-size: 0.85rem;"></i>
+                    <span class="text-muted" style="font-size: 0.95rem;">@Model.User.Email</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="min-width: 250px; display: flex; flex-direction: column; align-items: flex-end;">
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; display: block; letter-spacing: 0.5px;"><i class="fas fa-user-shield" style="margin-right: 4px; color: var(--primary-blue);"></i> Permissões do Utilizador</label>
+            @if (Model.User.Role.RoleName == "Admin")
+            {
+                <div style="padding: 10px; border-radius: var(--radius-sm); text-align: center; font-size: 0.9rem; width: 100%;" class="role-admin badge-role">@Model.User.Role.RoleName</div>
+            }
+            else
+            {
+                <form action="/Dashboard/ChangeUserRole" method="post" style="margin: 0; width: 100%;">
+                    <input type="hidden" name="userId" value="@Model.User.Id" />
+                    <input type="hidden" name="returnUrl" value="/Dashboard/UserDetails/@Model.User.Id" />
+                    <select name="newRoleName" onchange="this.form.submit()" class="form-control" style="width: 100%; border-color: rgba(12, 115, 183, 0.2); font-weight: 600;">
+                        @foreach (var role in Model.AvailableRoles)
+                        {
+                            if (role.RoleName == Model.User.Role.RoleName)
+                            {
+                                <option value="@role.RoleName" selected>@role.RoleName</option>
+                            }
+                            else
+                            {
+                                <option value="@role.RoleName">@role.RoleName</option>
+                            }
+                        }
+                    </select>
+                </form>
+            }
+        </div>
+    </div>
+
+    <!-- Data Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: var(--spacing-lg);">
+        
+        <!-- Turmas -->
+        <div class="info-card">
+            <h4>Turmas Associadas</h4>
+            
+            @if (Model.User.Role.RoleName == "Professor")
+            {
+                <p class="text-muted" style="font-size: 0.85rem; margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">Espaços onde atua como docente responsável.</p>
+                if (Model.TaughtClasses.Any())
+                {
+                    <div style="display: flex; flex-direction: column;">
+                        @foreach (var c in Model.TaughtClasses)
+                        {
+                            <div class="list-item">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--primary-blue);"></div>
+                                    <span style="font-weight: 600; color: var(--dark-grey);">@c.Name</span>
+                                </div>
+                                <a href="/Classes/Details/@c.Id" class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem; border-radius: var(--radius-sm);">Gerir</a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: var(--spacing-lg) 0;">
+                        <i class="fas fa-chalkboard text-muted" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.3;"></i>
+                        <p class="text-muted" style="font-style: italic; font-size: 0.9rem; margin: 0;">Não leciona nenhuma turma.</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="font-size: 0.85rem; margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">Espaços onde está matriculado como aluno.</p>
+                if (Model.EnrolledClasses.Any())
+                {
+                    <div style="display: flex; flex-direction: column;">
+                        @foreach (var c in Model.EnrolledClasses)
+                        {
+                            <div class="list-item">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6;"></div>
+                                    <span style="font-weight: 600; color: var(--dark-grey);">@c.Name</span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="/Classes/Details/@c.Id" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem; border-radius: var(--radius-sm);"><i class="fas fa-eye"></i></a>
+                                    <form action="/Classes/RemoveUserFromClass" method="post" style="margin: 0;" onsubmit="return confirm('Tem a certeza que quer desinscrever o aluno desta turma?')">
+                                        <input type="hidden" name="userId" value="@Model.User.Id" />
+                                        <input type="hidden" name="classId" value="@c.Id" />
+                                        <input type="hidden" name="returnUrl" value="/Dashboard/UserDetails/@Model.User.Id" />
+                                        <button type="submit" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.8rem; border-radius: var(--radius-sm); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: transparent;"><i class="fas fa-user-minus"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: var(--spacing-lg) 0;">
+                        <i class="fas fa-user-graduate text-muted" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.3;"></i>
+                        <p class="text-muted" style="font-style: italic; font-size: 0.9rem; margin: 0;">Não está inscrito em nenhuma turma.</p>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Desafios -->
+        <div class="info-card">
+            <h4>Desafios</h4>
+            
+            @if (Model.User.Role.RoleName == "Professor")
+            {
+                <p class="text-muted" style="font-size: 0.85rem; margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">Desafios de simulação criados por este docente.</p>
+                if (Model.CreatedChallenges.Any())
+                {
+                    <div style="display: flex; flex-direction: column;">
+                        @foreach (var c in Model.CreatedChallenges)
+                        {
+                            <div class="list-item">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></div>
+                                    <span style="font-weight: 600; color: var(--dark-grey);">@c.Title</span>
+                                </div>
+                                <a href="/Challenges/Details/@c.Id" class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem; border-radius: var(--radius-sm); border-color: rgba(16, 185, 129, 0.3); color: #10b981;">Gerir</a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: var(--spacing-lg) 0;">
+                        <i class="fas fa-gamepad text-muted" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.3;"></i>
+                        <p class="text-muted" style="font-style: italic; font-size: 0.9rem; margin: 0;">Ainda não criou desafios.</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="font-size: 0.85rem; margin-top: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">Desafios com cenários iniciados pelo aluno.</p>
+                if (Model.ParticipatedChallenges.Any())
+                {
+                    <div style="display: flex; flex-direction: column;">
+                        @foreach (var c in Model.ParticipatedChallenges)
+                        {
+                            <div class="list-item">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></div>
+                                    <span style="font-weight: 600; color: var(--dark-grey);">@c.Title</span>
+                                </div>
+                                <span class="badge-status" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2);">Participante</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: var(--spacing-lg) 0;">
+                        <i class="fas fa-clipboard-list text-muted" style="font-size: 2rem; margin-bottom: 8px; opacity: 0.3;"></i>
+                        <p class="text-muted" style="font-style: italic; font-size: 0.9rem; margin: 0;">Ainda não participou em desafios.</p>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+</div>

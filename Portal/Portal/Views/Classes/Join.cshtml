@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Aderir a uma Turma";
 }
 
@@ -31,9 +31,8 @@
     <div class="card">
         <h3 style="margin-bottom: var(--spacing-md);">Validação de Código</h3>
 
-        <form asp-action="Join" method="post" novalidate class="flex flex-col gap-sm">
-
-            <div asp-validation-summary="All" class="text-danger small" style="font-size: 0.85rem; list-style: none; padding: 0; margin-bottom: var(--spacing-xs);"></div>
+        <form action="/Classes/Join" method="post" novalidate class="flex flex-col gap-sm">
+            @await Html.PartialAsync("_FormErrors")
 
             <div class="flex flex-col" style="margin-bottom: var(--spacing-sm);">
                 <label class="form-label" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">
@@ -49,7 +48,7 @@
                 <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i> Validar e Entrar
             </button>
 
-            <a asp-controller="Home" asp-action="Index" class="btn btn-outline" style="justify-content: flex-start; width: 100%; text-decoration: none; color: inherit;">
+            <a href="/Home/Index" class="btn btn-outline" style="justify-content: flex-start; width: 100%; text-decoration: none; color: inherit;">
                 <i class="fas fa-times" style="margin-right: 8px;"></i> Cancelar
             </a>
 

@@ -5,46 +5,7 @@
 }
 
 <style>
-    .admin-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: var(--spacing-xl);
-        gap: var(--spacing-md);
-    }
 
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .tab-btn:hover {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-blue);
-    }
 
     .table-row-hover:hover {
         background-color: rgba(12, 115, 183, 0.02);
@@ -165,20 +126,7 @@
 
 <div class="container animate-fade-in" style="padding: var(--spacing-xl) 0;">
 
-    <div class="admin-tabs">
-        <a href="/Dashboard/Admin" class="tab-btn">
-            <i class="fas fa-server"></i> Infraestrutura & Saúde
-        </a>
-        <a href="/Dashboard/AdminClasses" class="tab-btn">
-            <i class="fas fa-graduation-cap"></i> Gestão de Turmas
-        </a>
-        <a href="/Dashboard/AdminChallenges" class="tab-btn active">
-            <i class="fas fa-trophy"></i> Gestão de Desafios (@Model.Challenges.Count())
-        </a>
-        <a href="/Dashboard/AdminUsers" class="tab-btn">
-            <i class="fas fa-users-cog"></i> Gestão de Utilizadores
-        </a>
-    </div>
+
 
     <div>
         <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
@@ -230,9 +178,9 @@
                                         <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.15rem; font-weight: 700; letter-spacing: 1px; background: rgba(16, 185, 129, 0.08); color: #10b981; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px dashed rgba(16, 185, 129, 0.25);">@c.AccessLinkCode</span>
                                     </td>
                                     <td style="padding: var(--spacing-md) var(--spacing-sm);">
-                                        <form asp-controller="Challenges" asp-action="AssociateClass" method="post" style="display: inline-flex; align-items: center;">
+                                        <form action="/Challenges/AssociateClass" method="post" style="display: inline-flex; align-items: center;">
                                             <input type="hidden" name="challengeId" value="@c.Id" />
-                                            <select name="classId" onchange="this.form.submit()" class="form-control" style="padding: 4px 10px; font-size: 0.85rem; height: 34px; width: auto; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: var(--surface-color); font-weight: 600; color: var(--primary-blue);">
+                                            <select name="classId" onchange="this.form.submit()" class="form-control ds-dropdown-compact" data-ds-size="compact" data-ds-accent="true" data-ds-inline="true">
                                                 @if (c.ClassId == null)
                                                 {
                                                     <option value="" selected style="color: #f59e0b;">Independente (Por Código)</option>
@@ -256,7 +204,7 @@
                                         </form>
                                     </td>
                                     <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: right;">
-                                        <form asp-controller="Challenges" asp-action="Delete" method="post" style="display: inline-block;" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
+                                        <form action="/Challenges/Delete" method="post" style="display: inline-block;" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
                                             <input type="hidden" name="id" value="@c.Id" />
                                             <button type="submit" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: var(--radius-sm); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: transparent;">
                                                 <i class="fas fa-trash-alt"></i> Eliminar
@@ -292,7 +240,7 @@
             
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
 
-            <form asp-controller="Challenges" asp-action="Create" method="post" id="createChallengeForm">
+            <form action="/Challenges/Create" method="post" id="createChallengeForm">
                 <div class="form-group">
                     <label for="challengeTitleInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-edit"></i> Título do Desafio
@@ -314,7 +262,7 @@
                     <label for="challengeClassSelect" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-graduation-cap"></i> Associar a uma Turma (Opcional)
                     </label>
-                    <select name="classId" id="challengeClassSelect" class="form-control" style="height: 44px; font-size: 0.9rem; padding-left: 10px;">
+                    <select name="classId" id="challengeClassSelect" class="form-control">
                         <option value="">Nenhuma (Desafio Independente - Acesso por Código)</option>
                         @foreach (var cls in Model.Classes)
                         {
