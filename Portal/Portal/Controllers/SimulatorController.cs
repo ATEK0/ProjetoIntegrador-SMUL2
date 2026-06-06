@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -130,7 +131,9 @@ namespace Portal.Controllers
                 }).ToList();
             }
 
-            var response = await httpClient.PostAsJsonAsync("api/v1/simulate/interest/", payload, _jsonWriteOptions);
+            var json = JsonSerializer.Serialize(payload, _jsonWriteOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync("api/v1/simulate/interest/", content);
             await EnsureSuccessOrThrowAsync(response);
 
             var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<InterestSimulationResponse>>(_jsonOptions);
@@ -147,7 +150,9 @@ namespace Portal.Controllers
                 type = request.Type
             };
 
-            var response = await httpClient.PostAsJsonAsync("api/v1/simulate/amortization/", payload, _jsonWriteOptions);
+            var json = JsonSerializer.Serialize(payload, _jsonWriteOptions);
+            using var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync("api/v1/simulate/amortization/", content);
             await EnsureSuccessOrThrowAsync(response);
 
             var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<List<AmortizationPeriod>>>(_jsonOptions);

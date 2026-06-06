@@ -78,7 +78,11 @@ namespace Portal
             builder.Services.AddHttpClient(SimulatorController.MsCafinHttpClientName, (services, client) =>
             {
                 var config = services.GetRequiredService<IConfiguration>();
-                var baseUrl = config["MsCafinApiUrl"] ?? "http://127.0.0.1:8000/";
+                var baseUrl = config["MsCafinApiUrl"]
+                    ?? config["BACKEND_URL"]
+                    ?? "http://127.0.0.1:8000/";
+                if (!baseUrl.EndsWith('/'))
+                    baseUrl += "/";
                 client.BaseAddress = new Uri(baseUrl);
             });
 
