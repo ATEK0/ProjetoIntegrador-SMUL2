@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models
@@ -51,5 +51,7 @@ namespace Portal.Models
             Name = name;
             MembershipCode = membershipCode;
         }
+
+        protected SchoolClass() { }
     }
 }

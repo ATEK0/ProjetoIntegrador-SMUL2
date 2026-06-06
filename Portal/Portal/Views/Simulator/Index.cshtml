@@ -21,20 +21,7 @@
 
     <div class="sim-layout">
         <form action="/Simulator/Calculate" method="post" class="sim-form-card card glass-panel" novalidate>
-            @Html.AntiForgeryToken()
-
-            @{
-                var modelErrors = ViewData.ModelState[string.Empty]?.Errors;
-                if (modelErrors != null && modelErrors.Count > 0)
-                {
-                    <div class="sim-validation-summary">
-                        @foreach (var err in modelErrors)
-                        {
-                            <div>@err.ErrorMessage</div>
-                        }
-                    </div>
-                }
-            }
+            @await Html.PartialAsync("_FormErrors")
 
             <section class="sim-section">
                 <h4 class="sim-section-title">Tipo de simulação</h4>
@@ -92,7 +79,6 @@
             <section class="sim-section sim-interest-only" id="variableRatesSection" aria-label="Taxas variáveis">
                 <h4 class="sim-section-title">Taxas ao longo do tempo</h4>
                 <label class="sim-toggle">
-                    <input type="hidden" name="UseVariableRates" value="false" />
                     <input type="checkbox" name="UseVariableRates" value="true" id="useVariableRates" @(Model.UseVariableRates ? "checked" : null) />
                     <span class="sim-toggle-track"></span>
                     <span class="sim-toggle-label">

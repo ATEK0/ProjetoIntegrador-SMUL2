@@ -254,7 +254,7 @@
                         <div style="background: rgba(255, 255, 255, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-xs); transition: var(--transition);" class="table-row-hover">
                             <div class="flex justify-between items-start">
                                 <h4 style="font-weight: 600; color: var(--primary-blue); margin: 0; font-size: 1rem;">@challenge.Title</h4>
-                                <form asp-controller="Challenges" asp-action="Delete" method="post" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
+                                <form action="/Challenges/Delete" method="post" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
                                     <input type="hidden" name="id" value="@challenge.Id" />
                                     <button type="submit" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; font-size: 0.9rem;" title="Eliminar Desafio">
                                         <i class="fas fa-trash-alt"></i>
@@ -307,7 +307,7 @@
             
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
 
-            <form asp-controller="Challenges" asp-action="Create" method="post" id="createChallengeForm">
+            <form action="/Challenges/Create" method="post" id="createChallengeForm">
                 <div class="form-group">
                     <label for="challengeTitleInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-edit"></i> Título do Desafio

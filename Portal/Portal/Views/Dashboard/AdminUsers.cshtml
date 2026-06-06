@@ -161,20 +161,6 @@
         </a>
     </div>
 
-    <!-- Alert Messages -->
-    @if (TempData["Success"] != null)
-    {
-        <div style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981; padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
-            <i class="fas fa-check-circle" style="margin-right: 8px;"></i> @TempData["Success"]
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div style="background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
-            <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i> @TempData["Error"]
-        </div>
-    }
-
     <div class="users-grid">
         
         <!-- Left: Users List -->
@@ -215,7 +201,7 @@
                                     }
                                     else
                                     {
-                                        <form asp-controller="Dashboard" asp-action="ChangeUserRole" method="post" style="margin: 0; display: inline-block;">
+                                        <form action="/Dashboard/ChangeUserRole" method="post" style="margin: 0; display: inline-block;">
                                             <input type="hidden" name="userId" value="@user.Id" />
                                             <select name="newRoleName" onchange="this.form.submit()" class="ds-dropdown ds-dropdown-compact @(user.RoleName == "Professor" ? "role-professor" : "role-aluno")" data-ds-inline="true">
                                                 @if (user.RoleName == "Professor")
@@ -240,7 +226,7 @@
                                             {
                                                 <span class="class-tag">
                                                     @enrollment.ClassName
-                                                    <form asp-controller="Classes" asp-action="RemoveUserFromClass" method="post" style="display: inline;" onsubmit="return confirm('Tem a certeza que deseja remover este utilizador desta turma?')">
+                                                    <form action="/Classes/RemoveUserFromClass" method="post" style="display: inline;" onsubmit="return confirm('Tem a certeza que deseja remover este utilizador desta turma?')">
                                                         <input type="hidden" name="userId" value="@user.Id" />
                                                         <input type="hidden" name="classId" value="@enrollment.ClassId" />
                                                         <button type="submit" class="class-tag-remove-btn" title="Remover da Turma">
@@ -270,7 +256,7 @@
                 <p class="text-muted" style="font-size: 0.8rem; margin: 4px 0 0 0;">Inscreva manualmente um utilizador numa turma existente.</p>
             </div>
 
-            <form asp-controller="Classes" asp-action="EnrollUser" method="post">
+            <form action="/Classes/EnrollUser" method="post">
                 <div class="form-group" style="margin-bottom: var(--spacing-md);">
                     <label for="enrollUserSelect" class="premium-label">
                         <i class="fas fa-user"></i> Selecionar Aluno

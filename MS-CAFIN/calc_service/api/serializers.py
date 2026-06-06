@@ -38,22 +38,7 @@ class InterestSimulationSerializer(serializers.Serializer):
         tiers = attrs.get("rate_tiers") or []
         if tiers is None:
             tiers = []
-        rate = attrs.get("rate")
-
-        if tiers:
-            tiers = sorted(tiers, key=lambda t: t["from_period"])
-            if tiers[0]["from_period"] != 1:
-                raise serializers.ValidationError(
-                    {"rate_tiers": "A primeira faixa deve começar no período 1."}
-                )
-            attrs["rate_tiers"] = tiers
-            if rate is None:
-                attrs["rate"] = tiers[0]["rate"]
-        elif rate is None:
-            raise serializers.ValidationError(
-                {"rate": "Indique a taxa de juro ou configure faixas variáveis."}
-            )
-
+        attrs["rate_tiers"] = tiers if tiers else None
         return attrs
 
 

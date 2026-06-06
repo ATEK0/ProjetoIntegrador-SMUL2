@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Portal.Data;
 using System;
 using Microsoft.Extensions.Logging;
-using Portal.Controllers;
 using Microsoft.Extensions.Configuration;
+using Portal.Services;
 
 namespace Portal
 {
@@ -16,21 +15,10 @@ namespace Portal
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", policy =>
-                {
-                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-                });
-            });
 
-            // Configurar a autenticação por JWT Bearer com suporte a Cookies (HTTP-Only)
             var jwtSecret = builder.Configuration["Jwt:Secret"];
-
             if (string.IsNullOrEmpty(jwtSecret))
-            {
                 throw new InvalidOperationException("Chave JWT não configurada em appsettings.json");
-            }
 
             var key = System.Text.Encoding.UTF8.GetBytes(jwtSecret);
 
@@ -41,7 +29,7 @@ namespace Portal
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // Em produção deve ser true
+                options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
                 options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
                 {
@@ -51,22 +39,16 @@ namespace Portal
                     ValidateAudience = false,
                     ClockSkew = TimeSpan.Zero
                 };
-
                 options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        // Ler o token JWT do cookie HTTP-Only para suportar as views Razor normais do MVC
                         var token = context.Request.Cookies["JWT_Token"];
-                        if (!string.IsNullOrEmpty(token))
-                        {
-                            context.Token = token;
-                        }
+                        if (!string.IsNullOrEmpty(token)) context.Token = token;
                         return System.Threading.Tasks.Task.CompletedTask;
                     },
                     OnChallenge = context =>
                     {
-                        // Redirecionar pedidos não autorizados para a página de Login em vez de devolver 401/403
                         context.Response.Redirect("/Account/Login");
                         context.HandleResponse();
                         return System.Threading.Tasks.Task.CompletedTask;
@@ -74,15 +56,16 @@ namespace Portal
                 };
             });
 
+            builder.Services.AddScoped<AccountService>();
+            builder.Services.AddScoped<ClassService>();
+            builder.Services.AddScoped<ChallengeService>();
+            builder.Services.AddScoped<DashboardService>();
             builder.Services.AddMvc();
-            builder.Services.AddHttpClient(SimulatorController.MsCafinHttpClientName, (services, client) =>
+            builder.Services.AddHttpClient<SimulationService>((sp, client) =>
             {
-                var config = services.GetRequiredService<IConfiguration>();
-                var baseUrl = config["MsCafinApiUrl"]
-                    ?? config["BACKEND_URL"]
-                    ?? "http://127.0.0.1:8000/";
-                if (!baseUrl.EndsWith('/'))
-                    baseUrl += "/";
+                var config = sp.GetRequiredService<IConfiguration>();
+                var baseUrl = config["MsCafinApiUrl"] ?? config["BACKEND_URL"] ?? "http://127.0.0.1:8000/";
+                if (!baseUrl.EndsWith('/')) baseUrl += "/";
                 client.BaseAddress = new Uri(baseUrl);
             });
 
@@ -94,11 +77,7 @@ namespace Portal
             var app = builder.Build();
 
             app.UseStaticFiles();
-
             app.UseRouting();
-            app.UseCors("AllowAll");
-
-            // O middleware de Autenticação DEVE vir antes do de Autorização
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -106,21 +85,16 @@ namespace Portal
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            // Inicializar e Semear a Base de Dados
             using (var scope = app.Services.CreateScope())
             {
-                var services = scope.ServiceProvider;
-                var logger = services.GetRequiredService<ILogger<Program>>();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 try
                 {
-                    logger.LogInformation("Iniciando a inicialização e semeadura da base de dados...");
-                    var context = services.GetRequiredService<ApplicationDbContext>();
-                    DbInitializer.Initialize(context);
-                    logger.LogInformation("Base de dados inicializada e semeada com sucesso!");
+                    DbInitializer.Initialize(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Erro no escopo de inicialização da BD.");
+                    logger.LogError(ex, "Erro na inicialização da BD.");
                 }
             }
 
@@ -128,3 +102,4 @@ namespace Portal
         }
     }
 }
+

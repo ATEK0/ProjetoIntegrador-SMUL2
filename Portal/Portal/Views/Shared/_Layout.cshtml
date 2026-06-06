@@ -15,9 +15,11 @@
     <link rel="stylesheet" href="~/css/design-system.css" />
     <link rel="stylesheet" href="~/css/layout.css" />
     <link rel="stylesheet" href="~/css/dropdown.css" />
+    <link rel="stylesheet" href="~/css/toast.css" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+    @await Html.PartialAsync("_Toasts")
     <div class="dashboard-layout">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -75,6 +77,7 @@
         </main>
     </div>
     <script src="~/js/dropdown.js" defer></script>
+    <script src="~/js/toast.js" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

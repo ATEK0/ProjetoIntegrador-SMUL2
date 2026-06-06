@@ -1,9 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema
 from .serializers import InterestSimulationSerializer, AmortizationSimulationSerializer
-from .domain.facades import SimulatorFacade
+from .services.simulation_service import SimulationService
 
 
 class HealthCheckView(APIView):
@@ -34,19 +35,13 @@ class InterestSimulationView(APIView):
     )
     def post(self, request):
         serializer = InterestSimulationSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                result = SimulatorFacade.simulate_interest(
-                    principal=serializer.validated_data["principal"],
-                    rate=serializer.validated_data["rate"],
-                    time=serializer.validated_data["time"],
-                    interest_type=serializer.validated_data["type"],
-                    rate_tiers=serializer.validated_data.get("rate_tiers"),
-                )
-                return Response(result, status=status.HTTP_200_OK)
-            except ValueError as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            result = SimulationService.run_interest(serializer.validated_data)
+        except ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result, status=status.HTTP_200_OK)
 
 
 class AmortizationSimulationView(APIView):
@@ -62,15 +57,10 @@ class AmortizationSimulationView(APIView):
     )
     def post(self, request):
         serializer = AmortizationSimulationSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                result = SimulatorFacade.simulate_amortization(
-                    principal=serializer.validated_data["principal"],
-                    rate=serializer.validated_data["rate"],
-                    periods=serializer.validated_data["periods"],
-                    amortization_type=serializer.validated_data["type"],
-                )
-                return Response(result, status=status.HTTP_200_OK)
-            except ValueError as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            result = SimulationService.run_amortization(serializer.validated_data)
+        except ValidationError as e:
+            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        return Response(result, status=status.HTTP_200_OK)

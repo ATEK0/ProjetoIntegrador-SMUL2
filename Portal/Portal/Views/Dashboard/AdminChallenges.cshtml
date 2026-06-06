@@ -230,7 +230,7 @@
                                         <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.15rem; font-weight: 700; letter-spacing: 1px; background: rgba(16, 185, 129, 0.08); color: #10b981; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px dashed rgba(16, 185, 129, 0.25);">@c.AccessLinkCode</span>
                                     </td>
                                     <td style="padding: var(--spacing-md) var(--spacing-sm);">
-                                        <form asp-controller="Challenges" asp-action="AssociateClass" method="post" style="display: inline-flex; align-items: center;">
+                                        <form action="/Challenges/AssociateClass" method="post" style="display: inline-flex; align-items: center;">
                                             <input type="hidden" name="challengeId" value="@c.Id" />
                                             <select name="classId" onchange="this.form.submit()" class="form-control ds-dropdown-compact" data-ds-size="compact" data-ds-accent="true" data-ds-inline="true">
                                                 @if (c.ClassId == null)
@@ -256,7 +256,7 @@
                                         </form>
                                     </td>
                                     <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: right;">
-                                        <form asp-controller="Challenges" asp-action="Delete" method="post" style="display: inline-block;" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
+                                        <form action="/Challenges/Delete" method="post" style="display: inline-block;" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
                                             <input type="hidden" name="id" value="@c.Id" />
                                             <button type="submit" class="btn btn-outline" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: var(--radius-sm); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); background: transparent;">
                                                 <i class="fas fa-trash-alt"></i> Eliminar
@@ -292,7 +292,7 @@
             
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
 
-            <form asp-controller="Challenges" asp-action="Create" method="post" id="createChallengeForm">
+            <form action="/Challenges/Create" method="post" id="createChallengeForm">
                 <div class="form-group">
                     <label for="challengeTitleInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-edit"></i> Título do Desafio
