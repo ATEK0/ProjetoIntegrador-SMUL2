@@ -1,0 +1,233 @@
+@model Portal.Models.ViewModels.ClassDetailsViewModel
+@{
+    ViewData["Title"] = "Detalhes da Turma: " + Model.Name;
+}
+
+<style>
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    @@media (min-width: 1024px) {
+        .details-grid {
+            grid-template-columns: 350px 1fr;
+        }
+    }
+
+    .info-card {
+        background: var(--surface-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .danger-zone {
+        border: 1px dashed #ef4444;
+        background: rgba(239, 68, 68, 0.02);
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--dark-grey);
+        margin-bottom: var(--spacing-xs);
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .student-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+
+    .student-item:hover {
+        background: rgba(12, 115, 183, 0.02);
+    }
+
+    .student-item:last-child {
+        border-bottom: none;
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-full);
+        background-color: rgba(12, 115, 183, 0.1);
+        color: var(--primary-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .btn-remove-student {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-remove-student:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .membership-code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: rgba(12, 115, 183, 0.08);
+        color: var(--primary-blue);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        border: 1px dashed rgba(12, 115, 183, 0.3);
+        display: inline-block;
+        margin-top: 8px;
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+
+    <div style="margin-bottom: var(--spacing-lg);">
+        <a href="/Dashboard/AdminClasses" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-arrow-left"></i> Voltar às Turmas
+        </a>
+    </div>
+
+    <div class="details-grid">
+        <!-- Coluna Esquerda: Definições -->
+        <div>
+            <!-- Info Card -->
+            <div class="info-card">
+                <h3 style="color: var(--primary-blue); font-size: 1.25rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <i class="fas fa-cog"></i> Configurações da Turma
+                </h3>
+
+                <div style="margin-bottom: var(--spacing-lg);">
+                    <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Código de Adesão</label>
+                    <div>
+                        <span class="membership-code">@Model.MembershipCode</span>
+                    </div>
+                </div>
+
+                <form action="/Classes/Edit" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label for="name"><i class="fas fa-edit"></i> Nome da Turma</label>
+                        <input type="text" id="name" name="name" class="form-control" value="@Model.Name" required />
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                        <label for="teacherId"><i class="fas fa-chalkboard-teacher"></i> Professor Responsável</label>
+                        <select id="teacherId" name="teacherId" class="form-control" required style="background-color: var(--surface-color);">
+                            @foreach(var teacher in Model.AvailableTeachers)
+                            {
+                                if(teacher.Id == Model.TeacherId)
+                                {
+                                    <option value="@teacher.Id" selected>@teacher.Name (@teacher.Email)</option>
+                                }
+                                else
+                                {
+                                    <option value="@teacher.Id">@teacher.Name (@teacher.Email)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-save"></i> Guardar Alterações
+                    </button>
+                </form>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="info-card danger-zone">
+                <h3 style="color: #ef4444; font-size: 1.15rem; margin-bottom: var(--spacing-sm);">
+                    <i class="fas fa-exclamation-triangle"></i> Zona de Perigo
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: var(--spacing-md);">
+                    A remoção de uma turma não pode ser desfeita. Todos os alunos serão removidos desta turma.
+                </p>
+
+                <form action="/Classes/Delete" method="post" onsubmit="return confirm('Tem a certeza absoluta que deseja eliminar a turma @Model.Name? Esta ação é irreversível.');">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn" style="background: transparent; border: 1px solid #ef4444; color: #ef4444; width: 100%; padding: 10px; border-radius: var(--radius-md); font-weight: 600; cursor: pointer; transition: background 0.2s, color 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#ef4444';">
+                        <i class="fas fa-trash-alt"></i> Eliminar Turma
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Coluna Direita: Alunos -->
+        <div>
+            <div class="info-card" style="height: 100%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                    <h3 style="color: var(--primary-blue); font-size: 1.25rem; margin: 0;">
+                        <i class="fas fa-user-graduate"></i> Alunos Inscritos
+                    </h3>
+                    <span style="background: rgba(12, 115, 183, 0.1); color: var(--primary-blue); font-weight: 700; font-size: 0.85rem; padding: 4px 12px; border-radius: var(--radius-full);">
+                        @Model.EnrolledStudents.Count Alunos
+                    </span>
+                </div>
+
+                @if(!Model.EnrolledStudents.Any())
+                {
+                    <div style="text-align: center; padding: var(--spacing-xl) 0; color: var(--text-muted);">
+                        <i class="fas fa-users-slash fa-3x" style="margin-bottom: var(--spacing-md); opacity: 0.5;"></i>
+                        <h4 style="margin-bottom: 8px;">Sem alunos inscritos</h4>
+                        <p style="font-size: 0.85rem;">Partilhe o código de adesão (@Model.MembershipCode) para os alunos poderem entrar.</p>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: 0;">
+                        @foreach(var student in Model.EnrolledStudents)
+                        {
+                            <div class="student-item">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="user-avatar">
+                                        @(!string.IsNullOrWhiteSpace(student.Name) ? student.Name.Substring(0, 1).ToUpper() : "A")
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--dark-grey);">@student.Name</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">@student.Email</div>
+                                    </div>
+                                </div>
+                                
+                                <form action="/Classes/RemoveUserFromClass" method="post" onsubmit="return confirm('Tem a certeza que deseja remover este aluno da turma?')">
+                                    <!-- Reusing existing action which expects userId and classId -->
+                                    <input type="hidden" name="userId" value="@student.Id" />
+                                    <input type="hidden" name="classId" value="@Model.Id" />
+                                    <!-- Pass a redirect URL so the action knows where to go back! -->
+                                    <input type="hidden" name="returnUrl" value="/Classes/Details/@Model.Id" />
+                                    
+                                    <button type="submit" class="btn-remove-student" title="Remover da turma">
+                                        <i class="fas fa-user-minus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
