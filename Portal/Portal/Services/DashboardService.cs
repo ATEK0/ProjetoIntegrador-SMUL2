@@ -145,5 +145,47 @@ namespace Portal.Services
                 PendingChallenges = pendingChallenges
             };
         }
+
+        public async Task<UserDetailsViewModel> GetUserDetailsAsync(int id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null) return null;
+
+            var roles = await _context.Roles.ToListAsync();
+
+            var taughtClasses = await _context.Classes
+                .Where(c => c.TeacherId == id)
+                .ToListAsync();
+
+            var enrolledClasses = await _context.ClassEnrollments
+                .Include(ce => ce.Class)
+                .Where(ce => ce.StudentId == id)
+                .Select(ce => ce.Class)
+                .ToListAsync();
+
+            var createdChallenges = await _context.Challenges
+                .Where(c => c.TeacherId == id)
+                .ToListAsync();
+
+            var participatedChallenges = await _context.Scenarios
+                .Include(s => s.Challenge)
+                .Where(s => s.StudentId == id && s.ChallengeId != null)
+                .Select(s => s.Challenge)
+                .Distinct()
+                .ToListAsync();
+
+            return new UserDetailsViewModel
+            {
+                User = user,
+                AvailableRoles = roles,
+                TaughtClasses = taughtClasses,
+                EnrolledClasses = enrolledClasses,
+                CreatedChallenges = createdChallenges,
+                ParticipatedChallenges = participatedChallenges
+            };
+        }
     }
 }
