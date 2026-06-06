@@ -54,5 +54,41 @@ namespace Portal.Services
             return null;
         }
 
+        public async Task<ChallengeDetailsViewModel> GetChallengeDetailsAsync(int id)
+        {
+            var challenge = await _context.Challenges
+                .Include(c => c.Class)
+                .Include(c => c.Teacher)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (challenge == null) return null;
+
+            var scenarios = await _context.Scenarios
+                .Include(s => s.Student)
+                .Where(s => s.ChallengeId == id)
+                .ToListAsync();
+
+            var availableClasses = await _context.Classes.ToListAsync();
+
+            return new ChallengeDetailsViewModel
+            {
+                Challenge = challenge,
+                Scenarios = scenarios,
+                AvailableClasses = availableClasses
+            };
+        }
+
+        public async Task<string?> EditChallengeAsync(int id, string title, string description)
+        {
+            var challenge = await _context.Challenges.FindAsync(id);
+            if (challenge == null) return "Desafio não encontrado.";
+            if (string.IsNullOrWhiteSpace(title)) return "O título é obrigatório.";
+
+            challenge.Title = title.Trim();
+            challenge.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+            await _context.SaveChangesAsync();
+            return null;
+        }
+
     }
 }

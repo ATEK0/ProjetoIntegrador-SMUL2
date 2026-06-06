@@ -103,5 +103,65 @@ namespace Portal.Services
             return null;
         }
 
+        public async Task<ClassDetailsViewModel> GetClassDetailsAsync(int id)
+        {
+            var schoolClass = await _context.Classes
+                .Include(c => c.Teacher)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (schoolClass == null) return null;
+
+            var enrolledStudents = await _context.ClassEnrollments
+                .Where(ce => ce.ClassId == id)
+                .Select(ce => ce.Student)
+                .ToListAsync();
+
+            var availableTeachers = await _context.Users
+                .Include(u => u.Role)
+                .Where(u => u.Role.RoleName == "Professor" || u.Role.RoleName == "Admin")
+                .ToListAsync();
+
+            return new ClassDetailsViewModel
+            {
+                Id = schoolClass.Id,
+                Name = schoolClass.Name,
+                MembershipCode = schoolClass.MembershipCode,
+                TeacherId = schoolClass.TeacherId,
+                Teacher = schoolClass.Teacher,
+                EnrolledStudents = enrolledStudents,
+                AvailableTeachers = availableTeachers
+            };
+        }
+
+        public async Task<string?> EditClassAsync(int id, string name, int teacherId)
+        {
+            var schoolClass = await _context.Classes.FindAsync(id);
+            if (schoolClass == null) return "Turma não encontrada.";
+            if (string.IsNullOrWhiteSpace(name)) return "O nome da turma não pode estar vazio.";
+
+            var teacher = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == teacherId && (u.Role.RoleName == "Professor" || u.Role.RoleName == "Admin"));
+
+            if (teacher == null) return "Professor inválido ou sem permissões.";
+
+            schoolClass.Name = name;
+            schoolClass.TeacherId = teacherId;
+            await _context.SaveChangesAsync();
+            return null;
+        }
+
+        public async Task<string?> DeleteClassAsync(int id)
+        {
+            var schoolClass = await _context.Classes.FindAsync(id);
+            if (schoolClass == null) return "Turma não encontrada.";
+
+            var enrollments = _context.ClassEnrollments.Where(ce => ce.ClassId == id);
+            _context.ClassEnrollments.RemoveRange(enrollments);
+
+            _context.Classes.Remove(schoolClass);
+            await _context.SaveChangesAsync();
+            return null;
+        }
     }
 }
