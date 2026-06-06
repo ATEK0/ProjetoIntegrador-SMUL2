@@ -19,21 +19,21 @@ namespace Portal.Services
 
         public async Task<AdminDashboardViewModel> GetAdminDashboardAsync() => new()
         {
-            Classes = await _context.Classes.ToListAsync(),
-            Challenges = await _context.Challenges.ToListAsync(),
+            Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
+            Challenges = await _context.Challenges.Include(c => c.Teacher).ToListAsync(),
             Users = await _context.Users.ToListAsync()
         };
 
         public async Task<AdminDashboardViewModel> GetAdminClassesAsync() => new()
         {
-            Classes = await _context.Classes.ToListAsync(),
+            Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
             Challenges = Enumerable.Empty<Challenge>()
         };
 
         public async Task<AdminDashboardViewModel> GetAdminChallengesAsync() => new()
         {
-            Classes = await _context.Classes.ToListAsync(),
-            Challenges = await _context.Challenges.Include(c => c.Class).ToListAsync()
+            Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
+            Challenges = await _context.Challenges.Include(c => c.Class).Include(c => c.Teacher).ToListAsync()
         };
 
         public async Task<AdminUsersViewModel> GetAdminUsersAsync()
