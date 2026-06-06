@@ -20,7 +20,8 @@ namespace Portal.Services
         public async Task<AdminDashboardViewModel> GetAdminDashboardAsync() => new()
         {
             Classes = await _context.Classes.ToListAsync(),
-            Challenges = await _context.Challenges.ToListAsync()
+            Challenges = await _context.Challenges.ToListAsync(),
+            Users = await _context.Users.ToListAsync()
         };
 
         public async Task<AdminDashboardViewModel> GetAdminClassesAsync() => new()

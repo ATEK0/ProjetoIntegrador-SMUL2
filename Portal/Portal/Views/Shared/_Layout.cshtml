@@ -45,8 +45,18 @@
                 }
                 @if (User.IsInRole("Admin"))
                 {
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin: var(--spacing-lg) var(--spacing-md) var(--spacing-sm) var(--spacing-md);">Administração</div>
                     <a href="/Dashboard/Admin" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Admin" ? "active" : "")">
-                        <i class="fas fa-cog"></i> Administração
+                        <i class="fas fa-server"></i> Dashboard Infra
+                    </a>
+                    <a href="/Dashboard/AdminClasses" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminClasses" ? "active" : "")">
+                        <i class="fas fa-graduation-cap"></i> Gestão de Turmas
+                    </a>
+                    <a href="/Dashboard/AdminChallenges" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminChallenges" ? "active" : "")">
+                        <i class="fas fa-trophy"></i> Gestão de Desafios
+                    </a>
+                    <a href="/Dashboard/AdminUsers" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminUsers" ? "active" : "")">
+                        <i class="fas fa-users-cog"></i> Gestão de Utilizadores
                     </a>
                 }
             </nav>

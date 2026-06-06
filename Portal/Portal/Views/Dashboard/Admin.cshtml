@@ -1,135 +1,160 @@
 @model Portal.Models.ViewModels.AdminDashboardViewModel
 
 @{
-    ViewData["Title"] = "Administração de System";
+    ViewData["Title"] = "Dashboard de Administração";
 }
 
 <style>
-    .admin-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: var(--spacing-xl);
-        gap: var(--spacing-md);
-    }
-
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
+    .admin-stat-card {
+        background: var(--surface-color);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
         display: flex;
         align-items: center;
-        gap: var(--spacing-sm);
+        gap: var(--spacing-md);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
     }
 
-    .tab-btn:hover {
-        color: var(--primary-blue);
+    .admin-stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
     }
 
-    .tab-btn.active {
-        color: var(--primary-blue);
+    .admin-stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
     }
 
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-blue);
-    }
-
-    .table-row-hover:hover {
-        background-color: rgba(12, 115, 183, 0.02);
-    }
-
-    .badge-status {
-        background-color: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        padding: 4px 10px;
-        border-radius: var(--radius-sm);
-        font-size: 0.8rem;
-        font-weight: 600;
+    .admin-stat-content h3 {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-muted);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
+    }
+
+    .admin-stat-content .value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--dark-grey);
+        margin-top: 4px;
+        line-height: 1;
+    }
+
+    .icon-users { background-color: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .icon-classes { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .icon-challenges { background-color: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    
+    .status-indicator {
         display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #10b981;
+        margin-right: 8px;
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
     }
 </style>
 
-<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+<div class="container animate-fade-in" style="padding: var(--spacing-xl) 0;">
 
-    <div class="admin-tabs">
-        <a href="/Dashboard/Admin" class="tab-btn active">
-            <i class="fas fa-server"></i> Infraestrutura & Saúde
-        </a>
-        <a href="/Dashboard/AdminClasses" class="tab-btn">
-            <i class="fas fa-graduation-cap"></i> Gestão de Turmas (@Model.Classes.Count())
-        </a>
-        <a href="/Dashboard/AdminChallenges" class="tab-btn">
-            <i class="fas fa-trophy"></i> Gestão de Desafios (@Model.Challenges.Count())
-        </a>
-        <a href="/Dashboard/AdminUsers" class="tab-btn">
-            <i class="fas fa-users-cog"></i> Gestão de Utilizadores
-        </a>
+    <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
+        <div>
+            <h3 style="color: var(--primary-blue); margin-bottom: 4px; font-size: 1.5rem;">Visão Geral do Sistema</h3>
+            <p class="text-muted" style="font-size: 0.9rem; margin: 0;">Resumo da infraestrutura e dados do Portal DEC.</p>
+        </div>
+
     </div>
 
-    <div class="dashboard-grid">
-        <div class="card glass-panel" style="grid-column: span 2;">
-            <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Estado da Infraestrutura</h3>
-            <div class="flex gap-lg">
-                <div class="stat-card" style="flex: 1;">
-                    <div class="stat-icon" style="color: #10b981; background-color: rgba(16,185,129,0.1);"><i class="fas fa-server"></i></div>
-                    <div class="stat-details">
-                        <h3>Servidores</h3>
-                        <div class="value" style="color: #10b981;">Online</div>
-                    </div>
-                </div>
-                <div class="stat-card" style="flex: 1;">
-                    <div class="stat-icon" style="color: #3b82f6; background-color: rgba(59,130,246,0.1);"><i class="fas fa-database"></i></div>
-                    <div class="stat-details">
-                        <h3>Base de Dados</h3>
-                        <div class="value">Sincronizada</div>
-                    </div>
-                </div>
-                <div class="stat-card" style="flex: 1;">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-details">
-                        <h3>Utilizadores Ativos</h3>
-                        <div class="value">458</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 style="margin-bottom: var(--spacing-md);">Ações de Gestão</h3>
-            <div class="flex flex-col gap-sm">
-                <button class="btn btn-primary" style="justify-content: flex-start;"><i class="fas fa-user-shield" style="margin-right: 8px;"></i> Gerir Utilizadores</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cloud-download-alt" style="margin-right: 8px;"></i> Backup Manual</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cogs" style="margin-right: 8px;"></i> Configurações do Sistema</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="card glass-panel" style="margin-top: var(--spacing-lg);">
-        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md);">
-            <h3>Logs do Sistema Recentes</h3>
-            <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver Todos</button>
-        </div>
+    <!-- Key Metrics Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
         
-        <div style="background-color: var(--dark-grey); color: var(--white); padding: var(--spacing-md); border-radius: var(--radius-md); font-family: monospace; font-size: 0.875rem; height: 200px; overflow-y: auto;">
-            <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:58:01 - System backup completed successfully.</div>
-            <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:55:12 - User professor_silva successfully logged in.</div>
-            <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:50:45 - User aluno_martins successfully logged in.</div>
-            <div style="margin-bottom: 4px;"><span style="color: #f59e0b;">[WARN]</span> 2026-05-17 19:42:10 - High CPU usage detected on Python Microservice container (85%).</div>
-            <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:30:00 - API endpoint /api/simulacoes/credito accessed.</div>
+        <div class="admin-stat-card glass-panel">
+            <div class="admin-stat-icon icon-users">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>Total Utilizadores</h3>
+                <div class="value">@Model.Users.Count()</div>
+            </div>
         </div>
+
+        <div class="admin-stat-card glass-panel">
+            <div class="admin-stat-icon icon-classes">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>Turmas Ativas</h3>
+                <div class="value">@Model.Classes.Count()</div>
+            </div>
+        </div>
+
+        <div class="admin-stat-card glass-panel">
+            <div class="admin-stat-icon icon-challenges">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>Desafios Criados</h3>
+                <div class="value">@Model.Challenges.Count()</div>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Secondary Grid: Quick Actions and System Info -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--spacing-lg);">
+        
+        <!-- System Configuration Info -->
+        <div class="card glass-panel">
+            <h3 style="margin-bottom: var(--spacing-md); color: var(--dark-grey); font-size: 1.2rem;"><i class="fas fa-server" style="margin-right: 8px; color: var(--primary-blue);"></i> Informação da Infraestrutura</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm); border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-weight: 600;">Estado do Servidor Web</span>
+                    <span style="color: #10b981; font-weight: 700;">Online</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm); border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-weight: 600;">Ligação à Base de Dados (MySQL)</span>
+                    <span style="color: #10b981; font-weight: 700;">Sincronizada</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm); border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-muted); font-weight: 600;">Autenticação (JWT)</span>
+                    <span style="color: #10b981; font-weight: 700;">Segura</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm);">
+                    <span style="color: var(--text-muted); font-weight: 600;">Ambiente</span>
+                    <span style="color: var(--primary-blue); font-weight: 700;">Produção</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card glass-panel" style="display: flex; flex-direction: column;">
+            <h3 style="margin-bottom: var(--spacing-md); color: var(--dark-grey); font-size: 1.2rem;"><i class="fas fa-bolt" style="margin-right: 8px; color: #f59e0b;"></i> Ações Rápidas</h3>
+            
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm); flex-grow: 1;">
+                <a href="/Dashboard/AdminUsers" class="btn btn-outline" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fas fa-user-shield" style="margin-right: 8px;"></i> Gerir Permissões
+                </a>
+                <a href="/Classes/Create" class="btn btn-outline" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Nova Turma
+                </a>
+                <a href="/Challenges/Create" class="btn btn-outline" style="justify-content: flex-start; text-decoration: none;">
+                    <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Novo Desafio
+                </a>
+            </div>
+        </div>
+
+    </div>
+
 </div>

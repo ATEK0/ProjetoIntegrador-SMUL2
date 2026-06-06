@@ -133,7 +133,9 @@ namespace Portal.Controllers
 
             Response.Cookies.Append("JWT_Token", await _accountService.GenerateTokenForUserAsync(userId.Value), new CookieOptions
             {
-                HttpOnly = true, Secure = false, SameSite = SameSiteMode.Strict,
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Strict,
                 Expires = DateTime.UtcNow.AddDays(7)
             });
 
