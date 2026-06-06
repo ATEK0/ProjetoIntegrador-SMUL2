@@ -35,7 +35,7 @@ namespace Portal.Controllers
             {
                 var studentId = GetUserId();
                 var error = await _scenarioService.CreateScenarioAsync(studentId, familyName, initialBalance);
-                
+
                 if (error != null)
                 {
                     return Content(error);
@@ -78,7 +78,7 @@ namespace Portal.Controllers
         {
             var studentId = GetUserId();
             var error = await _scenarioService.EditScenarioAsync(id, studentId, familyName);
-            
+
             if (error == null) TempData["Success"] = "Cenário atualizado com sucesso!";
             else TempData["Error"] = error;
 
@@ -91,7 +91,7 @@ namespace Portal.Controllers
         {
             var studentId = GetUserId();
             var error = await _scenarioService.DeleteScenarioAsync(id, studentId);
-            
+
             if (error == null) TempData["Success"] = "Cenário removido com sucesso!";
             else TempData["Error"] = error;
 
@@ -104,13 +104,13 @@ namespace Portal.Controllers
         {
             var studentId = GetUserId();
             var result = await _scenarioService.EditEntryAsync(id, studentId, category, amount, entryMonth, recurrence);
-            
+
             if (result.Error == null)
             {
                 TempData["Success"] = "Registo atualizado com sucesso!";
                 return RedirectToAction("Details", new { id = result.ScenarioId });
             }
-            
+
             TempData["Error"] = result.Error;
             return result.ScenarioId.HasValue ? RedirectToAction("Details", new { id = result.ScenarioId }) : RedirectToAction("Aluno", "Dashboard");
         }
@@ -121,13 +121,13 @@ namespace Portal.Controllers
         {
             var studentId = GetUserId();
             var result = await _scenarioService.DeleteEntryAsync(id, studentId);
-            
+
             if (result.Error == null)
             {
                 TempData["Success"] = "Registo apagado com sucesso!";
                 return RedirectToAction("Details", new { id = result.ScenarioId });
             }
-            
+
             TempData["Error"] = result.Error;
             return result.ScenarioId.HasValue ? RedirectToAction("Details", new { id = result.ScenarioId }) : RedirectToAction("Aluno", "Dashboard");
         }
@@ -206,7 +206,7 @@ namespace Portal.Controllers
                     TempData["Success"] = "Membro removido com sucesso!";
                     return RedirectToAction("Details", new { id = result.ScenarioId, month = month });
                 }
-                
+
                 TempData["Error"] = result.Error;
                 return result.ScenarioId.HasValue ? RedirectToAction("Details", new { id = result.ScenarioId, month = month }) : RedirectToAction("Aluno", "Dashboard");
             }

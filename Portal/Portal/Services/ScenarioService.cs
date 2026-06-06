@@ -47,9 +47,9 @@ namespace Portal.Services
             int targetMonth = month ?? DateTime.Now.Month;
 
             var query = _context.Entries.Where(e => e.ScenarioId == scenarioId);
-            
-            query = query.Where(e => 
-                (e.Recurrence == RecurrenceType.Monthly && targetMonth >= e.EntryMonth) || 
+
+            query = query.Where(e =>
+                (e.Recurrence == RecurrenceType.Monthly && targetMonth >= e.EntryMonth) ||
                 e.EntryMonth == targetMonth
             );
 
@@ -57,9 +57,9 @@ namespace Portal.Services
 
             var incomes = entries.Where(e => e.EntryType == EntryType.Income).ToList();
             var expenses = entries.Where(e => e.EntryType == EntryType.Expense).ToList();
-            
+
             var members = await _context.ScenarioMembers.Where(sm => sm.ScenarioId == scenarioId).ToListAsync();
-            
+
             decimal totalIncome = incomes.Sum(i => i.Amount) + members.Sum(m => m.MonthlyIncome);
             decimal totalExpense = expenses.Sum(e => e.Amount);
             decimal balance = totalIncome - totalExpense;
@@ -69,7 +69,7 @@ namespace Portal.Services
             decimal accumulatedExpense = 0;
 
             var allIncomes = await _context.Entries.Where(e => e.ScenarioId == scenarioId && e.EntryType == EntryType.Income).ToListAsync();
-            foreach(var inc in allIncomes)
+            foreach (var inc in allIncomes)
             {
                 if (inc.Recurrence == RecurrenceType.Monthly)
                 {
@@ -84,7 +84,7 @@ namespace Portal.Services
             }
 
             var allExpenses = await _context.Entries.Where(e => e.ScenarioId == scenarioId && e.EntryType == EntryType.Expense).ToListAsync();
-            foreach(var exp in allExpenses)
+            foreach (var exp in allExpenses)
             {
                 if (exp.Recurrence == RecurrenceType.Monthly)
                 {
@@ -125,7 +125,7 @@ namespace Portal.Services
         public async Task<string?> EditScenarioAsync(int scenarioId, int studentId, string familyName)
         {
             if (string.IsNullOrWhiteSpace(familyName)) return "O nome não pode estar vazio.";
-            
+
             var scenario = await _context.Scenarios.FirstOrDefaultAsync(s => s.Id == scenarioId && s.StudentId == studentId);
             if (scenario == null) return "Cenário não encontrado.";
 
@@ -156,7 +156,7 @@ namespace Portal.Services
                 entry.Scenario.InitialBalance -= entry.Amount;
             else
                 entry.Scenario.InitialBalance += entry.Amount;
-            
+
             entry.Category = category;
             entry.Amount = amount;
             entry.EntryMonth = entryMonth;
@@ -166,7 +166,7 @@ namespace Portal.Services
                 entry.Scenario.InitialBalance += amount;
             else
                 entry.Scenario.InitialBalance -= amount;
-            
+
             await _context.SaveChangesAsync();
             return (null, entry.ScenarioId);
         }
@@ -177,12 +177,12 @@ namespace Portal.Services
             if (entry == null) return ("Registo não encontrado.", null);
 
             int scenarioId = entry.ScenarioId;
-            
+
             if (entry.EntryType == EntryType.Income)
                 entry.Scenario.InitialBalance -= entry.Amount;
             else
                 entry.Scenario.InitialBalance += entry.Amount;
-            
+
             _context.Entries.Remove(entry);
             await _context.SaveChangesAsync();
             return (null, scenarioId);
