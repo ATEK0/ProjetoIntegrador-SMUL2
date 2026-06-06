@@ -14,45 +14,12 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/design-system.css" />
     <link rel="stylesheet" href="~/css/layout.css" />
-    <!-- Toastify -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    
-    <!-- Choices.js -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
-    
-    <style>
-        .choices[data-type*="select-one"]::after {
-            border-color: var(--text-muted) transparent transparent transparent;
-        }
-        .choices__inner {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            font-size: 0.9rem;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-        }
-        .choices__list--dropdown {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            z-index: 1000;
-        }
-        .choices__list--dropdown .choices__item--selectable.is-highlighted {
-            background-color: rgba(12, 115, 183, 0.05);
-            color: var(--primary-blue);
-        }
-        .choices__list--dropdown .choices__item--selectable {
-            font-size: 0.9rem;
-        }
-        .choices[data-type*="select-one"] .choices__inner {
-            padding-bottom: 0px;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/dropdown.css" />
+    <link rel="stylesheet" href="~/css/toast.css" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+    @await Html.PartialAsync("_Toasts")
     <div class="dashboard-layout">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -66,6 +33,9 @@
                     <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
                         <i class="fas fa-home"></i> Dashboard Aluno
                     </a>
+                    <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" ? "active" : "")">
+                        <i class="fas fa-calculator"></i> Simulador Financeiro
+                    </a>
                 }
                 @if (User.IsInRole("Professor") || User.IsInRole("Admin"))
                 {
@@ -75,20 +45,18 @@
                 }
                 @if (User.IsInRole("Admin"))
                 {
-                    <div style="margin-top: var(--spacing-lg); margin-bottom: var(--spacing-xs); padding-left: var(--spacing-md); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700;">
-                        Administração
-                    </div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin: var(--spacing-lg) var(--spacing-md) var(--spacing-sm) var(--spacing-md);">Administração</div>
                     <a href="/Dashboard/Admin" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Admin" ? "active" : "")">
-                        <i class="fas fa-server"></i> Infraestrutura
+                        <i class="fas fa-server"></i> Dashboard Infra
                     </a>
                     <a href="/Dashboard/AdminClasses" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminClasses" ? "active" : "")">
-                        <i class="fas fa-graduation-cap"></i> Turmas
+                        <i class="fas fa-graduation-cap"></i> Gestão de Turmas
                     </a>
                     <a href="/Dashboard/AdminChallenges" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminChallenges" ? "active" : "")">
-                        <i class="fas fa-trophy"></i> Desafios
+                        <i class="fas fa-trophy"></i> Gestão de Desafios
                     </a>
                     <a href="/Dashboard/AdminUsers" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminUsers" ? "active" : "")">
-                        <i class="fas fa-users-cog"></i> Utilizadores
+                        <i class="fas fa-users-cog"></i> Gestão de Utilizadores
                     </a>
                 }
             </nav>
@@ -118,56 +86,8 @@
             </div>
         </main>
     </div>
-
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            
-            // Initialize Choices.js
-            const selectElements = document.querySelectorAll('select.form-control, select[name="newRoleName"], select[name="classId"]');
-            selectElements.forEach(el => {
-                new Choices(el, {
-                    searchEnabled: false,
-                    itemSelectText: '',
-                    shouldSort: false,
-                    position: 'bottom'
-                });
-            });
-            @if (TempData["Success"] != null)
-            {
-                <text>
-                Toastify({
-                    text: "@TempData["Success"]",
-                    duration: 3000,
-                    close: true,
-                    gravity: "top",
-                    position: "right",
-                    style: {
-                        background: "#10b981",
-                        color: "#ffffff"
-                    }
-                }).showToast();
-                </text>
-            }
-
-            @if (TempData["Error"] != null)
-            {
-                <text>
-                Toastify({
-                    text: "@TempData["Error"]",
-                    duration: 5000,
-                    close: true,
-                    gravity: "top",
-                    position: "right",
-                    style: {
-                        background: "#ef4444",
-                        color: "#ffffff"
-                    }
-                }).showToast();
-                </text>
-            }
-        });
-    </script>
+    <script src="~/js/dropdown.js" defer></script>
+    <script src="~/js/toast.js" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -5,46 +5,7 @@
 }
 
 <style>
-    .admin-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: var(--spacing-xl);
-        gap: var(--spacing-md);
-    }
 
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .tab-btn:hover {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-blue);
-    }
 
     .table-row-hover:hover {
         background-color: rgba(12, 115, 183, 0.02);

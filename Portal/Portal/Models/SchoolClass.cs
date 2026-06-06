@@ -54,5 +54,7 @@ namespace Portal.Models
             Name = name;
             MembershipCode = membershipCode;
         }
+
+        protected SchoolClass() { }
     }
 }
