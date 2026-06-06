@@ -5,11 +5,9 @@ namespace Portal.Models.ViewModels
 {
     public class StudentDashboardViewModel
     {
-        public string StudentName { get; set; }
+        public string StudentName { get; set; } = string.Empty;
         public List<Scenario> Scenarios { get; set; } = new List<Scenario>();
-        public List<Entry> RecentIncomes { get; set; } = new List<Entry>();
-        public decimal TotalMonthlyIncome { get; set; }
-        public List<Entry> RecentExpenses { get; set; } = new List<Entry>();
-        public decimal TotalMonthlyExpense { get; set; }
+        public List<UserClassEnrollmentDetail> EnrolledClasses { get; set; } = new List<UserClassEnrollmentDetail>();
+        public List<Challenge> PendingChallenges { get; set; } = new List<Challenge>();
     }
 }

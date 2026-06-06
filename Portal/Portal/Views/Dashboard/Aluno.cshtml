@@ -2,8 +2,6 @@
 
 @{
     ViewData["Title"] = "Dashboard Aluno";
-    var months = new[] { "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
-                         "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro" };
 }
 
 <style>
@@ -16,7 +14,7 @@
 
     @@media (min-width: 1024px) {
         .student-grid {
-            grid-template-columns: 1fr 320px;
+            grid-template-columns: 1.5fr 1fr;
         }
     }
 
@@ -43,23 +41,13 @@
         background: rgba(12, 115, 183, 0.04);
         border-color: rgba(12, 115, 183, 0.3);
         box-shadow: var(--shadow-sm);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
     }
 
     .scenario-card-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-    }
-
-    .scenario-badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 3px 8px;
-        border-radius: var(--radius-full);
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     .scenario-balance {
@@ -93,113 +81,55 @@
         margin-bottom: var(--spacing-md);
     }
 
-    /* ── Income Table ── */
-    .income-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.85rem;
-    }
-
-    .income-table th {
-        text-align: left;
-        padding: 8px 10px;
-        font-weight: 600;
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .income-table td {
-        padding: 10px 10px;
-        border-bottom: 1px solid rgba(0,0,0,0.04);
-        vertical-align: middle;
-    }
-
-    .income-table tr:last-child td {
-        border-bottom: none;
-    }
-
-    .income-table tr:hover td {
-        background: rgba(12, 115, 183, 0.03);
-    }
-
-    .income-amount {
-        font-weight: 700;
-        color: #10b981;
-    }
-
-    .recurrence-badge {
-        font-size: 0.7rem;
-        padding: 2px 7px;
-        border-radius: var(--radius-full);
-        font-weight: 600;
-    }
-
-    .recurrence-monthly {
-        background: rgba(12, 115, 183, 0.1);
-        color: var(--primary-blue);
-    }
-
-    .recurrence-once {
-        background: rgba(245, 158, 11, 0.1);
-        color: #d97706;
-    }
-
-    .recurrence-yearly {
-        background: rgba(139, 92, 246, 0.1);
-        color: #7c3aed;
-    }
-
-    /* ── Alert flash ── */
-    .alert-flash {
+    .class-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 12px 16px;
+        gap: var(--spacing-md);
+    }
+
+    .class-icon {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .challenge-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid #f59e0b;
         border-radius: var(--radius-md);
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-bottom: var(--spacing-md);
-        animation: slideDown 0.3s ease;
+        padding: var(--spacing-md);
+        transition: var(--transition);
     }
 
-    .alert-flash.success {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.25);
-        color: #065f46;
-    }
-
-    .alert-flash.error {
-        background: rgba(239, 68, 68, 0.08);
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        color: #991b1b;
-    }
-
-    @@keyframes slideDown {
-        from { opacity: 0; transform: translateY(-8px); }
-        to   { opacity: 1; transform: translateY(0); }
+    .challenge-card:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-sm);
     }
 </style>
 
 <div class="container animate-fade-in" style="padding: var(--spacing-lg) 0;">
 
-    @* ── Flash Messages ── *@
     @if (TempData["Success"] != null)
     {
-        <div class="alert-flash success" id="flash-success">
-            <i class="fas fa-check-circle"></i>
-            <span>@TempData["Success"]</span>
-            <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;font-size:1rem;">&times;</button>
+        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
+            @TempData["Success"]
         </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert-flash error" id="flash-error">
-            <i class="fas fa-exclamation-circle"></i>
-            <span>@TempData["Error"]</span>
-            <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;font-size:1rem;">&times;</button>
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
+            @TempData["Error"]
         </div>
     }
 
@@ -210,13 +140,25 @@
                 Olá, @Model.StudentName!
             </h2>
             <p class="text-muted" style="margin: 0; font-size: 0.9rem;">
-                Aqui podes gerir os teus cenários familiares e acompanhar os desafios do professor.
+                Acompanha as tuas turmas, desafios e gere os teus cenários de simulação financeira.
             </p>
         </div>
+        <button id="btn-criar-cenario" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem; box-shadow: var(--shadow-sm);">
+            <i class="fas fa-plus-circle" style="margin-right: 6px;"></i> Novo Cenário
+        </button>
     </div>
 
     <!-- Stats Row -->
     <div class="stat-row">
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: #3b82f6; background-color: rgba(59, 130, 246, 0.1);">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Turmas Inscritas</h3>
+                <div class="value">@Model.EnrolledClasses.Count</div>
+            </div>
+        </div>
         <div class="stat-card card glass-panel">
             <div class="stat-icon" style="color: var(--primary-blue); background-color: rgba(12, 115, 183, 0.1);">
                 <i class="fas fa-home"></i>
@@ -227,57 +169,12 @@
             </div>
         </div>
         <div class="stat-card card glass-panel">
-            <div class="stat-icon" style="color: #10b981; background-color: rgba(16, 185, 129, 0.1);">
-                <i class="fas fa-arrow-trend-up"></i>
-            </div>
-            <div class="stat-details">
-                <h3>Rendimento Mensal</h3>
-                <div class="value">
-                    @if (Model.TotalMonthlyIncome > 0)
-                    {
-                        <span style="color:#10b981;">€ @Model.TotalMonthlyIncome.ToString("N2")</span>
-                    }
-                    else
-                    {
-                        <span>—</span>
-                    }
-                </div>
-            </div>
-        </div>
-        <div class="stat-card card glass-panel">
-            <div class="stat-icon" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1);">
-                <i class="fas fa-arrow-trend-down"></i>
-            </div>
-            <div class="stat-details">
-                <h3>Despesa Mensal</h3>
-                <div class="value">
-                    @if (Model.TotalMonthlyExpense > 0)
-                    {
-                        <span style="color:#ef4444;">€ @Model.TotalMonthlyExpense.ToString("N2")</span>
-                    }
-                    else
-                    {
-                        <span>—</span>
-                    }
-                </div>
-            </div>
-        </div>
-        <div class="stat-card card glass-panel">
             <div class="stat-icon" style="color: #f59e0b; background-color: rgba(245, 158, 11, 0.1);">
-                <i class="fas fa-wallet"></i>
+                <i class="fas fa-trophy"></i>
             </div>
             <div class="stat-details">
-                <h3>Saldo Total</h3>
-                <div class="value">
-                    @if (Model.Scenarios.Count > 0)
-                    {
-                        @("€ " + Model.Scenarios.Sum(s => s.InitialBalance).ToString("N2"))
-                    }
-                    else
-                    {
-                        <span>—</span>
-                    }
-                </div>
+                <h3>Desafios Ativos</h3>
+                <div class="value">@Model.PendingChallenges.Count</div>
             </div>
         </div>
     </div>
@@ -285,19 +182,83 @@
     <!-- Main Grid -->
     <div class="student-grid">
 
-        <!-- Left: Scenarios + Incomes -->
+        <!-- Left Column: Classes and Challenges -->
         <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
-
-            <!-- Scenarios Card -->
+            
+            <!-- Enrolled Classes -->
             <div class="card glass-panel" style="padding: var(--spacing-lg);">
-                <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <h3 style="color: var(--primary-blue); font-size: 1.25rem;">
-                        <i class="fas fa-home" style="margin-right: 8px;"></i> Os Meus Cenários
-                    </h3>
-                    <button id="btn-criar-cenario" class="btn btn-primary" style="font-size: 0.85rem; padding: 0.4rem 1rem;">
-                        <i class="fas fa-plus-circle" style="margin-right: 6px;"></i> Novo Cenário
-                    </button>
-                </div>
+                <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="fas fa-chalkboard" style="color: var(--primary-blue); margin-right: 8px;"></i> As Minhas Turmas
+                </h3>
+
+                @if (!Model.EnrolledClasses.Any())
+                {
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                        Não estás inscrito em nenhuma turma no momento.<br />
+                        <span style="font-size: 0.8rem;">Pede o código de adesão ao teu professor.</span>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                        @foreach (var c in Model.EnrolledClasses)
+                        {
+                            <div class="class-card">
+                                <div class="class-icon"><i class="fas fa-graduation-cap"></i></div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1rem; color: var(--dark-grey); font-weight: 700;">@c.ClassName</h4>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">Turma Ativa</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Pending Challenges -->
+            <div class="card glass-panel" style="padding: var(--spacing-lg);">
+                <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="fas fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Desafios das Turmas
+                </h3>
+
+                @if (!Model.PendingChallenges.Any())
+                {
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                        Sem desafios ativos de momento.
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        @foreach (var challenge in Model.PendingChallenges)
+                        {
+                            <div class="challenge-card">
+                                <h4 style="margin: 0 0 4px 0; font-size: 1.05rem; color: var(--dark-grey); font-weight: 700;">@challenge.Title</h4>
+                                @if (!string.IsNullOrWhiteSpace(challenge.Description))
+                                {
+                                    <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-muted);">@challenge.Description</p>
+                                }
+                                <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--primary-blue); font-weight: 600;"><i class="fas fa-users"></i> @challenge.Class.Name</span>
+                                    <a href="/Scenarios/Create" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                        Resolver Desafio <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- Right Column: Scenarios List -->
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+            
+            <div class="card glass-panel" style="padding: var(--spacing-lg); height: 100%;">
+                <h3 style="color: var(--primary-blue); font-size: 1.25rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="fas fa-home" style="margin-right: 8px;"></i> Os Meus Cenários
+                </h3>
 
                 @if (!Model.Scenarios.Any())
                 {
@@ -311,9 +272,6 @@
                         <p class="text-muted" style="font-size: 0.85rem; max-width: 300px; margin: 0 auto var(--spacing-md) auto;">
                             Cria o teu primeiro cenário familiar para começar a simular receitas, despesas e objetivos financeiros.
                         </p>
-                        <button id="btn-criar-cenario-empty" class="btn btn-primary" style="font-size: 0.85rem;">
-                            <i class="fas fa-plus-circle" style="margin-right: 6px;"></i> Criar Primeiro Cenário
-                        </button>
                     </div>
                 }
                 else
@@ -321,578 +279,62 @@
                     <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
                         @foreach (var scenario in Model.Scenarios)
                         {
-                            <div class="scenario-card">
-                                <div class="scenario-card-header">
-                                    <div>
-                                        <h4 style="font-weight: 700; color: var(--primary-blue); margin: 0; font-size: 1rem;">
-                                            <i class="fas fa-home" style="margin-right: 6px; font-size: 0.9rem;"></i>
-                                            @scenario.FamilyName
-                                        </h4>
+                            <a href="/Scenarios/Details/@scenario.Id" style="text-decoration: none; color: inherit;">
+                                <div class="scenario-card">
+                                    <div class="scenario-card-header">
+                                        <div>
+                                            <h4 style="font-weight: 700; color: var(--primary-blue); margin: 0; font-size: 1rem;">
+                                                <i class="fas fa-home" style="margin-right: 6px; font-size: 0.9rem;"></i>
+                                                @scenario.FamilyName
+                                            </h4>
+                                        </div>
                                     </div>
-                                    <span class="scenario-badge">Ativo</span>
-                                </div>
 
-                                <div class="scenario-balance">
-                                    € @scenario.InitialBalance.ToString("N2")
-                                    <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted); margin-left: 4px;">saldo inicial</span>
-                                </div>
+                                    <div class="scenario-balance">
+                                        € @scenario.InitialBalance.ToString("N2")
+                                        <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted); margin-left: 4px;">saldo total</span>
+                                    </div>
 
-                                <div class="flex justify-between items-center" style="margin-top: 4px;">
-                                    <span class="scenario-meta">
-                                        <i class="fas fa-calendar-alt"></i>
-                                        Criado em @scenario.CreatedAt.ToString("dd MMM yyyy")
-                                    </span>
-                                    <a href="/Scenarios/Details/@scenario.Id" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.3rem 0.75rem; text-decoration: none;">
-                                        <i class="fas fa-eye" style="margin-right: 5px;"></i> Ver Detalhes
-                                    </a>
+                                    <div class="flex justify-between items-center" style="margin-top: 4px;">
+                                        <span class="scenario-meta">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            Criado em @scenario.CreatedAt.ToString("dd MMM yyyy")
+                                        </span>
+                                        <span class="btn btn-primary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                            Ver Orçamento
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         }
                     </div>
                 }
             </div>
 
-            <!-- Incomes Card -->
-            <div class="card glass-panel" style="padding: var(--spacing-lg);">
-                <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <h3 style="color: #10b981; font-size: 1.1rem;">
-                        <i class="fas fa-arrow-trend-up" style="margin-right: 8px;"></i> Rendimentos Registados
-                    </h3>
-                    @if (Model.RecentIncomes.Any())
-                    {
-                        <span style="font-size: 0.78rem; color: var(--text-muted);">Últimos @Model.RecentIncomes.Count registos</span>
-                    }
-                </div>
-
-                @if (!Model.RecentIncomes.Any())
-                {
-                    <div class="empty-state" style="padding: var(--spacing-md) 0;">
-                        <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-                            <i class="fas fa-arrow-trend-up" style="font-size: 1.5rem; margin-bottom: 8px; display: block; opacity: 0.3;"></i>
-                            Ainda não tens rendimentos registados.<br />
-                            <span style="font-size:0.8rem;">Usa as <strong>Ações Rápidas</strong> para registar o primeiro.</span>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div style="overflow-x: auto;">
-                        <table class="income-table">
-                            <thead>
-                                <tr>
-                                    <th>Categoria</th>
-                                    <th>Cenário</th>
-                                    <th>Mês</th>
-                                    <th>Recorrência</th>
-                                    <th style="text-align:right;">Valor</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var income in Model.RecentIncomes)
-                                {
-                                    var scenarioName = Model.Scenarios.FirstOrDefault(s => s.Id == income.ScenarioId)?.FamilyName ?? "—";
-                                    var recClass = income.Recurrence == Portal.Models.RecurrenceType.Monthly ? "recurrence-monthly"
-                                                 : income.Recurrence == Portal.Models.RecurrenceType.Yearly  ? "recurrence-yearly"
-                                                 : "recurrence-once";
-                                    var recLabel = income.Recurrence == Portal.Models.RecurrenceType.Monthly ? "Mensal"
-                                                 : income.Recurrence == Portal.Models.RecurrenceType.Yearly  ? "Anual"
-                                                 : "Pontual";
-                                    <tr>
-                                        <td>
-                                            <span style="font-weight:600;">@income.Category</span>
-                                        </td>
-                                        <td>
-                                            <span style="color:var(--text-muted); font-size:0.8rem;">@scenarioName</span>
-                                        </td>
-                                        <td>
-                                            <span style="color:var(--text-muted);">@months[income.EntryMonth - 1]</span>
-                                        </td>
-                                        <td>
-                                            <span class="recurrence-badge @recClass">@recLabel</span>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <span class="income-amount">+ € @income.Amount.ToString("N2")</span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            </div>
-
-            <!-- Expenses Card -->
-            <div class="card glass-panel" style="padding: var(--spacing-lg);">
-                <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <h3 style="color: #ef4444; font-size: 1.1rem;">
-                        <i class="fas fa-arrow-trend-down" style="margin-right: 8px;"></i> Despesas Registadas
-                    </h3>
-                    @if (Model.RecentExpenses.Any())
-                    {
-                        <span style="font-size: 0.78rem; color: var(--text-muted);">Últimos @Model.RecentExpenses.Count registos</span>
-                    }
-                </div>
-
-                @if (!Model.RecentExpenses.Any())
-                {
-                    <div class="empty-state" style="padding: var(--spacing-md) 0;">
-                        <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-                            <i class="fas fa-arrow-trend-down" style="font-size: 1.5rem; margin-bottom: 8px; display: block; opacity: 0.3;"></i>
-                            Ainda não tens despesas registadas.<br />
-                            <span style="font-size:0.8rem;">Usa as <strong>Ações Rápidas</strong> para registar a primeira.</span>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div style="overflow-x: auto;">
-                        <table class="income-table">
-                            <thead>
-                                <tr>
-                                    <th>Categoria</th>
-                                    <th>Cenário</th>
-                                    <th>Mês</th>
-                                    <th>Recorrência</th>
-                                    <th style="text-align:right;">Valor</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var expense in Model.RecentExpenses)
-                                {
-                                    var scenarioName = Model.Scenarios.FirstOrDefault(s => s.Id == expense.ScenarioId)?.FamilyName ?? "—";
-                                    var recClass = expense.Recurrence == Portal.Models.RecurrenceType.Monthly ? "recurrence-monthly"
-                                                 : expense.Recurrence == Portal.Models.RecurrenceType.Yearly  ? "recurrence-yearly"
-                                                 : "recurrence-once";
-                                    var recLabel = expense.Recurrence == Portal.Models.RecurrenceType.Monthly ? "Mensal"
-                                                 : expense.Recurrence == Portal.Models.RecurrenceType.Yearly  ? "Anual"
-                                                 : "Pontual";
-                                    <tr>
-                                        <td>
-                                            <span style="font-weight:600;">@expense.Category</span>
-                                        </td>
-                                        <td>
-                                            <span style="color:var(--text-muted); font-size:0.8rem;">@scenarioName</span>
-                                        </td>
-                                        <td>
-                                            <span style="color:var(--text-muted);">@months[expense.EntryMonth - 1]</span>
-                                        </td>
-                                        <td>
-                                            <span class="recurrence-badge @recClass">@recLabel</span>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <span class="income-amount" style="color: #ef4444;">- € @expense.Amount.ToString("N2")</span>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-            </div>
-
-        </div>
-
-        <!-- Right: Quick Actions + Challenges -->
-        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
-
-            <!-- Quick Actions -->
-            <div class="card" style="padding: var(--spacing-lg);">
-                <h3 style="margin-bottom: var(--spacing-md); font-size: 1rem; color: var(--primary-blue);">
-                    <i class="fas fa-bolt" style="margin-right: 8px;"></i> Ações Rápidas
-                </h3>
-                <div class="flex flex-col gap-sm">
-                    @if (Model.Scenarios.Count == 0)
-                    {
-                        <button id="btn-registar-rendimento" class="btn btn-outline" style="justify-content: flex-start; font-size: 0.875rem;" disabled title="Cria primeiro um cenário">
-                            <i class="fas fa-plus" style="margin-right: 8px; color: #10b981;"></i> Registar Rendimento
-                        </button>
-                    }
-                    else
-                    {
-                        <button id="btn-registar-rendimento" class="btn btn-outline" style="justify-content: flex-start; font-size: 0.875rem;">
-                            <i class="fas fa-plus" style="margin-right: 8px; color: #10b981;"></i> Registar Rendimento
-                        </button>
-                    }
-                    @if (Model.Scenarios.Count == 0)
-                    {
-                        <button id="btn-registar-despesa" class="btn btn-outline" style="justify-content: flex-start; font-size: 0.875rem;" disabled title="Cria primeiro um cenário">
-                            <i class="fas fa-minus" style="margin-right: 8px; color: #ef4444;"></i> Registar Despesa
-                        </button>
-                    }
-                    else
-                    {
-                        <button id="btn-registar-despesa" class="btn btn-outline" style="justify-content: flex-start; font-size: 0.875rem;">
-                            <i class="fas fa-minus" style="margin-right: 8px; color: #ef4444;"></i> Registar Despesa
-                        </button>
-                    }
-                    <button class="btn btn-outline" style="justify-content: flex-start; font-size: 0.875rem;" disabled title="Em breve">
-                        <i class="fas fa-calculator" style="margin-right: 8px;"></i> Simular Crédito
-                    </button>
-                </div>
-            </div>
-
-            <!-- Challenges -->
-            <div class="card glass-panel" style="padding: var(--spacing-lg);">
-                <h3 style="margin-bottom: var(--spacing-md); font-size: 1rem; color: var(--primary-blue); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <i class="fas fa-trophy" style="margin-right: 8px;"></i> Desafios do Professor
-                </h3>
-                <div class="empty-state" style="padding: var(--spacing-md) 0;">
-                    <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-                        <i class="fas fa-trophy" style="font-size: 1.5rem; margin-bottom: 8px; display: block; opacity: 0.3;"></i>
-                        Sem desafios ativos de momento.
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
-
-<div id="registerIncomeModal" class="modal-overlay">
-    <div class="modal-card">
-        <button type="button" class="modal-close-btn" id="closeIncomeModalBtn">
-            <i class="fas fa-times"></i>
-        </button>
-
-        <div style="text-align: left;">
-            <div class="flex items-center gap-md mb-2">
-                <div style="background-color: rgba(16, 185, 129, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: #10b981;">
-                    <i class="fas fa-arrow-trend-up fa-lg"></i>
-                </div>
-                <div>
-                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Registar Rendimento</h3>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Adiciona uma entrada de dinheiro ao teu cenário familiar.</p>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
-
-            <form action="/Dashboard/RegisterIncome" method="post" id="form-register-income">
-                @Html.AntiForgeryToken()
-
-                <!-- Cenário -->
-                <div class="form-group">
-                    <label for="income-scenarioId" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-home"></i> Cenário
-                    </label>
-                    <select id="income-scenarioId" name="scenarioId" class="form-control" required
-                            style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;">
-                        <option value="">Seleciona um cenário…</option>
-                        @foreach (var s in Model.Scenarios)
-                        {
-                            <option value="@s.Id">@s.FamilyName</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Categoria -->
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label for="income-category" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-tag"></i> Categoria
-                    </label>
-                    <input type="text" id="income-category" name="category" class="form-control"
-                           placeholder="Ex: Salário, Subsídio, Freelance…" maxlength="255" required autocomplete="off"
-                           style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
-                </div>
-
-                <!-- Valor e Mês em linha -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-top: var(--spacing-md);">
-                    <div class="form-group">
-                        <label for="income-amount" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                            <i class="fas fa-euro-sign"></i> Valor (€)
-                        </label>
-                        <input type="number" id="income-amount" name="amount" class="form-control"
-                               placeholder="0.00" min="0.01" step="0.01" required
-                               style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
-                    </div>
-                    <div class="form-group">
-                        <label for="income-month" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                            <i class="fas fa-calendar"></i> Mês
-                        </label>
-                        <select id="income-month" name="entryMonth" class="form-control" required
-                                style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;">
-                            @for (int m = 1; m <= 12; m++)
-                            {
-                                if (m == DateTime.Now.Month)
-                                {
-                                    <option value="@m" selected>@months[m - 1]</option>
-                                }
-                                else
-                                {
-                                    <option value="@m">@months[m - 1]</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Recorrência -->
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-rotate"></i> Recorrência
-                    </label>
-                    <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
-                        <label class="recurrence-option" for="rec-monthly">
-                            <input type="radio" id="rec-monthly" name="recurrence" value="Monthly" checked />
-                            <span>Mensal</span>
-                        </label>
-                        <label class="recurrence-option" for="rec-once">
-                            <input type="radio" id="rec-once" name="recurrence" value="Once" />
-                            <span>Pontual</span>
-                        </label>
-                        <label class="recurrence-option" for="rec-yearly">
-                            <input type="radio" id="rec-yearly" name="recurrence" value="Yearly" />
-                            <span>Anual</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
-                    <button type="button" class="btn btn-outline" id="cancelIncomeModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm);">
-                        Guardar Rendimento <i class="fas fa-save" style="margin-left: 5px;"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div id="registerExpenseModal" class="modal-overlay">
-    <div class="modal-card">
-        <button type="button" class="modal-close-btn" id="closeExpenseModalBtn">
-            <i class="fas fa-times"></i>
-        </button>
-
-        <div style="text-align: left;">
-            <div class="flex items-center gap-md mb-2">
-                <div style="background-color: rgba(239, 68, 68, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: #ef4444;">
-                    <i class="fas fa-arrow-trend-down fa-lg"></i>
-                </div>
-                <div>
-                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Registar Despesa</h3>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Adiciona um custo ou encargo ao teu cenário familiar.</p>
-                </div>
-            </div>
-
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
-
-            <form action="/Dashboard/RegisterExpense" method="post" id="form-register-expense">
-                @Html.AntiForgeryToken()
-
-                <!-- Cenário -->
-                <div class="form-group">
-                    <label for="expense-scenarioId" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-home"></i> Cenário
-                    </label>
-                    <select id="expense-scenarioId" name="scenarioId" class="form-control" required
-                            style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;">
-                        <option value="">Seleciona um cenário…</option>
-                        @foreach (var s in Model.Scenarios)
-                        {
-                            <option value="@s.Id">@s.FamilyName</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Categoria -->
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label for="expense-category" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-tag"></i> Categoria
-                    </label>
-                    <input type="text" id="expense-category" name="category" class="form-control"
-                           placeholder="Ex: Água, Luz, Supermercado…" maxlength="255" required autocomplete="off"
-                           style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
-                </div>
-
-                <!-- Valor e Mês em linha -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-top: var(--spacing-md);">
-                    <div class="form-group">
-                        <label for="expense-amount" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                            <i class="fas fa-euro-sign"></i> Valor (€)
-                        </label>
-                        <input type="number" id="expense-amount" name="amount" class="form-control"
-                               placeholder="0.00" min="0.01" step="0.01" required
-                               style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
-                    </div>
-                    <div class="form-group">
-                        <label for="expense-month" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                            <i class="fas fa-calendar"></i> Mês
-                        </label>
-                        <select id="expense-month" name="entryMonth" class="form-control" required
-                                style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;">
-                            @for (int m = 1; m <= 12; m++)
-                            {
-                                if (m == DateTime.Now.Month)
-                                {
-                                    <option value="@m" selected>@months[m - 1]</option>
-                                }
-                                else
-                                {
-                                    <option value="@m">@months[m - 1]</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Recorrência -->
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-rotate"></i> Recorrência
-                    </label>
-                    <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
-                        <label class="recurrence-option" for="exp-monthly">
-                            <input type="radio" id="exp-monthly" name="recurrence" value="Monthly" checked />
-                            <span>Mensal</span>
-                        </label>
-                        <label class="recurrence-option" for="exp-once">
-                            <input type="radio" id="exp-once" name="recurrence" value="Once" />
-                            <span>Pontual</span>
-                        </label>
-                        <label class="recurrence-option" for="exp-yearly">
-                            <input type="radio" id="exp-yearly" name="recurrence" value="Yearly" />
-                            <span>Anual</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
-                    <button type="button" class="btn btn-outline" id="cancelExpenseModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm); background-color: #ef4444; border-color: #ef4444;">
-                        Guardar Despesa <i class="fas fa-save" style="margin-left: 5px;"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<style>
-    .recurrence-option {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 14px;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-full);
-        cursor: pointer;
-        font-size: 0.85rem;
-        font-weight: 500;
-        transition: var(--transition);
-        user-select: none;
-        color: var(--text-muted);
-    }
-
-    .recurrence-option:has(input:checked) {
-        background: rgba(12, 115, 183, 0.1);
-        border-color: var(--primary-blue);
-        color: var(--primary-blue);
-        font-weight: 600;
-    }
-
-    .recurrence-option input[type="radio"] {
-        display: none;
-    }
-</style>
 
 <script>
-    (function () {
-        // ── Cenário modal (existing) ──
+    document.addEventListener("DOMContentLoaded", function () {
         var btn = document.getElementById("btn-criar-cenario");
         var btnEmpty = document.getElementById("btn-criar-cenario-empty");
         var scenarioModal = document.getElementById("createScenarioModal");
 
         function openScenarioModal(e) {
             if (e) e.preventDefault();
-            if (scenarioModal) {
-                scenarioModal.classList.add("active");
-                var familyInput = document.getElementById("FamilyName");
-                if (familyInput) familyInput.focus();
-            }
+            // Assuming the modal might be implemented globally or in _Layout
+            // If not, redirect to Create action. Currently redirecting to avoid missing modal.
+            window.location.href = "/Scenarios/Create";
         }
 
         if (btn) btn.addEventListener("click", openScenarioModal);
         if (btnEmpty) btnEmpty.addEventListener("click", openScenarioModal);
-
-        // ── Income modal ──
-        var incomeModal = document.getElementById("registerIncomeModal");
-        var btnIncome   = document.getElementById("btn-registar-rendimento");
-        var btnClose    = document.getElementById("closeIncomeModalBtn");
-        var btnCancel   = document.getElementById("cancelIncomeModalBtn");
-
-        function openIncomeModal(e) {
-            if (e) e.preventDefault();
-            if (incomeModal) {
-                incomeModal.classList.add("active");
-                var catInput = document.getElementById("income-category");
-                if (catInput) setTimeout(function(){ catInput.focus(); }, 100);
-            }
-        }
-
-        function closeIncomeModal() {
-            if (incomeModal) incomeModal.classList.remove("active");
-        }
-
-        if (btnIncome)  btnIncome.addEventListener("click", openIncomeModal);
-        if (btnClose)   btnClose.addEventListener("click", closeIncomeModal);
-        if (btnCancel)  btnCancel.addEventListener("click", closeIncomeModal);
-
-        // ── Expense modal ──
-        var expenseModal = document.getElementById("registerExpenseModal");
-        var btnExpense   = document.getElementById("btn-registar-despesa");
-        var btnCloseExpense = document.getElementById("closeExpenseModalBtn");
-        var btnCancelExpense = document.getElementById("cancelExpenseModalBtn");
-
-        function openExpenseModal(e) {
-            if (e) e.preventDefault();
-            if (expenseModal) {
-                expenseModal.classList.add("active");
-                var catInput = document.getElementById("expense-category");
-                if (catInput) setTimeout(function(){ catInput.focus(); }, 100);
-            }
-        }
-
-        function closeExpenseModal() {
-            if (expenseModal) expenseModal.classList.remove("active");
-        }
-
-        if (btnExpense)  btnExpense.addEventListener("click", openExpenseModal);
-        if (btnCloseExpense) btnCloseExpense.addEventListener("click", closeExpenseModal);
-        if (btnCancelExpense) btnCancelExpense.addEventListener("click", closeExpenseModal);
-
-        // Close on overlay click
-        if (incomeModal) {
-            incomeModal.addEventListener("click", function (e) {
-                if (e.target === incomeModal) closeIncomeModal();
-            });
-        }
-        if (expenseModal) {
-            expenseModal.addEventListener("click", function (e) {
-                if (e.target === expenseModal) closeExpenseModal();
-            });
-        }
-
-        // Close on Escape key
-        document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape") {
-                if (incomeModal && incomeModal.classList.contains("active")) {
-                    closeIncomeModal();
-                }
-                if (expenseModal && expenseModal.classList.contains("active")) {
-                    closeExpenseModal();
-                }
-            }
-        });
 
         // Auto-dismiss flash messages after 5s
         ["flash-success", "flash-error"].forEach(function(id) {
             var el = document.getElementById(id);
             if (el) setTimeout(function(){ el.style.transition="opacity .4s"; el.style.opacity="0"; setTimeout(function(){ el.remove(); }, 400); }, 5000);
         });
-    })();
+    });
 </script>

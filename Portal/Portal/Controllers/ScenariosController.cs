@@ -70,28 +70,109 @@ namespace Portal.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult Details(int id)
+        [Authorize(Roles = "Aluno,Admin")]
+        public IActionResult Details(int id, int? month)
         {
-            var studentId = GetUserId();
-            var scenario = _context.Scenarios.FirstOrDefault(s => s.Id == id && s.StudentId == studentId);
-            
-            if (scenario == null)
+            try
             {
-                TempData["Error"] = "Cenário não encontrado.";
+                int studentId = GetUserId();
+                var scenario = _context.Scenarios
+                    .Include(s => s.Challenge)
+                    .FirstOrDefault(s => s.Id == id && s.StudentId == studentId);
+
+                if (scenario == null)
+                {
+                    TempData["Error"] = "Cenário não encontrado.";
+                    return RedirectToAction("Aluno", "Dashboard");
+                }
+
+                // Default to current month if no month is provided
+                if (!month.HasValue) month = DateTime.Now.Month;
+
+                var query = _context.Entries.Where(e => e.ScenarioId == id);
+                
+                query = query.Where(e => 
+                    (e.Recurrence == RecurrenceType.Monthly && month.Value >= e.EntryMonth) || 
+                    e.EntryMonth == month.Value
+                );
+
+                var entries = query.OrderByDescending(e => e.CreatedAt).ToList();
+
+                var incomes = entries.Where(e => e.EntryType == EntryType.Income).ToList();
+                var expenses = entries.Where(e => e.EntryType == EntryType.Expense).ToList();
+                
+                var members = _context.ScenarioMembers.Where(sm => sm.ScenarioId == id).ToList();
+                
+                decimal totalIncome = incomes.Sum(i => i.Amount) + members.Sum(m => m.MonthlyIncome);
+                decimal totalExpense = expenses.Sum(e => e.Amount);
+                decimal balance = totalIncome - totalExpense;
+                decimal savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+
+                // Calculate accumulated balance up to the selected month
+                int targetMonth = month.Value;
+                decimal accumulatedIncome = members.Sum(m => m.MonthlyIncome) * targetMonth;
+                decimal accumulatedExpense = 0;
+
+                var allIncomes = _context.Entries.Where(e => e.ScenarioId == id && e.EntryType == EntryType.Income).ToList();
+                foreach(var inc in allIncomes)
+                {
+                    if (inc.Recurrence == RecurrenceType.Monthly)
+                    {
+                        if (targetMonth >= inc.EntryMonth)
+                            accumulatedIncome += inc.Amount * (targetMonth - inc.EntryMonth + 1);
+                    }
+                    else
+                    {
+                        if (targetMonth >= inc.EntryMonth)
+                            accumulatedIncome += inc.Amount;
+                    }
+                }
+
+                var allExpenses = _context.Entries.Where(e => e.ScenarioId == id && e.EntryType == EntryType.Expense).ToList();
+                foreach(var exp in allExpenses)
+                {
+                    if (exp.Recurrence == RecurrenceType.Monthly)
+                    {
+                        if (targetMonth >= exp.EntryMonth)
+                            accumulatedExpense += exp.Amount * (targetMonth - exp.EntryMonth + 1);
+                    }
+                    else
+                    {
+                        if (targetMonth >= exp.EntryMonth)
+                            accumulatedExpense += exp.Amount;
+                    }
+                }
+
+                decimal accumulatedBalance = accumulatedIncome - accumulatedExpense;
+                decimal currentBankBalance = scenario.InitialBalance + accumulatedBalance;
+
+                // Inject salaries into incomes list ONLY for UI visualization in the table
+                foreach (var member in members)
+                {
+                    incomes.Add(new Entry(id, EntryType.Income, $"Salário - {member.Name}", member.MonthlyIncome, 1, RecurrenceType.Monthly));
+                }
+                incomes = incomes.OrderByDescending(i => i.Amount).ToList();
+
+                var vm = new ScenarioDetailsViewModel
+                {
+                    Scenario = scenario,
+                    Incomes = incomes,
+                    Expenses = expenses,
+                    SelectedMonth = month,
+                    Members = members,
+                    TotalIncome = totalIncome,
+                    TotalExpense = totalExpense,
+                    Balance = balance,
+                    SavingsRate = savingsRate,
+                    FinalBankBalance = currentBankBalance
+                };
+
+                return View(vm);
+            }
+            catch (Exception)
+            {
                 return RedirectToAction("Aluno", "Dashboard");
             }
-
-            var entries = _context.Entries.Where(e => e.ScenarioId == id).ToList();
-
-            var vm = new ScenarioDetailsViewModel
-            {
-                Scenario = scenario,
-                Incomes = entries.Where(e => e.EntryType == EntryType.Income).ToList(),
-                Expenses = entries.Where(e => e.EntryType == EntryType.Expense).ToList()
-            };
-
-            return View(vm);
         }
 
         [HttpPost]
@@ -192,6 +273,143 @@ namespace Portal.Controllers
             }
             TempData["Error"] = "Registo não encontrado.";
             return RedirectToAction("Aluno", "Dashboard");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegisterIncome(int scenarioId, string category, decimal amount, int entryMonth, RecurrenceType recurrence, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var scenario = _context.Scenarios.FirstOrDefault(s => s.Id == scenarioId && s.StudentId == studentId);
+
+                if (scenario == null)
+                {
+                    TempData["Error"] = "Cenário não encontrado ou sem permissão.";
+                    return RedirectToAction("Aluno", "Dashboard");
+                }
+
+                if (string.IsNullOrWhiteSpace(category) || amount <= 0)
+                {
+                    TempData["Error"] = "A categoria é obrigatória e o valor deve ser positivo.";
+                    return RedirectToAction("Details", new { id = scenarioId, month = month });
+                }
+
+                var entry = new Entry(scenarioId, EntryType.Income, category, amount, entryMonth, recurrence);
+                _context.Entries.Add(entry);
+                scenario.InitialBalance += amount;
+                _context.SaveChanges();
+
+                TempData["Success"] = $"Rendimento de €{amount:N2} registado com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao registar o rendimento: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = scenarioId, month = month });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegisterExpense(int scenarioId, string category, decimal amount, int entryMonth, RecurrenceType recurrence, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var scenario = _context.Scenarios.FirstOrDefault(s => s.Id == scenarioId && s.StudentId == studentId);
+
+                if (scenario == null)
+                {
+                    TempData["Error"] = "Cenário não encontrado ou sem permissão.";
+                    return RedirectToAction("Aluno", "Dashboard");
+                }
+
+                if (string.IsNullOrWhiteSpace(category) || amount <= 0)
+                {
+                    TempData["Error"] = "A categoria é obrigatória e o valor deve ser positivo.";
+                    return RedirectToAction("Details", new { id = scenarioId, month = month });
+                }
+
+                var entry = new Entry(scenarioId, EntryType.Expense, category, amount, entryMonth, recurrence);
+                _context.Entries.Add(entry);
+                scenario.InitialBalance -= amount;
+                _context.SaveChanges();
+
+                TempData["Success"] = $"Despesa de €{amount:N2} registada com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao registar a despesa: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = scenarioId, month = month });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddMember(int scenarioId, string name, decimal monthlyIncome, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var scenario = _context.Scenarios.FirstOrDefault(s => s.Id == scenarioId && s.StudentId == studentId);
+
+                if (scenario == null)
+                {
+                    TempData["Error"] = "Cenário não encontrado ou sem permissão.";
+                    return RedirectToAction("Aluno", "Dashboard");
+                }
+
+                if (string.IsNullOrWhiteSpace(name) || monthlyIncome < 0)
+                {
+                    TempData["Error"] = "O nome é obrigatório e o rendimento não pode ser negativo.";
+                    return RedirectToAction("Details", new { id = scenarioId, month = month });
+                }
+
+                var member = new ScenarioMember(scenarioId, name, monthlyIncome);
+                _context.ScenarioMembers.Add(member);
+                
+                _context.SaveChanges();
+
+                TempData["Success"] = $"Membro '{name}' adicionado com sucesso!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao adicionar membro: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = scenarioId, month = month });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteMember(int id, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var member = _context.ScenarioMembers.Include(sm => sm.Scenario).FirstOrDefault(sm => sm.Id == id);
+                
+                if (member == null || member.Scenario.StudentId != studentId)
+                {
+                    TempData["Error"] = "Membro não encontrado ou sem permissão.";
+                    return RedirectToAction("Aluno", "Dashboard");
+                }
+
+                int scenarioId = member.ScenarioId;
+                member.MarkAsDeleted();
+                _context.SaveChanges();
+
+                TempData["Success"] = "Membro removido com sucesso!";
+                return RedirectToAction("Details", new { id = scenarioId, month = month });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao remover membro: {ex.Message}";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
         }
 
         private int GetUserId()
