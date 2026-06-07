@@ -61,12 +61,9 @@ class AmortizationSimulationSerializer(serializers.Serializer):
     rate = serializers.FloatField(
         min_value=0.0, help_text="Taxa Nominal Anual (TAN) (ex: 0.05 para 5%)"
     )
-    years = serializers.FloatField(
-        min_value=0.1, help_text="Prazo em Anos"
-    )
+    years = serializers.FloatField(min_value=0.1, help_text="Prazo em Anos")
     periodicity = serializers.ChoiceField(
-        choices=PERIODICITY_CHOICES,
-        default="monthly"
+        choices=PERIODICITY_CHOICES, default="monthly"
     )
     commission = serializers.FloatField(
         min_value=0.0, default=0.0, help_text="Comissão Bancária Mensal"

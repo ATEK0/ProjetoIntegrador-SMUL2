@@ -27,7 +27,12 @@ class SimulatorFacade:
 
     @staticmethod
     def simulate_amortization(
-        principal: float, rate: float, years: float, periodicity: str, commission: float, amortization_type: str
+        principal: float,
+        rate: float,
+        years: float,
+        periodicity: str,
+        commission: float,
+        amortization_type: str,
     ) -> dict:
         """
         Simulates loan amortization based on the type ('french', 'sac', 'american').
