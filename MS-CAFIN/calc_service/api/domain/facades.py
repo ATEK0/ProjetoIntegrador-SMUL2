@@ -27,10 +27,10 @@ class SimulatorFacade:
 
     @staticmethod
     def simulate_amortization(
-        principal: float, rate: float, periods: int, amortization_type: str
-    ) -> list:
+        principal: float, rate: float, years: float, periodicity: str, commission: float, amortization_type: str
+    ) -> dict:
         """
         Simulates loan amortization based on the type ('french', 'sac', 'american').
         """
         strategy = AmortizationFactory.create_strategy(amortization_type)
-        return strategy.calculate(principal, rate, periods)
+        return strategy.calculate(principal, rate, years, periodicity, commission)

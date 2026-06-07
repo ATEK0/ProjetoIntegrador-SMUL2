@@ -214,6 +214,40 @@ namespace Portal.Services
             return null;
         }
 
+        public async Task<string?> RegisterAmortizationPlanAsync(int scenarioId, int studentId, string category, int entryMonth, System.Collections.Generic.List<decimal> schedule, decimal isInicial)
+        {
+            var scenario = await _context.Scenarios.FirstOrDefaultAsync(s => s.Id == scenarioId && s.StudentId == studentId);
+            if (scenario == null) return "Cenário não encontrado.";
+            if (string.IsNullOrWhiteSpace(category)) return "Categoria obrigatória.";
+
+            // Registar IS Inicial
+            if (isInicial > 0)
+            {
+                var entryIs = new Entry(scenarioId, EntryType.Expense, $"{category} (IS Inicial)", isInicial, entryMonth, RecurrenceType.Once);
+                _context.Entries.Add(entryIs);
+                scenario.InitialBalance -= isInicial;
+            }
+
+            // Registar parcelas até ao fim do ano
+            int currentMonth = entryMonth;
+            for (int i = 0; i < schedule.Count; i++)
+            {
+                if (currentMonth > 12) break; // O cenário é anual, só vai até dezembro
+
+                if (schedule[i] > 0)
+                {
+                    var entry = new Entry(scenarioId, EntryType.Expense, $"{category} (Parcela {i + 1})", schedule[i], currentMonth, RecurrenceType.Once);
+                    _context.Entries.Add(entry);
+                    scenario.InitialBalance -= schedule[i];
+                }
+                
+                currentMonth++;
+            }
+
+            await _context.SaveChangesAsync();
+            return null;
+        }
+
         public async Task<string?> AddMemberAsync(int scenarioId, int studentId, string name, decimal monthlyIncome)
         {
             var scenario = await _context.Scenarios.FirstOrDefaultAsync(s => s.Id == scenarioId && s.StudentId == studentId);

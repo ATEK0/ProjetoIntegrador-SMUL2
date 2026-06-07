@@ -5,7 +5,7 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/simulator.css" />
+    <link rel="stylesheet" href="~/css/simulator.css" asp-append-version="true" />
 }
 
 <div class="sim-page">
@@ -13,14 +13,22 @@
         <div class="sim-hero-icon">
             <i class="fas fa-calculator"></i>
         </div>
-        <div>
-            <h3>Simulador Financeiro</h3>
-            <p>Calcule juros (simples ou compostos), com taxas que podem mudar ao longo do tempo, ou planos de amortização (Francês, SAC ou Americano).</p>
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                <div>
+                    <h3>Simulador Financeiro</h3>
+                    <p>Calcule juros (simples ou compostos), com taxas que podem mudar ao longo do tempo, ou planos de amortização (Francês, SAC ou Americano).</p>
+                </div>
+                <a href="/Simulator/Compare" class="btn btn-outline" style="background: white; white-space: nowrap;">
+                    <i class="fas fa-balance-scale"></i> Comparar Créditos
+                </a>
+            </div>
         </div>
     </div>
 
     <div class="sim-layout">
         <form action="/Simulator/Calculate" method="post" class="sim-form-card card glass-panel" novalidate>
+            @Html.AntiForgeryToken()
             @await Html.PartialAsync("_FormErrors")
 
             <section class="sim-section">
@@ -52,21 +60,39 @@
                         <label for="principal" class="form-label">Capital Inicial / Financiado (€)</label>
                         <div class="sim-input-wrap">
                             <span class="sim-input-prefix">€</span>
-                            <input id="principal" name="Principal" class="form-control" type="number" step="0.01" placeholder="10000" value="@(Model.Principal > 0 ? Model.Principal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                            <input id="principal" name="Principal" class="form-control" type="number" step="0.01" placeholder="10000" value="@(Model.Principal > 0 ? Model.Principal.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
                         </div>
                     </div>
 
                     <div class="sim-field form-group" id="singleRateField">
-                        <label for="ratePercentageInput" class="form-label">Taxa de Juro (em %)</label>
+                        <label for="ratePercentageInput" class="form-label" id="rateLabel">Taxa de Juro (em %)</label>
                         <div class="sim-input-wrap">
-                            <input id="ratePercentageInput" name="RatePercentage" class="form-control" type="number" step="0.01" placeholder="3.5" value="@(Model.RatePercentage > 0 ? Model.RatePercentage.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                            <input id="ratePercentageInput" name="RatePercentage" class="form-control" type="number" step="0.01" placeholder="3.5" value="@(Model.RatePercentage > 0 ? Model.RatePercentage.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
                             <span class="sim-input-suffix">%</span>
                         </div>
                     </div>
 
                     <div class="sim-field form-group">
-                        <label for="time" class="form-label">Tempo / N.º de Períodos</label>
-                        <input id="time" name="Time" class="form-control" type="number" step="1" placeholder="12" value="@(Model.Time > 0 ? Model.Time.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                        <label for="time" class="form-label" id="timeLabel">Tempo / N.º de Períodos <i class="fas fa-info-circle text-muted" style="margin-left:4px; cursor:help;" title="O período deve estar na mesma unidade da taxa de juro (ex: se a taxa é mensal, os períodos são meses)."></i></label>
+                        <input id="time" name="Time" class="form-control" type="number" step="0.1" placeholder="12" value="@(Model.Time > 0 ? Model.Time.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                    </div>
+
+                    <div class="sim-field form-group" id="periodicityField" style="display: none;">
+                        <label for="periodicity" class="form-label">Periodicidade</label>
+                        <select id="periodicity" name="Periodicity" class="form-control" data-ds-dropdown>
+                            <option value="monthly" selected="@(Model.Periodicity == "monthly")">Mensal</option>
+                            <option value="quarterly" selected="@(Model.Periodicity == "quarterly")">Trimestral</option>
+                            <option value="semiannual" selected="@(Model.Periodicity == "semiannual")">Semestral</option>
+                            <option value="annual" selected="@(Model.Periodicity == "annual")">Anual</option>
+                        </select>
+                    </div>
+
+                    <div class="sim-field form-group" id="commissionField" style="display: none;">
+                        <label for="commission" class="form-label">Comissão Mensal (€)</label>
+                        <div class="sim-input-wrap">
+                            <span class="sim-input-prefix">€</span>
+                            <input id="commission" name="MonthlyCommission" class="form-control" type="number" step="0.01" placeholder="0.00" value="@(Model.MonthlyCommission > 0 ? Model.MonthlyCommission.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")" />
+                        </div>
                     </div>
 
                     <div class="sim-field form-group">
@@ -202,6 +228,11 @@
             const addTierBtn = document.getElementById('addTierBtn');
             const simForm = document.querySelector('.sim-form-card');
 
+            const periodicityField = document.getElementById('periodicityField');
+            const commissionField = document.getElementById('commissionField');
+            const timeLabel = document.getElementById('timeLabel');
+            const rateLabel = document.getElementById('rateLabel');
+
             function updateInterestSections() {
                 const isInterest = getMode() === 'interest';
                 variableRatesSection.classList.toggle('is-hidden', !isInterest);
@@ -209,8 +240,16 @@
                     useVariableRates.checked = false;
                     rateTiersPanel.hidden = true;
                     singleRateField.style.display = '';
+                    periodicityField.style.display = '';
+                    commissionField.style.display = '';
+                    timeLabel.innerHTML = 'Prazo (em Anos)';
+                    rateLabel.innerText = 'Taxa Nominal Anual (TAN) %';
                 } else {
                     syncVariableRatesUI();
+                    periodicityField.style.display = 'none';
+                    commissionField.style.display = 'none';
+                    timeLabel.innerHTML = 'Tempo / N.º de Períodos <i class="fas fa-info-circle text-muted" style="margin-left:4px; cursor:help;" title="O período deve estar na mesma unidade da taxa de juro (ex: se a taxa é mensal, os períodos são meses)."></i>';
+                    rateLabel.innerText = 'Taxa de Juro (em %)';
                 }
             }
 

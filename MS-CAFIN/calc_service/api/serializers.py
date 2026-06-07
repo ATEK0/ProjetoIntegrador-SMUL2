@@ -48,15 +48,28 @@ class AmortizationSimulationSerializer(serializers.Serializer):
         ("sac", "SAC (Constant Amortization)"),
         ("american", "American"),
     )
+    PERIODICITY_CHOICES = (
+        ("monthly", "Mensal"),
+        ("quarterly", "Trimestral"),
+        ("semiannual", "Semestral"),
+        ("annual", "Anual"),
+    )
 
     principal = serializers.FloatField(
         min_value=0.01, help_text="Valor financiado (Principal)"
     )
     rate = serializers.FloatField(
-        min_value=0.0, help_text="Taxa de juro por período (ex: 0.05 para 5%)"
+        min_value=0.0, help_text="Taxa Nominal Anual (TAN) (ex: 0.05 para 5%)"
     )
-    periods = serializers.IntegerField(
-        min_value=1, help_text="Número de períodos/meses"
+    years = serializers.FloatField(
+        min_value=0.1, help_text="Prazo em Anos"
+    )
+    periodicity = serializers.ChoiceField(
+        choices=PERIODICITY_CHOICES,
+        default="monthly"
+    )
+    commission = serializers.FloatField(
+        min_value=0.0, default=0.0, help_text="Comissão Bancária Mensal"
     )
     type = serializers.ChoiceField(
         choices=AMORTIZATION_CHOICES,
