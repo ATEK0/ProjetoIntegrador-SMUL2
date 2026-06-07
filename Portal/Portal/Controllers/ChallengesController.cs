@@ -65,6 +65,27 @@ namespace Portal.Controllers
 
 
 
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var viewModel = await _challengeService.GetChallengeDetailsAsync(id);
+            if (viewModel == null)
+            {
+                TempData["Error"] = "Desafio não encontrado.";
+                return RedirectByRole();
+            }
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, string title, string description)
+        {
+            var error = await _challengeService.EditChallengeAsync(id, title, description);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Desafio atualizado com sucesso!";
+            return RedirectToAction("Details", new { id = id });
+        }
+
         private IActionResult RedirectByRole() =>
             User.IsInRole("Admin")
                 ? RedirectToAction("AdminChallenges", "Dashboard")

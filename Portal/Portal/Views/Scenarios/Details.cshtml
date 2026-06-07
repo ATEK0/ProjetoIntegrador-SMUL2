@@ -1,0 +1,615 @@
+@model Portal.Models.ViewModels.ScenarioDetailsViewModel
+
+@{
+    ViewData["Title"] = "Detalhes do Cenário";
+    var months = new[] { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
+}
+
+<style>
+    .main-layout-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        align-items: start;
+    }
+
+    .entries-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    @@media (min-width: 1024px) {
+        .main-layout-grid {
+            grid-template-columns: 320px 1fr;
+        }
+        .entries-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .entry-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .entry-table th {
+        text-align: left;
+        padding: 8px 10px;
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .entry-table td {
+        padding: 10px 10px;
+        border-bottom: 1px solid rgba(0,0,0,0.04);
+        vertical-align: middle;
+    }
+
+    .entry-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+    }
+    
+    .entry-actions button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        color: var(--text-muted);
+        transition: var(--transition);
+    }
+    
+    .entry-actions button:hover {
+        background: rgba(0,0,0,0.05);
+        color: var(--primary-blue);
+    }
+    
+    .entry-actions button.delete-btn:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-lg) 0;">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: 16px;">
+        <div>
+            <a href="/Dashboard/Aluno" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.3rem 0.75rem; text-decoration: none; display: inline-flex; margin-bottom: 8px;">
+                <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> Voltar ao Dashboard
+            </a>
+            <h2 style="color: var(--primary-blue); font-weight: 700; margin-bottom: 4px;">
+                @Model.Scenario.FamilyName
+            </h2>
+            <p class="text-muted" style="margin: 0; font-size: 0.9rem;">
+                Saldo Global: <strong style="color: var(--primary-blue);">€ @Model.Scenario.InitialBalance.ToString("N2")</strong>
+            </p>
+        </div>
+        <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+            <form action="/Scenarios/Details" method="get" style="display: flex; gap: 8px; align-items: center; margin-right: 16px;">
+                <input type="hidden" name="id" value="@Model.Scenario.Id" />
+                <label for="monthFilter" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Filtrar Mês:</label>
+                <select name="month" id="monthFilter" class="form-control" style="font-size: 0.85rem; padding: 4px 8px; height: auto;" onchange="this.form.submit()">
+                    @for (int m = 1; m <= 12; m++)
+                    {
+                        if (Model.SelectedMonth == m)
+                        {
+                            <option value="@m" selected>@months[m - 1]</option>
+                        }
+                        else
+                        {
+                            <option value="@m">@months[m - 1]</option>
+                        }
+                    }
+                </select>
+            </form>
+            <button class="btn btn-outline" onclick="document.getElementById('editScenarioModal').classList.add('active');">
+                <i class="fas fa-edit" style="margin-right: 6px;"></i> Editar
+            </button>
+            <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="document.getElementById('deleteScenarioModal').classList.add('active');">
+                <i class="fas fa-trash" style="margin-right: 6px;"></i> Eliminar
+            </button>
+        </div>
+    </div>
+
+    </div> <!-- End of Header -->
+
+    <div class="main-layout-grid">
+        <!-- LEFT COLUMN: Metrics & Members -->
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+            
+            <!-- Metrics Card -->
+            <div class="card glass-panel" style="padding: var(--spacing-lg);">
+                <h3 style="color: var(--primary-blue); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px;">
+                    <i class="fas fa-chart-pie" style="margin-right: 8px;"></i> Resumo Mensal
+                </h3>
+                
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;" title="Inclui Rendimentos da Tabela + Salários dos Membros">Rendimentos <i class="fas fa-info-circle" style="font-size: 0.75rem; opacity: 0.5;"></i></span>
+                        <strong style="color: #10b981;">€ @Model.TotalIncome.ToString("N2")</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">Despesas</span>
+                        <strong style="color: #ef4444;">€ @Model.TotalExpense.ToString("N2")</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                        <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 600;">Balanço</span>
+                        <strong style="color: @(Model.Balance >= 0 ? "#10b981" : "#ef4444"); font-size: 1.1rem;">€ @Model.Balance.ToString("N2")</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; background: rgba(59, 130, 246, 0.05); padding: 8px; border-radius: 8px;">
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">Taxa de Poupança</span>
+                        <strong style="color: var(--primary-blue); font-size: 0.95rem;">@Model.SavingsRate.ToString("N1")%</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; margin-top: 8px; border-top: 2px dashed rgba(0,0,0,0.1);">
+                        <span style="color: var(--primary-blue); font-size: 0.95rem; font-weight: 700;" title="Saldo acumulado desde Janeiro até este mês">Saldo em Conta</span>
+                        <strong style="color: var(--primary-blue); font-size: 1.15rem;">€ @Model.FinalBankBalance.ToString("N2")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Card -->
+            <div class="card glass-panel" style="padding: var(--spacing-lg);">
+                <div class="flex justify-between items-center" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin: 0;">
+                        <i class="fas fa-users" style="margin-right: 8px;"></i> Agregado
+                    </h3>
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('addMemberModal').classList.add('active');">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                @if (!Model.Members.Any())
+                {
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                        Sem membros registados.
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        @foreach (var member in Model.Members)
+                        {
+                            <div style="background: rgba(255,255,255,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: 600; color: var(--primary-blue);">@member.Name</div>
+                                    <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">€ @member.MonthlyIncome.ToString("N2") <span style="color: var(--text-muted); font-weight: 400; font-size: 0.7rem;">/mês</span></div>
+                                </div>
+                                <button onclick="openDeleteMemberModal(@member.Id)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remover">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Entries -->
+        <div>
+            <div class="entries-grid">
+        <!-- Incomes -->
+        <div class="card glass-panel" style="padding: var(--spacing-lg);">
+            <div class="flex justify-between items-center" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                <h3 style="color: #10b981; font-size: 1.1rem; margin: 0;">
+                    <i class="fas fa-arrow-trend-up" style="margin-right: 8px;"></i> Rendimentos
+                </h3>
+                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('registerIncomeModal').classList.add('active');">
+                    <i class="fas fa-plus"></i> Adicionar
+                </button>
+            </div>
+            
+            @if (!Model.Incomes.Any())
+            {
+                <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                    Nenhum rendimento registado.
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table class="entry-table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Mês</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.Incomes)
+                            {
+                                <tr>
+                                    <td><span style="font-weight:600;">@entry.Category</span></td>
+                                    <td><span style="color:var(--text-muted);">@months[entry.EntryMonth - 1]</span></td>
+                                    <td><span style="color: #10b981; font-weight:700;">€ @entry.Amount.ToString("N2")</span></td>
+                                    <td class="entry-actions">
+                                        @if (entry.Id > 0)
+                                        {
+                                            <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; margin-right: 8px; cursor: help;" title="Os salários fixos são geridos no Cartão do Agregado Familiar (à esquerda)">
+                                                <i class="fas fa-lock"></i>
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- Expenses -->
+        <div class="card glass-panel" style="padding: var(--spacing-lg);">
+            <div class="flex justify-between items-center" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                <h3 style="color: #ef4444; font-size: 1.1rem; margin: 0;">
+                    <i class="fas fa-arrow-trend-down" style="margin-right: 8px;"></i> Despesas
+                </h3>
+                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('registerExpenseModal').classList.add('active');">
+                    <i class="fas fa-plus"></i> Adicionar
+                </button>
+            </div>
+            
+            @if (!Model.Expenses.Any())
+            {
+                <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                    Nenhuma despesa registada.
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table class="entry-table">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Mês</th>
+                                <th>Valor</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var entry in Model.Expenses)
+                            {
+                                <tr>
+                                    <td><span style="font-weight:600;">@entry.Category</span></td>
+                                    <td><span style="color:var(--text-muted);">@months[entry.EntryMonth - 1]</span></td>
+                                    <td><span style="color: #ef4444; font-weight:700;">€ @entry.Amount.ToString("N2")</span></td>
+                                    <td class="entry-actions">
+                                        <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            </div>
+        </div>
+    </div> <!-- End of main-layout-grid -->
+</div>
+
+<!-- Register Income Modal -->
+<div id="registerIncomeModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: #10b981; font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Registar Rendimento</h3>
+        <form action="/Scenarios/RegisterIncome" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="scenarioId" value="@Model.Scenario.Id" />
+            <input type="hidden" name="month" value="@Model.SelectedMonth" />
+            
+            <div class="form-group">
+                <label class="premium-label">Categoria</label>
+                <input type="text" name="category" class="form-control" placeholder="Ex: Salário..." required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label class="premium-label">Valor (€)</label>
+                    <input type="number" name="amount" class="form-control" min="0.01" step="0.01" required />
+                </div>
+                <div class="form-group">
+                    <label class="premium-label">Mês</label>
+                    <select name="entryMonth" class="form-control" required>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            if (m == DateTime.Now.Month)
+                            {
+                                <option value="@m" selected>@months[m - 1]</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@months[m - 1]</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+                <label class="premium-label">Recorrência</label>
+                <select name="recurrence" class="form-control" required>
+                    <option value="Monthly">Mensal</option>
+                    <option value="Once">Pontual</option>
+                    <option value="Yearly">Anual</option>
+                </select>
+            </div>
+
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Register Expense Modal -->
+<div id="registerExpenseModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: #ef4444; font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Registar Despesa</h3>
+        <form action="/Scenarios/RegisterExpense" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="scenarioId" value="@Model.Scenario.Id" />
+            <input type="hidden" name="month" value="@Model.SelectedMonth" />
+            
+            <div class="form-group">
+                <label class="premium-label">Categoria</label>
+                <input type="text" name="category" class="form-control" placeholder="Ex: Eletricidade..." required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label class="premium-label">Valor (€)</label>
+                    <input type="number" name="amount" class="form-control" min="0.01" step="0.01" required />
+                </div>
+                <div class="form-group">
+                    <label class="premium-label">Mês</label>
+                    <select name="entryMonth" class="form-control" required>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            if (m == DateTime.Now.Month)
+                            {
+                                <option value="@m" selected>@months[m - 1]</option>
+                            }
+                            else
+                            {
+                                <option value="@m">@months[m - 1]</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+                <label class="premium-label">Recorrência</label>
+                <select name="recurrence" class="form-control" required>
+                    <option value="Monthly">Mensal</option>
+                    <option value="Once">Pontual</option>
+                    <option value="Yearly">Anual</option>
+                </select>
+            </div>
+
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Scenario Modal -->
+<div id="editScenarioModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Editar Cenário</h3>
+        <form action="/Scenarios/Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Scenario.Id" />
+            <div class="form-group">
+                <label class="premium-label">Nome de Família</label>
+                <input type="text" name="familyName" class="form-control" value="@Model.Scenario.FamilyName" required />
+            </div>
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Scenario Modal -->
+<div id="deleteScenarioModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="color: #ef4444; margin-bottom: 16px;"><i class="fas fa-exclamation-triangle fa-3x"></i></div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Eliminar Cenário</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza que deseja eliminar o cenário <strong>@Model.Scenario.FamilyName</strong>? Esta ação removerá todas as despesas e rendimentos associados e não pode ser revertida.</p>
+        <form action="/Scenarios/Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Scenario.Id" />
+            <div class="flex gap-md" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Sim, Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Entry Modal -->
+<div id="editEntryModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Editar Registo</h3>
+        <form action="/Scenarios/EditEntry" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="editEntryId" />
+            
+            <div class="form-group">
+                <label class="premium-label">Categoria</label>
+                <input type="text" name="category" id="editEntryCategory" class="form-control" required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label class="premium-label">Valor (€)</label>
+                    <input type="number" name="amount" id="editEntryAmount" class="form-control" min="0.01" step="0.01" required />
+                </div>
+                <div class="form-group">
+                    <label class="premium-label">Mês</label>
+                    <select name="entryMonth" id="editEntryMonth" class="form-control" required>
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m">@months[m - 1]</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+                <label class="premium-label">Recorrência</label>
+                <select name="recurrence" id="editEntryRecurrence" class="form-control" required>
+                    <option value="Monthly">Mensal</option>
+                    <option value="Once">Pontual</option>
+                    <option value="Yearly">Anual</option>
+                </select>
+            </div>
+
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Alterações</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Entry Modal -->
+<div id="deleteEntryModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="color: #ef4444; margin-bottom: 16px;"><i class="fas fa-trash fa-3x"></i></div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Eliminar Registo</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza que deseja eliminar este registo? O saldo do cenário será ajustado em conformidade.</p>
+        <form action="/Scenarios/DeleteEntry" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="deleteEntryId" />
+            <div class="flex gap-md" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Sim, Eliminar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Member Modal -->
+<div id="addMemberModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Adicionar Membro</h3>
+        <form action="/Scenarios/AddMember" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="scenarioId" value="@Model.Scenario.Id" />
+            <input type="hidden" name="month" value="@Model.SelectedMonth" />
+            
+            <div class="form-group">
+                <label class="premium-label">Nome do Membro</label>
+                <input type="text" name="name" class="form-control" placeholder="Ex: Pai, Mãe..." required />
+            </div>
+
+            <div class="form-group" style="margin-top: 16px;">
+                <label class="premium-label">Rendimento Mensal (€)</label>
+                <input type="number" name="monthlyIncome" class="form-control" min="0" step="0.01" required />
+            </div>
+
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Member Modal -->
+<div id="deleteMemberModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="color: #ef4444; margin-bottom: 16px;"><i class="fas fa-user-minus fa-3x"></i></div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Remover Membro</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza que deseja remover este membro do agregado?</p>
+        <form action="/Scenarios/DeleteMember" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="deleteMemberId" />
+            <input type="hidden" name="month" value="@Model.SelectedMonth" />
+            <div class="flex gap-md" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Sim, Remover</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditEntryModal(id, category, amount, month, recurrence) {
+        document.getElementById('editEntryId').value = id;
+        document.getElementById('editEntryCategory').value = category;
+        document.getElementById('editEntryAmount').value = amount;
+        document.getElementById('editEntryMonth').value = month;
+        document.getElementById('editEntryRecurrence').value = recurrence;
+        document.getElementById('editEntryModal').classList.add('active');
+    }
+
+    function openDeleteEntryModal(id) {
+        document.getElementById('deleteEntryId').value = id;
+        document.getElementById('deleteEntryModal').classList.add('active');
+    }
+
+    function openDeleteMemberModal(id) {
+        document.getElementById('deleteMemberId').value = id;
+        document.getElementById('deleteMemberModal').classList.add('active');
+    }
+
+    // Auto dismiss flash
+    setTimeout(function() {
+        var flashes = document.querySelectorAll('.alert-flash');
+        flashes.forEach(f => {
+            f.style.transition = "opacity 0.4s";
+            f.style.opacity = "0";
+            setTimeout(() => f.remove(), 400);
+        });
+    }, 5000);
+</script>

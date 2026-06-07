@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Portal.Data;
+using Portal.Models;
+using Portal.Models.ViewModels;
+using System.Linq;
 using Portal.Services;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -39,18 +43,48 @@ namespace Portal.Controllers
             View("AdminUsers", await _dashboardService.GetAdminUsersAsync());
 
         [HttpPost, Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ChangeUserRole(int userId, string newRoleName)
+        public async Task<IActionResult> ChangeUserRole(int userId, string newRoleName, string returnUrl = null)
         {
             var currentId = GetUserId();
             if (currentId == null) return Unauthorized();
 
             var error = await _dashboardService.ChangeUserRoleAsync(currentId.Value, userId, newRoleName);
             TempData[error == null ? "Success" : "Error"] = error ?? "Papel alterado com sucesso!";
+            if (!string.IsNullOrEmpty(returnUrl)) return Redirect(returnUrl);
             return RedirectToAction("AdminUsers");
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UserDetails(int id)
+        {
+            var viewModel = await _dashboardService.GetUserDetailsAsync(id);
+            if (viewModel == null)
+            {
+                TempData["Error"] = "Utilizador não encontrado.";
+                return RedirectToAction("AdminUsers");
+            }
+            return View("UserDetails", viewModel);
+        }
+
         [Authorize(Roles = "Aluno,Admin")]
-        public IActionResult Aluno() => View();
+        public async Task<IActionResult> Aluno()
+        {
+            _logger.LogInformation("Utilizador '{UserName}' acedeu ao Dashboard do Aluno.", User.Identity?.Name ?? "Anónimo");
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _dashboardService.GetStudentDashboardAsync(id.Value, User.Identity?.Name ?? "Aluno"));
+        }
+
+        private int? GetUserId()
+        {
+            var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (claim != null && int.TryParse(claim.Value, out int id))
+            {
+                return id;
+            }
+            return null;
+        }
 
         [Authorize(Roles = "Professor,Admin")]
         public async Task<IActionResult> Professor()

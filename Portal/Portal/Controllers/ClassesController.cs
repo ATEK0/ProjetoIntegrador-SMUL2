@@ -92,5 +92,37 @@ namespace Portal.Controllers
         }
 
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var viewModel = await _classService.GetClassDetailsAsync(id);
+            if (viewModel == null)
+            {
+                TempData["Error"] = "Turma não encontrada.";
+                return RedirectToAction("AdminClasses", "Dashboard");
+            }
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, string name, int teacherId)
+        {
+            var error = await _classService.EditClassAsync(id, name, teacherId);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Detalhes da turma atualizados com sucesso.";
+            return RedirectToAction("Details", new { id = id });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var error = await _classService.DeleteClassAsync(id);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Turma eliminada com sucesso.";
+            return RedirectToAction("AdminClasses", "Dashboard");
+        }
     }
 }

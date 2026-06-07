@@ -19,21 +19,21 @@ namespace Portal.Services
 
         public async Task<AdminDashboardViewModel> GetAdminDashboardAsync() => new()
         {
-            Classes = await _context.Classes.ToListAsync(),
-            Challenges = await _context.Challenges.ToListAsync(),
+            Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
+            Challenges = await _context.Challenges.Include(c => c.Teacher).ToListAsync(),
             Users = await _context.Users.ToListAsync()
         };
 
         public async Task<AdminDashboardViewModel> GetAdminClassesAsync() => new()
         {
-            Classes = await _context.Classes.ToListAsync(),
+            Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
             Challenges = Enumerable.Empty<Challenge>()
         };
 
         public async Task<AdminDashboardViewModel> GetAdminChallengesAsync() => new()
         {
-            Classes = await _context.Classes.ToListAsync(),
-            Challenges = await _context.Challenges.Include(c => c.Class).ToListAsync()
+            Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
+            Challenges = await _context.Challenges.Include(c => c.Class).Include(c => c.Teacher).ToListAsync()
         };
 
         public async Task<AdminUsersViewModel> GetAdminUsersAsync()
@@ -111,6 +111,80 @@ namespace Portal.Services
                 Challenges = await _context.Challenges.Include(c => c.Class)
                     .Where(c => c.TeacherId == teacherId)
                     .ToListAsync()
+            };
+        }
+        public async Task<StudentDashboardViewModel> GetStudentDashboardAsync(int studentId, string studentName)
+        {
+            var scenarios = await _context.Scenarios
+                .Where(s => s.StudentId == studentId)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            var enrollments = await _context.ClassEnrollments
+                .Include(ce => ce.Class)
+                .Where(ce => ce.StudentId == studentId)
+                .Select(ce => new UserClassEnrollmentDetail
+                {
+                    ClassId = ce.ClassId,
+                    ClassName = ce.Class.Name
+                })
+                .ToListAsync();
+
+            var classIds = enrollments.Select(e => e.ClassId).ToList();
+
+            var pendingChallenges = await _context.Challenges
+                .Include(c => c.Class)
+                .Where(c => classIds.Contains(c.ClassId.Value))
+                .ToListAsync();
+
+            return new StudentDashboardViewModel
+            {
+                StudentName = studentName,
+                Scenarios = scenarios,
+                EnrolledClasses = enrollments,
+                PendingChallenges = pendingChallenges
+            };
+        }
+
+        public async Task<UserDetailsViewModel> GetUserDetailsAsync(int id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null) return null;
+
+            var roles = await _context.Roles.ToListAsync();
+
+            var taughtClasses = await _context.Classes
+                .Where(c => c.TeacherId == id)
+                .ToListAsync();
+
+            var enrolledClasses = await _context.ClassEnrollments
+                .Include(ce => ce.Class)
+                .Where(ce => ce.StudentId == id)
+                .Select(ce => ce.Class)
+                .ToListAsync();
+
+            var createdChallenges = await _context.Challenges
+                .Where(c => c.TeacherId == id)
+                .ToListAsync();
+
+            var participatedChallenges = await _context.Scenarios
+                .Include(s => s.Challenge)
+                .Where(s => s.StudentId == id && s.ChallengeId != null)
+                .Select(s => s.Challenge)
+                .Distinct()
+                .ToListAsync();
+
+            return new UserDetailsViewModel
+            {
+                User = user,
+                AvailableRoles = roles,
+                TaughtClasses = taughtClasses,
+                EnrolledClasses = enrolledClasses,
+                CreatedChallenges = createdChallenges,
+                ParticipatedChallenges = participatedChallenges
             };
         }
     }

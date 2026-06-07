@@ -1,71 +1,340 @@
+@model Portal.Models.ViewModels.StudentDashboardViewModel
+
 @{
     ViewData["Title"] = "Dashboard Aluno";
 }
 
-<div class="dashboard-grid">
-    <!-- Balance/Savings Card -->
-    <div class="card glass-panel" style="grid-column: span 2;">
-        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Resumo da Família Virtual</h3>
-        <div class="flex gap-lg">
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon"><i class="fas fa-wallet"></i></div>
-                <div class="stat-details">
-                    <h3>Saldo Atual</h3>
-                    <div class="value">€ 1.250,00</div>
-                </div>
+<style>
+    .student-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
+    }
+
+    @@media (min-width: 1024px) {
+        .student-grid {
+            grid-template-columns: 1.5fr 1fr;
+        }
+    }
+
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .scenario-card {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+    .scenario-card:hover {
+        background: rgba(12, 115, 183, 0.04);
+        border-color: rgba(12, 115, 183, 0.3);
+        box-shadow: var(--shadow-sm);
+        transform: translateY(-2px);
+    }
+
+    .scenario-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .scenario-balance {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+    }
+
+    .scenario-meta {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: var(--radius-full);
+        background: rgba(12, 115, 183, 0.06);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-blue);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .class-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+    }
+
+    .class-icon {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .challenge-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid #f59e0b;
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        transition: var(--transition);
+    }
+
+    .challenge-card:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-sm);
+    }
+</style>
+
+<div class="container animate-fade-in" style="padding: var(--spacing-lg) 0;">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
+            @TempData["Error"]
+        </div>
+    }
+
+    <!-- Top Greeting -->
+    <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
+        <div>
+            <h2 style="color: var(--primary-blue); font-weight: 700; margin-bottom: 4px;">
+                Olá, @Model.StudentName!
+            </h2>
+            <p class="text-muted" style="margin: 0; font-size: 0.9rem;">
+                Acompanha as tuas turmas, desafios e gere os teus cenários de simulação financeira.
+            </p>
+        </div>
+        <button id="btn-criar-cenario" class="btn btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem; box-shadow: var(--shadow-sm);">
+            <i class="fas fa-plus-circle" style="margin-right: 6px;"></i> Novo Cenário
+        </button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stat-row">
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: #3b82f6; background-color: rgba(59, 130, 246, 0.1);">
+                <i class="fas fa-graduation-cap"></i>
             </div>
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon"><i class="fas fa-piggy-bank"></i></div>
-                <div class="stat-details">
-                    <h3>Poupança (Fundo Emergência)</h3>
-                    <div class="value">€ 3.400,00</div>
-                </div>
+            <div class="stat-details">
+                <h3>Turmas Inscritas</h3>
+                <div class="value">@Model.EnrolledClasses.Count</div>
             </div>
-            <div class="stat-card" style="flex: 1; border-left-color: #ef4444;">
-                <div class="stat-icon" style="color: #ef4444; background-color: rgba(239,68,68,0.1);"><i class="fas fa-chart-pie"></i></div>
-                <div class="stat-details">
-                    <h3>Taxa de Esforço</h3>
-                    <div class="value">32%</div>
-                </div>
+        </div>
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: var(--primary-blue); background-color: rgba(12, 115, 183, 0.1);">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Cenários Criados</h3>
+                <div class="value">@Model.Scenarios.Count</div>
+            </div>
+        </div>
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: #f59e0b; background-color: rgba(245, 158, 11, 0.1);">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Desafios Ativos</h3>
+                <div class="value">@Model.PendingChallenges.Count</div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="card">
-        <h3 style="margin-bottom: var(--spacing-md);">Ações Rápidas</h3>
-        <div class="flex flex-col gap-sm">
-            <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-plus" style="margin-right: 8px;"></i> Registar Despesa</button>
-            <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-plus" style="margin-right: 8px;"></i> Registar Rendimento</button>
-            <button class="btn btn-primary" style="justify-content: flex-start;"><i class="fas fa-calculator" style="margin-right: 8px;"></i> Simular Crédito</button>
+    <!-- Main Grid -->
+    <div class="student-grid">
+
+        <!-- Left Column: Classes and Challenges -->
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+            
+            <!-- Enrolled Classes -->
+            <div class="card glass-panel" style="padding: var(--spacing-lg);">
+                <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="fas fa-chalkboard" style="color: var(--primary-blue); margin-right: 8px;"></i> As Minhas Turmas
+                </h3>
+
+                @if (!Model.EnrolledClasses.Any())
+                {
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                        Não estás inscrito em nenhuma turma no momento.<br />
+                        <span style="font-size: 0.8rem;">Pede o código de adesão ao teu professor.</span>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                        @foreach (var c in Model.EnrolledClasses)
+                        {
+                            <div class="class-card">
+                                <div class="class-icon"><i class="fas fa-graduation-cap"></i></div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1rem; color: var(--dark-grey); font-weight: 700;">@c.ClassName</h4>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">Turma Ativa</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Pending Challenges -->
+            <div class="card glass-panel" style="padding: var(--spacing-lg);">
+                <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="fas fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Desafios das Turmas
+                </h3>
+
+                @if (!Model.PendingChallenges.Any())
+                {
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                        Sem desafios ativos de momento.
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        @foreach (var challenge in Model.PendingChallenges)
+                        {
+                            <div class="challenge-card">
+                                <h4 style="margin: 0 0 4px 0; font-size: 1.05rem; color: var(--dark-grey); font-weight: 700;">@challenge.Title</h4>
+                                @if (!string.IsNullOrWhiteSpace(challenge.Description))
+                                {
+                                    <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-muted);">@challenge.Description</p>
+                                }
+                                <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="color: var(--primary-blue); font-weight: 600;"><i class="fas fa-users"></i> @challenge.Class.Name</span>
+                                    <a href="/Scenarios/Create" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                        Resolver Desafio <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+        </div>
+
+        <!-- Right Column: Scenarios List -->
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+            
+            <div class="card glass-panel" style="padding: var(--spacing-lg); height: 100%;">
+                <h3 style="color: var(--primary-blue); font-size: 1.25rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <i class="fas fa-home" style="margin-right: 8px;"></i> Os Meus Cenários
+                </h3>
+
+                @if (!Model.Scenarios.Any())
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-home fa-2x"></i>
+                        </div>
+                        <h4 style="font-size: 1.05rem; margin-bottom: var(--spacing-xs); font-weight: 600;">
+                            Ainda não tens cenários
+                        </h4>
+                        <p class="text-muted" style="font-size: 0.85rem; max-width: 300px; margin: 0 auto var(--spacing-md) auto;">
+                            Cria o teu primeiro cenário familiar para começar a simular receitas, despesas e objetivos financeiros.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        @foreach (var scenario in Model.Scenarios)
+                        {
+                            <a href="/Scenarios/Details/@scenario.Id" style="text-decoration: none; color: inherit;">
+                                <div class="scenario-card">
+                                    <div class="scenario-card-header">
+                                        <div>
+                                            <h4 style="font-weight: 700; color: var(--primary-blue); margin: 0; font-size: 1rem;">
+                                                <i class="fas fa-home" style="margin-right: 6px; font-size: 0.9rem;"></i>
+                                                @scenario.FamilyName
+                                            </h4>
+                                        </div>
+                                    </div>
+
+                                    <div class="scenario-balance">
+                                        € @scenario.InitialBalance.ToString("N2")
+                                        <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted); margin-left: 4px;">saldo total</span>
+                                    </div>
+
+                                    <div class="flex justify-between items-center" style="margin-top: 4px;">
+                                        <span class="scenario-meta">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            Criado em @scenario.CreatedAt.ToString("dd MMM yyyy")
+                                        </span>
+                                        <span class="btn btn-primary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                            Ver Orçamento
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+
         </div>
     </div>
 </div>
 
-<div class="card glass-panel">
-    <h3 style="margin-bottom: var(--spacing-md);">Desafios do Professor</h3>
-    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-            <tr style="border-bottom: 1px solid var(--border-color);">
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Desafio</th>
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Prazo</th>
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Estado</th>
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Ação</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="border-bottom: 1px solid var(--border-color);">
-                <td style="padding: var(--spacing-sm);">Constituir Fundo de Emergência</td>
-                <td style="padding: var(--spacing-sm);">31 Mai 2026</td>
-                <td style="padding: var(--spacing-sm);"><span style="color: #f59e0b; font-weight: bold;">Em curso</span></td>
-                <td style="padding: var(--spacing-sm);"><button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver</button></td>
-            </tr>
-            <tr>
-                <td style="padding: var(--spacing-sm);">Simulação Crédito Habitação</td>
-                <td style="padding: var(--spacing-sm);">15 Jun 2026</td>
-                <td style="padding: var(--spacing-sm);"><span style="color: var(--text-muted);">Pendente</span></td>
-                <td style="padding: var(--spacing-sm);"><button class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Iniciar</button></td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var btn = document.getElementById("btn-criar-cenario");
+        var btnEmpty = document.getElementById("btn-criar-cenario-empty");
+        var scenarioModal = document.getElementById("createScenarioModal");
+
+        function openScenarioModal(e) {
+            if (e) e.preventDefault();
+            // Assuming the modal might be implemented globally or in _Layout
+            // If not, redirect to Create action. Currently redirecting to avoid missing modal.
+            window.location.href = "/Scenarios/Create";
+        }
+
+        if (btn) btn.addEventListener("click", openScenarioModal);
+        if (btnEmpty) btnEmpty.addEventListener("click", openScenarioModal);
+
+        // Auto-dismiss flash messages after 5s
+        ["flash-success", "flash-error"].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) setTimeout(function(){ el.style.transition="opacity .4s"; el.style.opacity="0"; setTimeout(function(){ el.remove(); }, 400); }, 5000);
+        });
+    });
+</script>

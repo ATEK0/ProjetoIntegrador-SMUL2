@@ -14,6 +14,85 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/design-system.css" />
     <link rel="stylesheet" href="~/css/layout.css" />
+
+    <style>
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: var(--spacing-md);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: var(--spacing-xl);
+            position: relative;
+            transform: scale(0.95) translateY(15px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            background: transparent;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: var(--transition);
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
+        }
+
+        .premium-label {
+            font-weight: 600;
+            color: var(--dark-grey);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-xs);
+            font-size: 0.95rem;
+        }
+    </style>
     <link rel="stylesheet" href="~/css/dropdown.css" />
     <link rel="stylesheet" href="~/css/toast.css" />
     @await RenderSectionAsync("Styles", required: false)
@@ -86,6 +165,106 @@
             </div>
         </main>
     </div>
+
+    <!-- Modal Criar Cenário -->
+    <div id="createScenarioModal" class="modal-overlay">
+        <div class="modal-card">
+            <button type="button" class="modal-close-btn" id="closeScenarioModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div style="text-align: left;">
+                <div class="flex items-center gap-md mb-2">
+                    <div style="background-color: rgba(12, 115, 183, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
+                        <i class="fas fa-plus-circle fa-lg"></i>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Definir Cenário Familiar Base</h3>
+                        <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Configure a sua família virtual para iniciar as simulações financeiras.</p>
+                    </div>
+                </div>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
+
+                <form action="/Scenarios/Create" method="post" id="createScenarioForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="form-group">
+                        <label for="FamilyName" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
+                            <i class="fas fa-edit"></i> Nome da Família
+                        </label>
+                        <input type="text" name="FamilyName" id="FamilyName" class="form-control" placeholder="Ex: Família Silva" required autocomplete="off" maxlength="255" style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
+                    </div>
+
+                    <div class="form-group" style="margin-top: var(--spacing-md);">
+                        <label for="InitialBalance" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
+                            <i class="fas fa-wallet"></i> Saldo Inicial (€)
+                        </label>
+                        <input type="number" step="0.01" name="InitialBalance" id="InitialBalance" class="form-control" placeholder="0.00" required style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
+                    </div>
+
+                    <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
+                        <button type="button" class="btn btn-outline" id="cancelScenarioModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm);">
+                            Gravar Cenário <i class="fas fa-save" style="margin-left: 5px;"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            console.log("Scenario modal script initializing...");
+            const btnCriarCenario = document.getElementById("btn-criar-cenario");
+            const modal = document.getElementById("createScenarioModal");
+            const closeBtn = document.getElementById("closeScenarioModalBtn");
+            const cancelBtn = document.getElementById("cancelScenarioModalBtn");
+            const familyNameInput = document.getElementById("FamilyName");
+
+            function openModal(e) {
+                console.log("openModal called");
+                if (e) e.preventDefault();
+                if (modal) {
+                    modal.classList.add("active");
+                    if (familyNameInput) familyNameInput.focus();
+                }
+            }
+
+            function closeModal() {
+                console.log("closeModal called");
+                if (modal) {
+                    modal.classList.remove("active");
+                }
+            }
+
+            if (btnCriarCenario) {
+                btnCriarCenario.addEventListener("click", openModal);
+                console.log("Registered click listener on btn-criar-cenario");
+            }
+
+            if (closeBtn) closeBtn.addEventListener("click", closeModal);
+            if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+            
+            if (modal) {
+                modal.addEventListener("click", function(e) {
+                    if (e.target === modal) {
+                        closeModal();
+                    }
+                });
+            }
+
+            document.addEventListener("keydown", function(e) {
+                if (e.key === "Escape" && modal && modal.classList.contains("active")) {
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+
     <script src="~/js/dropdown.js" defer></script>
     <script src="~/js/toast.js" defer></script>
     @await RenderSectionAsync("Scripts", required: false)
