@@ -27,7 +27,7 @@ namespace Portal.Models.ViewModels
 
         // Retorna "A" se A for mais barato, "B" se B for mais barato, ou "Empate"
         public string Winner => TotalPagoA < TotalPagoB ? "A" : (TotalPagoB < TotalPagoA ? "B" : "Empate");
-        
+
         public decimal Difference => Math.Abs(TotalPagoA - TotalPagoB);
     }
 }

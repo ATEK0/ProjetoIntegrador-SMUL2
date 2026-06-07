@@ -51,7 +51,10 @@ class AmortizationSimulationView(APIView):
 
     @extend_schema(
         summary="Simulação de Amortização de Empréstimo",
-        description="Gera o quadro de amortização baseado no regime escolhido (French, SAC, American), retornando o quadro, TAEG e Impostos.",
+        description=(
+            "Gera o quadro de amortização baseado no regime escolhido (French, SAC, American), "
+            "retornando o quadro, TAEG e Impostos."
+        ),
         request=AmortizationSimulationSerializer,
         responses={200: dict, 400: dict},
     )

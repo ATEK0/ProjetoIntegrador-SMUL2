@@ -240,7 +240,7 @@ namespace Portal.Services
                     _context.Entries.Add(entry);
                     scenario.InitialBalance -= schedule[i];
                 }
-                
+
                 currentMonth++;
             }
 

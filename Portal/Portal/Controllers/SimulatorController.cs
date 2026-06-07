@@ -34,7 +34,7 @@ namespace Portal.Controllers
             try
             {
                 var result = await _simulationService.CalculateAsync(request);
-                
+
                 if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
                     var claim = User.FindFirst(ClaimTypes.NameIdentifier);

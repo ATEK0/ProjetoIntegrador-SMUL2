@@ -129,6 +129,7 @@ def calculate_irr(cash_flows: list[float], guess=0.1, max_iter=1000, tol=1e-6) -
         rate = new_rate
     return None
 
+
 class AmortizationStrategy(ABC):
     def calculate(self, principal: float, tan: float, years: float, periodicity: str, commission: float) -> dict:
         periods_per_year = {"monthly": 12, "quarterly": 4, "semiannual": 2, "annual": 1}.get(periodicity, 12)
@@ -146,12 +147,12 @@ class AmortizationStrategy(ABC):
         capital_liquido = principal - is_inicial
 
         schedule = self._generate_schedule(principal, n, i, commission)
-        
+
         cash_flows = [capital_liquido]
         for row in schedule:
             if row["period"] > 0:
                 cash_flows.append(-row["total_pago"])
-        
+
         taxa_periodica_taeg = calculate_irr(cash_flows)
         if taxa_periodica_taeg is not None:
             taeg = ((1 + taxa_periodica_taeg) ** periods_per_year - 1) * 100
@@ -188,10 +189,10 @@ class FrenchAmortization(AmortizationStrategy):
             juros = balance * i
             amortizacao = prestacao_base - juros
             balance -= amortizacao
-            
+
             if t == n:
                 balance = 0.0
-            
+
             is_sobre_juros = juros * 0.04
             total_pago = prestacao_base + is_sobre_juros + commission
 
@@ -224,10 +225,10 @@ class SACAmortization(AmortizationStrategy):
             juros = balance * i
             prestacao_base = amortizacao + juros
             balance -= amortizacao
-            
+
             if t == n:
                 balance = 0.0
-            
+
             is_sobre_juros = juros * 0.04
             total_pago = prestacao_base + is_sobre_juros + commission
 
@@ -261,10 +262,10 @@ class AmericanAmortization(AmortizationStrategy):
                 amortizacao = principal
             else:
                 amortizacao = 0.0
-            
+
             prestacao_base = juros + amortizacao
             balance -= amortizacao
-            
+
             is_sobre_juros = juros * 0.04
             total_pago = prestacao_base + is_sobre_juros + commission
 
