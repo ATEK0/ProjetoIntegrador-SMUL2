@@ -64,6 +64,7 @@ namespace Portal.Services
             decimal totalExpense = expenses.Sum(e => e.Amount);
             decimal balance = totalIncome - totalExpense;
             decimal savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+            decimal effortRate = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 0;
 
             decimal accumulatedIncome = members.Sum(m => m.MonthlyIncome) * targetMonth;
             decimal accumulatedExpense = 0;
@@ -118,6 +119,7 @@ namespace Portal.Services
                 TotalExpense = totalExpense,
                 Balance = balance,
                 SavingsRate = savingsRate,
+                EffortRate = effortRate,
                 FinalBankBalance = currentBankBalance
             };
         }
@@ -152,20 +154,10 @@ namespace Portal.Services
             if (entry == null) return ("Registo não encontrado.", null);
             if (amount <= 0) return ("O valor deve ser positivo.", entry.ScenarioId);
 
-            if (entry.EntryType == EntryType.Income)
-                entry.Scenario.InitialBalance -= entry.Amount;
-            else
-                entry.Scenario.InitialBalance += entry.Amount;
-
             entry.Category = category;
             entry.Amount = amount;
             entry.EntryMonth = entryMonth;
             entry.Recurrence = recurrence;
-
-            if (entry.EntryType == EntryType.Income)
-                entry.Scenario.InitialBalance += amount;
-            else
-                entry.Scenario.InitialBalance -= amount;
 
             await _context.SaveChangesAsync();
             return (null, entry.ScenarioId);
@@ -177,11 +169,6 @@ namespace Portal.Services
             if (entry == null) return ("Registo não encontrado.", null);
 
             int scenarioId = entry.ScenarioId;
-
-            if (entry.EntryType == EntryType.Income)
-                entry.Scenario.InitialBalance -= entry.Amount;
-            else
-                entry.Scenario.InitialBalance += entry.Amount;
 
             _context.Entries.Remove(entry);
             await _context.SaveChangesAsync();
@@ -196,7 +183,6 @@ namespace Portal.Services
 
             var entry = new Entry(scenarioId, EntryType.Income, category, amount, entryMonth, recurrence);
             _context.Entries.Add(entry);
-            scenario.InitialBalance += amount;
             await _context.SaveChangesAsync();
             return null;
         }
@@ -209,7 +195,6 @@ namespace Portal.Services
 
             var entry = new Entry(scenarioId, EntryType.Expense, category, amount, entryMonth, recurrence);
             _context.Entries.Add(entry);
-            scenario.InitialBalance -= amount;
             await _context.SaveChangesAsync();
             return null;
         }
@@ -225,7 +210,6 @@ namespace Portal.Services
             {
                 var entryIs = new Entry(scenarioId, EntryType.Expense, $"{category} (IS Inicial)", isInicial, entryMonth, RecurrenceType.Once);
                 _context.Entries.Add(entryIs);
-                scenario.InitialBalance -= isInicial;
             }
 
             // Registar parcelas até ao fim do ano
@@ -238,7 +222,6 @@ namespace Portal.Services
                 {
                     var entry = new Entry(scenarioId, EntryType.Expense, $"{category} (Parcela {i + 1})", schedule[i], currentMonth, RecurrenceType.Once);
                     _context.Entries.Add(entry);
-                    scenario.InitialBalance -= schedule[i];
                 }
 
                 currentMonth++;

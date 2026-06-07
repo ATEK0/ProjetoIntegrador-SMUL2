@@ -16,6 +16,7 @@ namespace Portal.Models.ViewModels
         public decimal TotalExpense { get; set; }
         public decimal Balance { get; set; }
         public decimal SavingsRate { get; set; }
+        public decimal EffortRate { get; set; }
         public decimal FinalBankBalance { get; set; }
     }
 }
