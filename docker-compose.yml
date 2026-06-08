@@ -48,7 +48,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80 
       - ASPNETCORE_ENVIRONMENT=Production
-      - BACKEND_URL=http://backend-main:8000
+      - MsCafinApiUrl=http://backend-main:8000/
       - "ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
     depends_on:
       - backend-main
@@ -93,7 +93,7 @@ services:
     environment:
       - ASPNETCORE_URLS=http://+:80 
       - ASPNETCORE_ENVIRONMENT=Development
-      - BACKEND_URL=http://backend-develop:8000
+      - MsCafinApiUrl=http://backend-develop:8000/
       - "ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
     depends_on:
       - backend-develop

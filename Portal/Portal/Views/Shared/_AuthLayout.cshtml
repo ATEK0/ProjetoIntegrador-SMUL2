@@ -14,8 +14,10 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/design-system.css" />
     <link rel="stylesheet" href="~/css/layout.css" />
+    <link rel="stylesheet" href="~/css/toast.css" />
 </head>
 <body>
+    @await Html.PartialAsync("_Toasts")
     <div class="auth-layout">
         <div class="auth-container card glass-panel">
             <div class="auth-logo">
@@ -26,5 +28,6 @@
             @RenderBody()
         </div>
     </div>
+    <script src="~/js/toast.js" defer></script>
 </body>
 </html>

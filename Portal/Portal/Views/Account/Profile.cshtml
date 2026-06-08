@@ -91,28 +91,6 @@
         color: var(--text-muted);
     }
 
-    .alert-box {
-        padding: var(--spacing-sm) var(--spacing-md);
-        border-radius: var(--radius-sm);
-        margin-bottom: var(--spacing-md);
-        font-size: 0.875rem;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .alert-success {
-        color: #059669;
-        background-color: rgba(5, 150, 105, 0.08);
-        border: 1px solid rgba(5, 150, 105, 0.2);
-    }
-
-    .alert-error {
-        color: #dc2626;
-        background-color: rgba(220, 38, 38, 0.08);
-        border: 1px solid rgba(220, 38, 38, 0.2);
-    }
-
     .form-actions {
         margin-top: var(--spacing-lg);
     }
@@ -142,23 +120,8 @@
     <div class="profile-card">
         <h3><i class="fas fa-user-edit"></i> Dados Pessoais</h3>
 
-        @if (TempData["ProfileSuccess"] != null)
-        {
-            <div class="alert-box alert-success">
-                <i class="fas fa-check-circle"></i>
-                <span>@TempData["ProfileSuccess"]</span>
-            </div>
-        }
-        @if (TempData["ProfileError"] != null)
-        {
-            <div class="alert-box alert-error">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>@TempData["ProfileError"]</span>
-            </div>
-        }
-
-        <form asp-controller="Account" asp-action="Profile" method="post">
-            @Html.AntiForgeryToken()
+        <form action="/Account/Profile" method="post">
+            @await Html.PartialAsync("_FormErrors")
 
             <div class="form-group">
                 <label class="form-label" for="Name">Nome</label>
@@ -187,24 +150,7 @@
     <div class="profile-card">
         <h3><i class="fas fa-lock"></i> Alterar Password</h3>
 
-        @if (TempData["PasswordSuccess"] != null)
-        {
-            <div class="alert-box alert-success">
-                <i class="fas fa-check-circle"></i>
-                <span>@TempData["PasswordSuccess"]</span>
-            </div>
-        }
-        @if (TempData["PasswordError"] != null)
-        {
-            <div class="alert-box alert-error">
-                <i class="fas fa-exclamation-circle"></i>
-                <span>@TempData["PasswordError"]</span>
-            </div>
-        }
-
-        <form asp-controller="Account" asp-action="ChangePassword" method="post">
-            @Html.AntiForgeryToken()
-
+        <form action="/Account/ChangePassword" method="post">
             <div class="form-group">
                 <label class="form-label" for="CurrentPassword">Password Atual</label>
                 <input class="form-control" type="password" id="CurrentPassword" name="CurrentPassword" placeholder="Insira a password atual" required />

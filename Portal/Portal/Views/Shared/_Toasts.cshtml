@@ -1,0 +1,30 @@
+@using System.Text.Json
+@{
+    var items = new List<Dictionary<string, string>>();
+    var seen = new HashSet<string>();
+
+    void AddToast(string type, string? message)
+    {
+        if (string.IsNullOrWhiteSpace(message) || !seen.Add(type + "|" + message))
+            return;
+        items.Add(new Dictionary<string, string> { ["type"] = type, ["message"] = message });
+    }
+
+    if (TempData["Success"] is string success)
+        AddToast("success", success);
+
+    if (TempData["Error"] is string error)
+        AddToast("error", error);
+
+    if (TempData["ToastErrors"] is string json && !string.IsNullOrWhiteSpace(json))
+    {
+        try
+        {
+            foreach (var message in JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>())
+                AddToast("error", message);
+        }
+        catch { /* malformed JSON — ignore gracefully */ }
+    }
+}
+<div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+<script type="application/json" id="toast-data">@Html.Raw(JsonSerializer.Serialize(items))</script>

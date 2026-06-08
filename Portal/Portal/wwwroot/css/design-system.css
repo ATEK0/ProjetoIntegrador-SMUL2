@@ -153,6 +153,10 @@ a:hover {
     box-shadow: 0 0 0 3px rgba(12, 115, 183, 0.15);
 }
 
+.form-group .ds-dropdown-wrap {
+    width: 100%;
+}
+
 /* Cards */
 .card {
     background-color: var(--surface-color);

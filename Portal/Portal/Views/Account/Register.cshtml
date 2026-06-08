@@ -3,23 +3,9 @@
     Layout = "_AuthLayout";
 }
 
-@if (TempData["Error"] != null)
-{
-    <div style="color: #ff6b6b; background-color: rgba(255, 107, 107, 0.1); border: 1px solid rgba(255, 107, 107, 0.2); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); font-size: 0.875rem; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>@TempData["Error"]</span>
-    </div>
-}
-
-@if (TempData["Success"] != null)
-{
-    <div style="color: #2ecc71; background-color: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.2); padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--border-radius-sm); margin-bottom: var(--spacing-md); font-size: 0.875rem; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-check-circle"></i>
-        <span>@TempData["Success"]</span>
-    </div>
-}
-
 <form action="/Account/Register" method="post">
+    @await Html.PartialAsync("_FormErrors")
+
     <div class="form-group">
         <label class="form-label" for="name">Nome Completo</label>
         <input class="form-control" type="text" id="name" name="name" placeholder="Insira o seu nome" required />
@@ -34,8 +20,6 @@
         <label class="form-label" for="password">Password</label>
         <input class="form-control" type="password" id="password" name="password" placeholder="Crie uma password" required />
     </div>
-
-
 
     <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--spacing-md);">Criar Conta</button>
     
