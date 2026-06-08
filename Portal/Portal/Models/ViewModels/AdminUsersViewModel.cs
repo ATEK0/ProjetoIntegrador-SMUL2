@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Portal.Models;
 
 namespace Portal.Models.ViewModels
 {

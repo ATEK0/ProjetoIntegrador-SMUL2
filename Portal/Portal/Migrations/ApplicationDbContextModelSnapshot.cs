@@ -315,6 +315,50 @@ namespace Portal.Migrations
                     b.ToTable("scenarios", (string)null);
                 });
 
+            modelBuilder.Entity("Portal.Models.ScenarioMember", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<decimal>("MonthlyIncome")
+                        .HasColumnType("decimal(65,30)")
+                        .HasColumnName("monthly_income");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("ScenarioId")
+                        .HasColumnType("int")
+                        .HasColumnName("scenario_id");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_scenario_members");
+
+                    b.HasIndex("ScenarioId", "DeletedAt")
+                        .HasDatabaseName("ix_scenario_members_scenario_id_deleted_at");
+
+                    b.ToTable("scenario_members", (string)null);
+                });
+
             modelBuilder.Entity("Portal.Models.SchoolClass", b =>
                 {
                     b.Property<int>("Id")
@@ -550,6 +594,18 @@ namespace Portal.Migrations
                     b.Navigation("Challenge");
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("Portal.Models.ScenarioMember", b =>
+                {
+                    b.HasOne("Portal.Models.Scenario", "Scenario")
+                        .WithMany()
+                        .HasForeignKey("ScenarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_scenario_members_scenarios_scenario_id");
+
+                    b.Navigation("Scenario");
                 });
 
             modelBuilder.Entity("Portal.Models.SchoolClass", b =>

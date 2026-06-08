@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Portal.Models;
 
 namespace Portal.Data
@@ -14,6 +14,7 @@ namespace Portal.Data
         public DbSet<ClassEnrollment> ClassEnrollments { get; set; }
         public DbSet<Challenge> Challenges { get; set; }
         public DbSet<Scenario> Scenarios { get; set; }
+        public DbSet<ScenarioMember> ScenarioMembers { get; set; }
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Objective> Objectives { get; set; }
 
@@ -29,6 +30,7 @@ namespace Portal.Data
             modelBuilder.Entity<ClassEnrollment>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Challenge>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Scenario>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ScenarioMember>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Entry>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Objective>().HasQueryFilter(x => x.DeletedAt == null);
 
@@ -57,6 +59,7 @@ namespace Portal.Data
             modelBuilder.Entity<Challenge>().HasIndex(c => new { c.TeacherId, c.ClassId, c.DeletedAt });
 
             modelBuilder.Entity<Scenario>().HasIndex(s => new { s.StudentId, s.ChallengeId, s.DeletedAt });
+            modelBuilder.Entity<ScenarioMember>().HasIndex(sm => new { sm.ScenarioId, sm.DeletedAt });
             modelBuilder.Entity<Entry>().HasIndex(e => new { e.ScenarioId, e.DeletedAt });
             modelBuilder.Entity<Objective>().HasIndex(o => new { o.ScenarioId, o.DeletedAt });
         }
