@@ -57,8 +57,6 @@ namespace Portal.Controllers
             return RedirectToAction("AdminClasses", "Dashboard");
         }
 
-        public IActionResult Join() => View();
-
         [HttpPost]
         public async Task<IActionResult> Join(string membershipCode)
         {
@@ -68,11 +66,12 @@ namespace Portal.Controllers
             var error = await _classService.JoinClassAsync(id.Value, membershipCode);
             if (error != null)
             {
-                ModelState.AddModelError("", error);
-                return View();
+                TempData["Error"] = error;
+                return RedirectToAction("Aluno", "Dashboard");
             }
 
-            return RedirectToAction("Index", "Home");
+            TempData["Success"] = "Inscrição na turma realizada com sucesso!";
+            return RedirectToAction("Aluno", "Dashboard");
         }
 
         [HttpPost, Authorize(Roles = "Admin")]
