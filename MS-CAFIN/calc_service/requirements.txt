@@ -3,3 +3,5 @@ djangorestframework
 drf-spectacular
 gunicorn
 mysqlclient
+flake8
+black

@@ -7,6 +7,9 @@
 # Linters alinhados com os workflows CI:
 #   - Django: flake8 + black
 #   - ASP.NET: dotnet format
+#
+# Nota: Este script tenta usar `python -m` para maior compatibilidade
+# em ambientes Windows onde os comandos podem não estar diretamente no PATH
 # ============================================================
 
 set -e
@@ -43,8 +46,8 @@ if [ -n "$PYTHON_FILES" ]; then
 
     # --- flake8 ---
     echo "  [1/2] A executar flake8..."
-    if command -v flake8 >/dev/null 2>&1; then
-        if ! flake8 MS-CAFIN/calc_service --max-line-length=120 --exclude=migrations,__pycache__ 2>&1; then
+    if python -m flake8 --version >/dev/null 2>&1; then
+        if ! python -m flake8 MS-CAFIN/calc_service --max-line-length=120 --exclude=migrations,__pycache__ 2>&1; then
             echo "  ${RED}[FALHOU] flake8 encontrou problemas.${NC}"
             EXIT_CODE=1
         else
@@ -59,11 +62,11 @@ if [ -n "$PYTHON_FILES" ]; then
 
     # --- black ---
     echo "  [2/2] A executar black --check..."
-    if command -v black >/dev/null 2>&1; then
-        if ! black --check MS-CAFIN/calc_service --exclude="migrations|__pycache__" 2>&1; then
+    if python -m black --version >/dev/null 2>&1; then
+        if ! python -m black --check MS-CAFIN/calc_service --exclude="migrations|__pycache__" 2>&1; then
             echo ""
             echo "  ${RED}[FALHOU] black encontrou ficheiros mal formatados.${NC}"
-            echo "  ${YELLOW}Corrige com: black MS-CAFIN/calc_service --exclude=\"migrations|__pycache__\"${NC}"
+            echo "  ${YELLOW}Corrige com: python -m black MS-CAFIN/calc_service --exclude=\"migrations|__pycache__\"${NC}"
             EXIT_CODE=1
         else
             echo "  ${GREEN}[OK] black passou.${NC}"
