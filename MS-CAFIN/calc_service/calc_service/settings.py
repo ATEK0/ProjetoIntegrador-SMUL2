@@ -1,4 +1,6 @@
 from pathlib import Path
+import os
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,8 +34,6 @@ TEMPLATES = [
         "APP_DIRS": True,
     },
 ]
-
-import os
 
 ROOT_URLCONF = "calc_service.urls"
 
