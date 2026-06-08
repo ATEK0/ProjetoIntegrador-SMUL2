@@ -215,3 +215,6 @@ obj/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Nginx TLS certificates (auto-assinados)
+nginx/certs/
