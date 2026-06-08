@@ -35,12 +35,14 @@ class SimulationService:
             raise ValidationError({"detail": str(e)}) from e
 
     @staticmethod
-    def run_amortization(validated_data: dict) -> list:
+    def run_amortization(validated_data: dict) -> dict:
         try:
             return SimulatorFacade.simulate_amortization(
                 principal=validated_data["principal"],
                 rate=validated_data["rate"],
-                periods=validated_data["periods"],
+                years=validated_data["years"],
+                periodicity=validated_data["periodicity"],
+                commission=validated_data["commission"],
                 amortization_type=validated_data["type"],
             )
         except ValueError as e:

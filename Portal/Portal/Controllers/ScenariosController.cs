@@ -174,6 +174,26 @@ namespace Portal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegisterAmortizationPlan(int scenarioId, string category, int entryMonth, System.Collections.Generic.List<decimal> schedule, decimal isInicial, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var error = await _scenarioService.RegisterAmortizationPlanAsync(scenarioId, studentId, category, entryMonth, schedule, isInicial);
+
+                if (error == null) TempData["Success"] = "Plano de amortização integrado com sucesso (lançado mês a mês até ao final do ano)!";
+                else TempData["Error"] = error;
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao integrar o plano de amortização: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = scenarioId, month = month });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddMember(int scenarioId, string name, decimal monthlyIncome, int? month)
         {
             try

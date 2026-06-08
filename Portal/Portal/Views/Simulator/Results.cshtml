@@ -3,6 +3,16 @@
 @{
     ViewData["Title"] = "Resultado da Simulação";
     var hasVariableRates = Model.HasVariableRates;
+    
+    decimal integrateAmount = 0m;
+    if (Model.SimulationMode == "amortization" && Model.AmortizationResult != null && Model.AmortizationResult.Schedule != null && Model.AmortizationResult.Schedule.Any(x => x.Period > 0))
+    {
+        integrateAmount = (decimal)Model.AmortizationResult.Schedule.First(x => x.Period > 0).TotalPago;
+    }
+    else if (Model.SimulationMode == "interest" && Model.InterestResult != null)
+    {
+        integrateAmount = (decimal)Model.InterestResult.Interest;
+    }
 }
 
 @section Styles {
@@ -11,10 +21,19 @@
 
 <div class="sim-results">
     <div class="sim-results-header">
-        <a href="/Simulator" class="sim-back">
-            <i class="fas fa-arrow-left"></i>
-            Nova simulação
-        </a>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="/Simulator" class="sim-back">
+                <i class="fas fa-arrow-left"></i>
+                Nova simulação
+            </a>
+            @if (Model.UserScenarios != null && Model.UserScenarios.Any())
+            {
+                <button type="button" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.3rem 0.75rem;" onclick="document.getElementById('integrateScenarioModal').classList.add('active');">
+                    <i class="fas fa-plus"></i>
+                    Integrar no Cenário
+                </button>
+            }
+        </div>
         <span class="sim-results-badge">
             <i class="fas fa-check-circle"></i>
             @(Model.SimulationMode == "interest" ? "Simulação de juros" : "Plano de amortização")
@@ -31,7 +50,7 @@
                 </li>
                 <li>
                     <span class="label">Capital</span>
-                    <span class="value">@Model.Request.Principal.ToString("C")</span>
+                    <span class="value">@Model.Request.Principal?.ToString("C")</span>
                 </li>
                 <li>
                     <span class="label">@(hasVariableRates ? "Taxas" : "Taxa")</span>
@@ -105,40 +124,60 @@
                     </div>
                 }
             }
-            else if (Model.SimulationMode == "amortization" && Model.AmortizationResult != null)
+            else if (Model.SimulationMode == "amortization" && Model.AmortizationResult != null && Model.AmortizationResult.Schedule != null)
             {
-                var amortizationResult = Model.AmortizationResult;
+                var response = Model.AmortizationResult;
+                var amortizationResult = response.Schedule;
                 var totalInstallment = amortizationResult.Sum(x => x.Installment);
                 var totalInterest = amortizationResult.Sum(x => x.Interest);
                 var totalAmort = amortizationResult.Sum(x => x.Amortization);
+                var totalIS = amortizationResult.Sum(x => x.ImpostoSelo) + response.ImpostoSeloInicial;
+                var totalComissao = amortizationResult.Sum(x => x.Comissao);
+                var totalPago = amortizationResult.Sum(x => x.TotalPago) + response.ImpostoSeloInicial;
 
-                <div class="sim-amort-summary">
+                <div class="sim-amort-summary" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
                     <div class="sim-amort-stat sim-amort-stat--installment">
-                        <div class="label">Total prestações</div>
-                        <div class="value">@totalInstallment.ToString("C")</div>
+                        <div class="label">Total crédito</div>
+                        <div class="value">@totalAmort.ToString("C")</div>
                     </div>
                     <div class="sim-amort-stat sim-amort-stat--interest">
                         <div class="label">Total juros</div>
                         <div class="value">@totalInterest.ToString("C")</div>
                     </div>
-                    <div class="sim-amort-stat sim-amort-stat--amort">
-                        <div class="label">Total amortizado</div>
-                        <div class="value">@totalAmort.ToString("C")</div>
+                    <div class="sim-amort-stat" style="background: rgba(12, 115, 183, 0.05); border: 1px solid rgba(12, 115, 183, 0.1);">
+                        <div class="label">Imposto do Selo</div>
+                        <div class="value">@totalIS.ToString("C")</div>
+                    </div>
+                    <div class="sim-amort-stat" style="background: rgba(12, 115, 183, 0.05); border: 1px solid rgba(12, 115, 183, 0.1);">
+                        <div class="label">Comissões</div>
+                        <div class="value">@totalComissao.ToString("C")</div>
+                    </div>
+                    <div class="sim-amort-stat" style="background: rgba(220, 38, 38, 0.05); border: 1px solid rgba(220, 38, 38, 0.2);">
+                        <div class="label">Custo Total (MTIC)</div>
+                        <div class="value" style="color: #dc2626;">@totalPago.ToString("C")</div>
+                    </div>
+                    <div class="sim-amort-stat" style="background: linear-gradient(135deg, var(--primary-blue) 0%, #095a8f 100%); color: white; border: none;">
+                        <div class="label" style="color: rgba(255,255,255,0.8);">TAEG</div>
+                        <div class="value">@response.TAEG.ToString("N2") %</div>
                     </div>
                 </div>
 
                 <div class="sim-table-card card glass-panel">
-                    <div class="sim-table-header">
+                    <div class="sim-table-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <h4><i class="fas fa-table-list" style="margin-right: 8px; color: var(--primary-blue);"></i> Plano de amortização por período</h4>
+                        <span class="text-muted" style="font-size:0.85rem;">IS Inicial cobrado no Mês 0: <strong>@response.ImpostoSeloInicial.ToString("C")</strong></span>
                     </div>
                     <div class="sim-table-scroll">
                         <table class="sim-table">
                             <thead>
                                 <tr>
                                     <th>Período</th>
-                                    <th>Prestação</th>
+                                    <th>Prestação Base</th>
                                     <th>Juro</th>
                                     <th>Amortização</th>
+                                    <th>Imp. Selo</th>
+                                    <th>Comissão</th>
+                                    <th>Total a Pagar</th>
                                     <th>Saldo</th>
                                 </tr>
                             </thead>
@@ -150,6 +189,9 @@
                                         <td>@p.Installment.ToString("C")</td>
                                         <td class="col-interest">@p.Interest.ToString("C")</td>
                                         <td class="col-amort">@p.Amortization.ToString("C")</td>
+                                        <td>@p.ImpostoSelo.ToString("C")</td>
+                                        <td>@p.Comissao.ToString("C")</td>
+                                        <td style="font-weight: 600;">@p.TotalPago.ToString("C")</td>
                                         <td class="col-balance">@p.Balance.ToString("C")</td>
                                     </tr>
                                 }
@@ -160,6 +202,9 @@
                                     <td>@totalInstallment.ToString("C")</td>
                                     <td class="col-interest">@totalInterest.ToString("C")</td>
                                     <td class="col-amort">@totalAmort.ToString("C")</td>
+                                    <td>@(amortizationResult.Sum(x => x.ImpostoSelo).ToString("C"))</td>
+                                    <td>@totalComissao.ToString("C")</td>
+                                    <td>@(amortizationResult.Sum(x => x.TotalPago).ToString("C"))</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
@@ -170,3 +215,126 @@
         </div>
     </div>
 </div>
+
+@if (Model.UserScenarios != null && Model.UserScenarios.Any())
+{
+    var months = new[] { "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro" };
+
+    <div id="integrateScenarioModal" class="modal-overlay">
+        <div class="modal-card">
+            <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+            <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Integrar Simulação</h3>
+            
+            <form id="integrateForm" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="form-group">
+                    <label class="premium-label">Cenário de Destino</label>
+                    <select name="scenarioId" class="form-control" required>
+                        @foreach(var sc in Model.UserScenarios)
+                        {
+                            <option value="@sc.Id">@sc.FamilyName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px; display: none;">
+                    <label class="premium-label">Tipo de Movimento</label>
+                    <select id="integrationType" class="form-control" onchange="updateIntegrationAction()" required>
+                        <option value="expense" selected="@(Model.SimulationMode == "amortization")">Despesa</option>
+                        <option value="income" selected="@(Model.SimulationMode == "interest")">Rendimento</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label class="premium-label">Categoria / Descrição</label>
+                    <input type="text" name="category" class="form-control" value="@(Model.SimulationMode == "amortization" ? "Crédito Bancário" : "Juros Recebidos")" required />
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                    <div class="form-group">
+                        <label class="premium-label">Mês de Início</label>
+                        <select name="entryMonth" class="form-control" required>
+                            @for (int m = 1; m <= 12; m++)
+                            {
+                                if (m == DateTime.Now.Month)
+                                {
+                                    <option value="@m" selected>@months[m - 1]</option>
+                                }
+                                else
+                                {
+                                    <option value="@m">@months[m - 1]</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    @if (Model.SimulationMode == "amortization" && Model.AmortizationResult != null && Model.AmortizationResult.Schedule != null)
+                    {
+                        <div class="form-group">
+                            <label class="premium-label">Valor</label>
+                            <input type="text" class="form-control" value="Variável por mês" disabled style="background: rgba(0,0,0,0.03); cursor: not-allowed;" />
+                        </div>
+                        
+                        <!-- Campos Hidden com as parcelas do primeiro ano -->
+                        @foreach (var p in Model.AmortizationResult.Schedule.Where(x => x.Period > 0).Take(12))
+                        {
+                            <input type="hidden" name="schedule" value="@p.TotalPago.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                        }
+                        <input type="hidden" name="isInicial" value="@Model.AmortizationResult.ImpostoSeloInicial.ToString(System.Globalization.CultureInfo.InvariantCulture)" />
+                    }
+                    else
+                    {
+                        <div class="form-group">
+                            <label class="premium-label">Valor (€)</label>
+                            <input type="number" name="amount" class="form-control" min="0.01" step="0.01" value="@integrateAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+                        </div>
+                    }
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label class="premium-label">Recorrência</label>
+                    @if (Model.SimulationMode == "amortization")
+                    {
+                        <input type="text" class="form-control" value="Múltiplas despesas pontuais até ao fim do ano" disabled style="background: rgba(0,0,0,0.03); cursor: not-allowed;" />
+                    }
+                    else
+                    {
+                        <select name="recurrence" class="form-control" required>
+                            <option value="Monthly">Mensal</option>
+                            <option value="Once" selected>Pontual</option>
+                            <option value="Yearly">Anual</option>
+                        </select>
+                    }
+                </div>
+
+                <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Adicionar ao Cenário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updateIntegrationAction() {
+            var mode = '@Model.SimulationMode';
+            var form = document.getElementById('integrateForm');
+            
+            if (mode === 'amortization') {
+                form.action = '/Scenarios/RegisterAmortizationPlan';
+            } else {
+                var type = document.getElementById('integrationType').value;
+                if (type === 'expense') {
+                    form.action = '/Scenarios/RegisterExpense';
+                } else {
+                    form.action = '/Scenarios/RegisterIncome';
+                }
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            updateIntegrationAction();
+        });
+    </script>
+}

@@ -9,7 +9,8 @@ namespace Portal.Models.ViewModels
         public string SimulationMode { get; set; } = "interest";
         public SimulationRequest Request { get; set; } = new();
         public InterestSimulationResponse? InterestResult { get; set; }
-        public List<AmortizationPeriod>? AmortizationResult { get; set; }
+        public AmortizationSimulationResponse? AmortizationResult { get; set; }
+        public List<Scenario>? UserScenarios { get; set; }
 
         public string RegimeLabel => Request.Type?.ToLower() switch
         {

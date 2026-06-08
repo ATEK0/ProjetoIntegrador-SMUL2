@@ -63,13 +63,15 @@ namespace Portal.Services
                 {
                     principal = request.Principal,
                     rate = request.Rate,
-                    periods = (int)request.Time,
+                    years = request.Time,
+                    periodicity = request.Periodicity,
+                    commission = request.MonthlyCommission ?? 0.0,
                     type
                 });
 
                 var response = await PostJsonAsync("api/v1/simulate/amortization/", json);
                 result.SimulationMode = "amortization";
-                result.AmortizationResult = await response.Content.ReadFromJsonAsync<List<AmortizationPeriod>>();
+                result.AmortizationResult = await response.Content.ReadFromJsonAsync<AmortizationSimulationResponse>();
             }
 
             return result;

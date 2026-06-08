@@ -21,16 +21,22 @@ namespace Portal.Models
 
         [Required(ErrorMessage = "Indique o capital.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "O capital deve ser maior que 0.")]
-        public double Principal { get; set; }
+        public double? Principal { get; set; }
 
+        [Required(ErrorMessage = "A taxa de juro é obrigatória.")]
         [Range(0.0, 100.0, ErrorMessage = "A taxa de juro deve estar entre 0 e 100%.")]
-        public double RatePercentage { get; set; }
+        public double? RatePercentage { get; set; }
 
-        public double Rate => RatePercentage / 100.0;
+        public double Rate => (RatePercentage ?? 0) / 100.0;
 
-        [Required(ErrorMessage = "Indique o número de períodos.")]
-        [Range(1, int.MaxValue, ErrorMessage = "O tempo/período deve ser maior que 0.")]
-        public double Time { get; set; }
+        [Required(ErrorMessage = "Indique o tempo/prazo.")]
+        [Range(0.1, int.MaxValue, ErrorMessage = "O tempo/prazo deve ser maior que 0.")]
+        public double? Time { get; set; }
+
+        public string Periodicity { get; set; } = "monthly";
+
+        [Range(0.0, double.MaxValue, ErrorMessage = "A comissão não pode ser negativa.")]
+        public double? MonthlyCommission { get; set; }
 
         [Required(ErrorMessage = "Selecione o regime.")]
         public string Type { get; set; } = "simple";
@@ -83,6 +89,18 @@ namespace Portal.Models
         public bool Partial { get; set; }
     }
 
+    public class AmortizationSimulationResponse
+    {
+        [JsonPropertyName("schedule")]
+        public List<AmortizationPeriod>? Schedule { get; set; }
+
+        [JsonPropertyName("taeg")]
+        public double TAEG { get; set; }
+
+        [JsonPropertyName("is_inicial")]
+        public double ImpostoSeloInicial { get; set; }
+    }
+
     public class AmortizationPeriod
     {
         [JsonPropertyName("period")]
@@ -97,7 +115,22 @@ namespace Portal.Models
         [JsonPropertyName("amortization")]
         public double Amortization { get; set; }
 
+        [JsonPropertyName("imposto_selo")]
+        public double ImpostoSelo { get; set; }
+
+        [JsonPropertyName("comissao")]
+        public double Comissao { get; set; }
+
+        [JsonPropertyName("total_pago")]
+        public double TotalPago { get; set; }
+
         [JsonPropertyName("balance")]
         public double Balance { get; set; }
+    }
+
+    public class SimulationCompareRequest
+    {
+        public SimulationRequest ProposalA { get; set; } = new() { SimulationMode = "amortization" };
+        public SimulationRequest ProposalB { get; set; } = new() { SimulationMode = "amortization" };
     }
 }

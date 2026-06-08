@@ -51,9 +51,12 @@ class AmortizationSimulationView(APIView):
 
     @extend_schema(
         summary="Simulação de Amortização de Empréstimo",
-        description="Gera o quadro de amortização baseado no regime escolhido (French, SAC, American).",
+        description=(
+            "Gera o quadro de amortização baseado no regime escolhido (French, SAC, American), "
+            "retornando o quadro, TAEG e Impostos."
+        ),
         request=AmortizationSimulationSerializer,
-        responses={200: list, 400: dict},
+        responses={200: dict, 400: dict},
     )
     def post(self, request):
         serializer = AmortizationSimulationSerializer(data=request.data)

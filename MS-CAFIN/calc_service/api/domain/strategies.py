@@ -116,31 +116,87 @@ class CompoundInterest(InterestStrategy):
         return amount + period_interest
 
 
+def calculate_irr(
+    cash_flows: list[float], guess=0.1, max_iter=1000, tol=1e-6
+) -> float | None:
+    rate = guess
+    for _ in range(max_iter):
+        npv = sum(cf / (1 + rate) ** t for t, cf in enumerate(cash_flows))
+        d_npv = sum(-t * cf / (1 + rate) ** (t + 1) for t, cf in enumerate(cash_flows))
+        if abs(d_npv) < 1e-12:
+            return None
+        new_rate = rate - npv / d_npv
+        if abs(new_rate - rate) < tol:
+            return new_rate
+        rate = new_rate
+    return None
+
+
 class AmortizationStrategy(ABC):
+    def calculate(
+        self,
+        principal: float,
+        tan: float,
+        years: float,
+        periodicity: str,
+        commission: float,
+    ) -> dict:
+        periods_per_year = {
+            "monthly": 12,
+            "quarterly": 4,
+            "semiannual": 2,
+            "annual": 1,
+        }.get(periodicity, 12)
+        n = int(years * periods_per_year)
+        i = tan / periods_per_year
+
+        if years < 1:
+            taxa_is_inicial = 0.0004 * (years * 12)
+        elif years < 5:
+            taxa_is_inicial = 0.0050
+        else:
+            taxa_is_inicial = 0.0060
+
+        is_inicial = principal * taxa_is_inicial
+        capital_liquido = principal - is_inicial
+
+        schedule = self._generate_schedule(principal, n, i, commission)
+
+        cash_flows = [capital_liquido]
+        for row in schedule:
+            if row["period"] > 0:
+                cash_flows.append(-row["total_pago"])
+
+        taxa_periodica_taeg = calculate_irr(cash_flows)
+        if taxa_periodica_taeg is not None:
+            taeg = ((1 + taxa_periodica_taeg) ** periods_per_year - 1) * 100
+        else:
+            taeg = 0.0
+
+        return {
+            "schedule": schedule,
+            "taeg": round(taeg, 4),
+            "is_inicial": round(is_inicial, 2),
+        }
+
     @abstractmethod
-    def calculate(self, principal: float, rate: float, periods: int) -> list:
-        """
-        Calculates the amortization schedule.
-        Returns a list of dicts:
-        [{'period': int, 'installment': float, 'interest': float, 'amortization': float, 'balance': float}]
-        """
+    def _generate_schedule(
+        self, principal: float, n: int, i: float, commission: float
+    ) -> list:
         pass
 
 
 class FrenchAmortization(AmortizationStrategy):
-    def calculate(self, principal: float, rate: float, periods: int) -> list:
+    def _generate_schedule(
+        self, principal: float, n: int, i: float, commission: float
+    ) -> list:
         schedule = []
         balance = principal
 
-        # Handling edge case if rate is 0
-        if rate == 0:
-            installment = principal / periods
+        if i == 0:
+            prestacao_base = principal / n
         else:
-            installment = (
-                principal
-                * (rate * ((1 + rate) ** periods))
-                / (((1 + rate) ** periods) - 1)
-            )
+            prestacao_base = principal * (i * (1 + i) ** n) / ((1 + i) ** n - 1)
 
         schedule.append(
             {
@@ -148,25 +204,33 @@ class FrenchAmortization(AmortizationStrategy):
                 "installment": 0.0,
                 "interest": 0.0,
                 "amortization": 0.0,
+                "imposto_selo": 0.0,
+                "comissao": 0.0,
+                "total_pago": 0.0,
                 "balance": round(balance, 2),
             }
         )
 
-        for i in range(1, periods + 1):
-            interest = balance * rate
-            amortization = installment - interest
-            balance -= amortization
+        for t in range(1, n + 1):
+            juros = balance * i
+            amortizacao = prestacao_base - juros
+            balance -= amortizacao
 
-            # Avoid floating point issues at the end
-            if i == periods:
+            if t == n:
                 balance = 0.0
+
+            is_sobre_juros = juros * 0.04
+            total_pago = prestacao_base + is_sobre_juros + commission
 
             schedule.append(
                 {
-                    "period": i,
-                    "installment": round(installment, 2),
-                    "interest": round(interest, 2),
-                    "amortization": round(amortization, 2),
+                    "period": t,
+                    "installment": round(prestacao_base, 2),
+                    "interest": round(juros, 2),
+                    "amortization": round(amortizacao, 2),
+                    "imposto_selo": round(is_sobre_juros, 2),
+                    "comissao": round(commission, 2),
+                    "total_pago": round(total_pago, 2),
                     "balance": round(balance, 2),
                 }
             )
@@ -175,10 +239,12 @@ class FrenchAmortization(AmortizationStrategy):
 
 
 class SACAmortization(AmortizationStrategy):
-    def calculate(self, principal: float, rate: float, periods: int) -> list:
+    def _generate_schedule(
+        self, principal: float, n: int, i: float, commission: float
+    ) -> list:
         schedule = []
         balance = principal
-        amortization = principal / periods
+        amortizacao = principal / n
 
         schedule.append(
             {
@@ -186,24 +252,33 @@ class SACAmortization(AmortizationStrategy):
                 "installment": 0.0,
                 "interest": 0.0,
                 "amortization": 0.0,
+                "imposto_selo": 0.0,
+                "comissao": 0.0,
+                "total_pago": 0.0,
                 "balance": round(balance, 2),
             }
         )
 
-        for i in range(1, periods + 1):
-            interest = balance * rate
-            installment = amortization + interest
-            balance -= amortization
+        for t in range(1, n + 1):
+            juros = balance * i
+            prestacao_base = amortizacao + juros
+            balance -= amortizacao
 
-            if i == periods:
+            if t == n:
                 balance = 0.0
+
+            is_sobre_juros = juros * 0.04
+            total_pago = prestacao_base + is_sobre_juros + commission
 
             schedule.append(
                 {
-                    "period": i,
-                    "installment": round(installment, 2),
-                    "interest": round(interest, 2),
-                    "amortization": round(amortization, 2),
+                    "period": t,
+                    "installment": round(prestacao_base, 2),
+                    "interest": round(juros, 2),
+                    "amortization": round(amortizacao, 2),
+                    "imposto_selo": round(is_sobre_juros, 2),
+                    "comissao": round(commission, 2),
+                    "total_pago": round(total_pago, 2),
                     "balance": round(balance, 2),
                 }
             )
@@ -212,7 +287,9 @@ class SACAmortization(AmortizationStrategy):
 
 
 class AmericanAmortization(AmortizationStrategy):
-    def calculate(self, principal: float, rate: float, periods: int) -> list:
+    def _generate_schedule(
+        self, principal: float, n: int, i: float, commission: float
+    ) -> list:
         schedule = []
         balance = principal
 
@@ -222,27 +299,35 @@ class AmericanAmortization(AmortizationStrategy):
                 "installment": 0.0,
                 "interest": 0.0,
                 "amortization": 0.0,
+                "imposto_selo": 0.0,
+                "comissao": 0.0,
+                "total_pago": 0.0,
                 "balance": round(balance, 2),
             }
         )
 
-        for i in range(1, periods + 1):
-            interest = balance * rate
-
-            if i == periods:
-                amortization = principal
+        for t in range(1, n + 1):
+            juros = balance * i
+            if t == n:
+                amortizacao = principal
             else:
-                amortization = 0.0
+                amortizacao = 0.0
 
-            installment = interest + amortization
-            balance -= amortization
+            prestacao_base = juros + amortizacao
+            balance -= amortizacao
+
+            is_sobre_juros = juros * 0.04
+            total_pago = prestacao_base + is_sobre_juros + commission
 
             schedule.append(
                 {
-                    "period": i,
-                    "installment": round(installment, 2),
-                    "interest": round(interest, 2),
-                    "amortization": round(amortization, 2),
+                    "period": t,
+                    "installment": round(prestacao_base, 2),
+                    "interest": round(juros, 2),
+                    "amortization": round(amortizacao, 2),
+                    "imposto_selo": round(is_sobre_juros, 2),
+                    "comissao": round(commission, 2),
+                    "total_pago": round(total_pago, 2),
                     "balance": round(balance, 2),
                 }
             )
