@@ -294,14 +294,42 @@
             <i class="fas fa-times"></i>
         </button>
         
-        <div style="text-align: left;">
+        <div id="challengeTypeSelection" style="text-align: center;">
+            <div class="flex items-center gap-md mb-2" style="justify-content: center; margin-bottom: var(--spacing-lg);">
+                <div style="background-color: rgba(12, 115, 183, 0.1); width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
+                    <i class="fas fa-layer-group fa-lg"></i>
+                </div>
+                <div style="text-align: left;">
+                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Que tipo de desafio?</h3>
+                    <p class="text-muted" style="font-size: 0.85rem; margin: 0;">Escolha o formato da atividade.</p>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                <div class="card glass-panel table-row-hover" style="padding: var(--spacing-md); cursor: pointer; border: 1px solid var(--border-color);" onclick="showStandardForm()">
+                    <i class="fas fa-home fa-2x" style="color: var(--primary-blue); margin-bottom: 8px;"></i>
+                    <h4 style="margin: 0 0 4px 0; font-size: 1rem; color: var(--dark-grey);">Simulação Orçamental</h4>
+                    <p class="text-muted" style="font-size: 0.75rem; margin: 0;">Desafio baseado num cenário familiar com saldo, despesas e objetivos.</p>
+                </div>
+
+                <a href="/Challenges/CreateQuiz" class="card glass-panel table-row-hover" style="padding: var(--spacing-md); cursor: pointer; border: 1px solid var(--border-color); text-decoration: none; display: block;">
+                    <i class="fas fa-question-circle fa-2x" style="color: #f59e0b; margin-bottom: 8px;"></i>
+                    <h4 style="margin: 0 0 4px 0; font-size: 1rem; color: var(--dark-grey);">Quiz Interativo</h4>
+                    <p class="text-muted" style="font-size: 0.75rem; margin: 0;">Perguntas de escolha múltipla com pontuação automática.</p>
+                </a>
+            </div>
+        </div>
+
+        <div id="standardChallengeForm" style="display: none; text-align: left;">
             <div class="flex items-center gap-md mb-2">
+                <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.8rem; border: none;" onclick="showTypeSelection()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </button>
                 <div style="background-color: rgba(12, 115, 183, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
-                    <i class="fas fa-trophy fa-lg"></i>
+                    <i class="fas fa-home fa-lg"></i>
                 </div>
                 <div>
-                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Criar Novo Desafio</h3>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Configure um desafio de literacia financeira para os seus alunos.</p>
+                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Criar Simulação Orçamental</h3>
                 </div>
             </div>
             
@@ -334,14 +362,11 @@
                         }
                     </select>
                     <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
-                        <i class="fas fa-info-circle"></i> O desafio receberá um código alfanumérico único para os alunos entrarem diretamente.
+                        <i class="fas fa-info-circle"></i> O desafio receberá um código alfanumérico único.
                     </span>
                 </div>
 
                 <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
-                    <button type="button" class="btn btn-outline" id="cancelChallengeModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
-                        Cancelar
-                    </button>
                     <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm);">
                         Criar Desafio <i class="fas fa-plus-circle" style="margin-left: 5px;"></i>
                     </button>
@@ -356,24 +381,31 @@
         const challengeModal = document.getElementById("createChallengeModal");
         const openChallengeModalBtn = document.getElementById("openChallengeModalBtn");
         const closeChallengeModalBtn = document.getElementById("closeChallengeModalBtn");
-        const cancelChallengeModalBtn = document.getElementById("cancelChallengeModalBtn");
-        const challengeTitleInput = document.getElementById("challengeTitleInput");
+        
+        window.showStandardForm = function() {
+            document.getElementById('challengeTypeSelection').style.display = 'none';
+            document.getElementById('standardChallengeForm').style.display = 'block';
+            document.getElementById("challengeTitleInput").focus();
+        };
+
+        window.showTypeSelection = function() {
+            document.getElementById('standardChallengeForm').style.display = 'none';
+            document.getElementById('challengeTypeSelection').style.display = 'block';
+        };
 
         function openChallengeModal() {
+            showTypeSelection();
             challengeModal.classList.add("active");
-            if (challengeTitleInput) challengeTitleInput.focus();
         }
 
         function closeChallengeModal() {
             challengeModal.classList.remove("active");
-            if (challengeTitleInput) challengeTitleInput.value = "";
-            const challengeDescInput = document.getElementById("challengeDescInput");
-            if (challengeDescInput) challengeDescInput.value = "";
+            document.getElementById("challengeTitleInput").value = "";
+            document.getElementById("challengeDescInput").value = "";
         }
 
         if (openChallengeModalBtn) openChallengeModalBtn.addEventListener("click", openChallengeModal);
         if (closeChallengeModalBtn) closeChallengeModalBtn.addEventListener("click", closeChallengeModal);
-        if (cancelChallengeModalBtn) cancelChallengeModalBtn.addEventListener("click", closeChallengeModal);
         
         challengeModal.addEventListener("click", function(e) {
             if (e.target === challengeModal) {

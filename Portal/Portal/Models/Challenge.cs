@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Portal.Models.Enums;
 
 namespace Portal.Models
 {
@@ -20,7 +21,11 @@ namespace Portal.Models
         [ForeignKey(nameof(TeacherId))]
         public User Teacher { get; set; }
 
+        public ChallengeType Type { get; set; } = ChallengeType.Standard;
+
         public ICollection<Scenario> Scenarios { get; set; }
+        public ICollection<QuizQuestion> QuizQuestions { get; set; }
+        public ICollection<QuizSubmission> Submissions { get; set; }
 
         public int? ClassId
         {
@@ -63,11 +68,12 @@ namespace Portal.Models
             }
         }
 
-        public Challenge(int teacherId, string title, string accessLinkCode)
+        public Challenge(int teacherId, string title, string accessLinkCode, ChallengeType type = ChallengeType.Standard)
         {
             TeacherId = teacherId;
             Title = title;
             AccessLinkCode = accessLinkCode;
+            Type = type;
         }
 
         protected Challenge() { }

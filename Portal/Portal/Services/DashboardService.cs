@@ -140,9 +140,21 @@ namespace Portal.Services
 
             var classIds = enrollments.Select(e => e.ClassId).ToList();
 
+            var startedScenariosChallengeIds = await _context.Scenarios
+                .Where(s => s.StudentId == studentId && s.ChallengeId != null)
+                .Select(s => s.ChallengeId.Value)
+                .ToListAsync();
+
+            var submittedQuizChallengeIds = await _context.QuizSubmissions
+                .Where(qs => qs.StudentId == studentId)
+                .Select(qs => qs.ChallengeId)
+                .ToListAsync();
+
+            var completedChallengeIds = startedScenariosChallengeIds.Concat(submittedQuizChallengeIds).Distinct().ToList();
+
             var pendingChallenges = await _context.Challenges
                 .Include(c => c.Class)
-                .Where(c => classIds.Contains(c.ClassId.Value))
+                .Where(c => classIds.Contains(c.ClassId.Value) && !completedChallengeIds.Contains(c.Id))
                 .ToListAsync();
 
             return new StudentDashboardViewModel

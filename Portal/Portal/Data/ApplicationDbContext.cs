@@ -17,6 +17,10 @@ namespace Portal.Data
         public DbSet<ScenarioMember> ScenarioMembers { get; set; }
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Objective> Objectives { get; set; }
+        public DbSet<QuizQuestion> QuizQuestions { get; set; }
+        public DbSet<QuizOption> QuizOptions { get; set; }
+        public DbSet<QuizSubmission> QuizSubmissions { get; set; }
+        public DbSet<QuizAnswer> QuizAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,10 +37,15 @@ namespace Portal.Data
             modelBuilder.Entity<ScenarioMember>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Entry>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Objective>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<QuizQuestion>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<QuizOption>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<QuizSubmission>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<QuizAnswer>().HasQueryFilter(x => x.DeletedAt == null);
 
             // Traduzir os Enums para String no MySQL
             modelBuilder.Entity<Entry>().Property(e => e.EntryType).HasConversion<string>();
             modelBuilder.Entity<Entry>().Property(e => e.Recurrence).HasConversion<string>();
+            modelBuilder.Entity<Challenge>().Property(c => c.Type).HasConversion<string>();
 
 
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()

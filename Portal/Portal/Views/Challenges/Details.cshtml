@@ -48,62 +48,98 @@
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: var(--spacing-lg);">
         
-        <!-- Edição do Desafio -->
-        <div class="info-card">
-            <h4><i class="fas fa-edit"></i> Dados do Desafio</h4>
-            <form action="/Challenges/Edit" method="post">
-                <input type="hidden" name="id" value="@Model.Challenge.Id" />
-                
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Título</label>
-                    <input type="text" name="title" class="form-control" value="@Model.Challenge.Title" required />
-                </div>
-                
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Descrição</label>
-                    <textarea name="description" class="form-control" rows="3">@Model.Challenge.Description</textarea>
-                </div>
-                
-                <div style="margin-bottom: var(--spacing-md); display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.05); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px dashed rgba(16, 185, 129, 0.2);">
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Código de Acesso</span>
-                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; font-weight: 700; color: #10b981; letter-spacing: 1px;">@Model.Challenge.AccessLinkCode</span>
-                </div>
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+            <!-- Edição do Desafio -->
+            <div class="info-card">
+                <h4><i class="fas fa-edit"></i> Dados do Desafio</h4>
+                <form action="/Challenges/Edit" method="post">
+                    <input type="hidden" name="id" value="@Model.Challenge.Id" />
+                    
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Título</label>
+                        <input type="text" name="title" class="form-control" value="@Model.Challenge.Title" required />
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Descrição</label>
+                        <textarea name="description" class="form-control" rows="3">@Model.Challenge.Description</textarea>
+                    </div>
+                    
+                    <div style="margin-bottom: var(--spacing-md); display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.05); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px dashed rgba(16, 185, 129, 0.2);">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Código de Acesso</span>
+                        <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; font-weight: 700; color: #10b981; letter-spacing: 1px;">@Model.Challenge.AccessLinkCode</span>
+                    </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Alterações</button>
-            </form>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Alterações</button>
+                </form>
 
-            <h4 style="margin-top: var(--spacing-xl); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md);"><i class="fas fa-link"></i> Associação a Turma</h4>
-            <form action="/Challenges/AssociateClass" method="post" style="margin: 0;">
-                <input type="hidden" name="challengeId" value="@Model.Challenge.Id" />
-                <input type="hidden" name="returnUrl" value="/Challenges/Details/@Model.Challenge.Id" />
-                <div style="display: flex; gap: var(--spacing-sm);">
-                    <div style="flex: 1;">
-                        <select name="classId" class="form-control" style="width: 100%;">
-                            @if (Model.Challenge.ClassId == null)
-                            {
-                                <option value="" selected>Independente (Por Código)</option>
-                            }
-                            else
-                            {
-                                <option value="">Independente (Por Código)</option>
-                            }
-                            
-                            @foreach (var cls in Model.AvailableClasses)
-                            {
-                                if (Model.Challenge.ClassId == cls.Id)
+                <h4 style="margin-top: var(--spacing-xl); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md);"><i class="fas fa-link"></i> Associação a Turma</h4>
+                <form action="/Challenges/AssociateClass" method="post" style="margin: 0;">
+                    <input type="hidden" name="challengeId" value="@Model.Challenge.Id" />
+                    <input type="hidden" name="returnUrl" value="/Challenges/Details/@Model.Challenge.Id" />
+                    <div style="display: flex; gap: var(--spacing-sm);">
+                        <div style="flex: 1;">
+                            <select name="classId" class="form-control" style="width: 100%;">
+                                @if (Model.Challenge.ClassId == null)
                                 {
-                                    <option value="@cls.Id" selected>@cls.Name</option>
+                                    <option value="" selected>Independente (Por Código)</option>
                                 }
                                 else
                                 {
-                                    <option value="@cls.Id">@cls.Name</option>
+                                    <option value="">Independente (Por Código)</option>
                                 }
-                            }
-                        </select>
+                                
+                                @foreach (var cls in Model.AvailableClasses)
+                                {
+                                    if (Model.Challenge.ClassId == cls.Id)
+                                    {
+                                        <option value="@cls.Id" selected>@cls.Name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@cls.Id">@cls.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-outline">Associar</button>
                     </div>
-                    <button type="submit" class="btn btn-outline">Associar</button>
+                </form>
+            </div>
+
+            @if (Model.Challenge.Type == Portal.Models.Enums.ChallengeType.Quiz && Model.Challenge.QuizQuestions != null && Model.Challenge.QuizQuestions.Any())
+            {
+                <div class="info-card">
+                    <h4><i class="fas fa-list-ol"></i> Perguntas do Quiz</h4>
+                    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                        @foreach (var q in Model.Challenge.QuizQuestions.OrderBy(x => x.Order))
+                        {
+                            <div style="background: rgba(12, 115, 183, 0.03); border: 1px solid rgba(12, 115, 183, 0.1); border-radius: var(--radius-md); padding: var(--spacing-md);">
+                                <div style="font-weight: 600; color: var(--dark-grey); margin-bottom: 8px;">
+                                    <span style="color: var(--primary-blue);">@q.Order.</span> @q.Text
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 4px; padding-left: 20px;">
+                                    @foreach (var opt in q.Options)
+                                    {
+                                        <div style="font-size: 0.85rem; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+                                            @if (opt.IsCorrect)
+                                            {
+                                                <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                                <strong style="color: #10b981;">@opt.Text</strong>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-circle" style="color: var(--text-muted); font-size: 0.6rem;"></i>
+                                                @opt.Text
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </div>
-            </form>
+            }
         </div>
         
         <!-- Participantes e Zonas de Perigo -->
@@ -111,26 +147,52 @@
             
             <div class="info-card">
                 <h4><i class="fas fa-users"></i> Alunos Participantes</h4>
-                @if (Model.Scenarios.Any())
+                @if (Model.Challenge.Type == Portal.Models.Enums.ChallengeType.Quiz)
                 {
-                    <div style="display: flex; flex-direction: column; max-height: 300px; overflow-y: auto;">
-                        @foreach (var s in Model.Scenarios)
-                        {
-                            <div class="list-item">
-                                <div>
-                                    <span style="font-weight: 600; color: var(--dark-grey);">@s.Student?.Name</span>
-                                    <div style="font-size: 0.75rem; color: var(--text-muted);">Família: @s.FamilyName</div>
+                    @if (Model.QuizSubmissions.Any())
+                    {
+                        <div style="display: flex; flex-direction: column; max-height: 300px; overflow-y: auto;">
+                            @foreach (var qs in Model.QuizSubmissions)
+                            {
+                                <div class="list-item">
+                                    <div>
+                                        <span style="font-weight: 600; color: var(--dark-grey);">@qs.Student?.Name</span>
+                                    </div>
+                                    <div style="font-size: 0.85rem; font-weight: bold; color: #10b981;">
+                                        Pontuação: @qs.Score
+                                    </div>
                                 </div>
-                                <div style="font-size: 0.85rem; font-weight: bold; color: var(--primary-blue);">
-                                    @s.InitialBalance.ToString("C")
-                                </div>
-                            </div>
-                        }
-                    </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="font-style: italic; font-size: 0.9rem;">Ainda nenhum aluno completou este quiz.</p>
+                    }
                 }
                 else
                 {
-                    <p class="text-muted" style="font-style: italic; font-size: 0.9rem;">Ainda nenhum aluno iniciou este desafio.</p>
+                    @if (Model.Scenarios.Any())
+                    {
+                        <div style="display: flex; flex-direction: column; max-height: 300px; overflow-y: auto;">
+                            @foreach (var s in Model.Scenarios)
+                            {
+                                <div class="list-item">
+                                    <div>
+                                        <span style="font-weight: 600; color: var(--dark-grey);">@s.Student?.Name</span>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Família: @s.FamilyName</div>
+                                    </div>
+                                    <div style="font-size: 0.85rem; font-weight: bold; color: var(--primary-blue);">
+                                        @s.InitialBalance.ToString("C")
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="font-style: italic; font-size: 0.9rem;">Ainda nenhum aluno iniciou este desafio.</p>
+                    }
                 }
             </div>
 

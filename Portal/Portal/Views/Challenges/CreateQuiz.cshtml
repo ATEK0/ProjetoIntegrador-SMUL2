@@ -1,0 +1,417 @@
+@model Portal.Models.ViewModels.CreateQuizViewModel
+
+@{
+    ViewData["Title"] = "Criar Quiz";
+}
+
+<style>
+    .wizard-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--spacing-xl);
+    }
+    
+    .question-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        transition: var(--transition);
+    }
+    
+    .question-card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: rgba(12, 115, 183, 0.3);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: var(--spacing-sm);
+    }
+
+    .question-number {
+        font-weight: 700;
+        color: var(--primary-blue);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-remove-question {
+        color: #ef4444;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        transition: var(--transition);
+    }
+
+    .btn-remove-question:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .option-row {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .option-input {
+        flex: 1;
+        height: 40px;
+        font-size: 0.95rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-color);
+        padding: 0 12px;
+    }
+
+    .correct-toggle {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: var(--radius-full);
+        background: rgba(0,0,0,0.05);
+        transition: var(--transition);
+        user-select: none;
+    }
+
+    .correct-toggle.active {
+        background: rgba(16, 185, 129, 0.15);
+        color: #059669;
+        font-weight: 600;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-remove-option {
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 6px;
+        border-radius: var(--radius-full);
+        transition: var(--transition);
+    }
+
+    .btn-remove-option:hover {
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    .add-option-btn {
+        color: var(--primary-blue);
+        background: transparent;
+        border: 1px dashed rgba(12, 115, 183, 0.4);
+        border-radius: var(--radius-md);
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        margin-top: 4px;
+    }
+
+    .add-option-btn:hover {
+        background: rgba(12, 115, 183, 0.05);
+        border-color: var(--primary-blue);
+    }
+
+    .floating-actions {
+        position: sticky;
+        bottom: var(--spacing-lg);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(8px);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(12, 115, 183, 0.15);
+        z-index: 100;
+        margin-top: var(--spacing-xl);
+    }
+</style>
+
+<div class="container animate-fade-in wizard-container">
+    <div style="margin-bottom: var(--spacing-xl); text-align: center;">
+        <div style="background: rgba(12, 115, 183, 0.1); width: 64px; height: 64px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: var(--primary-blue); margin-bottom: var(--spacing-sm);">
+            <i class="fas fa-question-circle fa-2x"></i>
+        </div>
+        <h1 style="color: var(--primary-blue); font-weight: 800; font-size: 2rem; margin-bottom: 8px;">Assistente de Criação de Quiz</h1>
+        <p class="text-muted" style="max-width: 500px; margin: 0 auto;">Crie um desafio interativo com perguntas de escolha múltipla para testar os conhecimentos financeiros dos seus alunos.</p>
+    </div>
+
+    <form id="quizForm" onsubmit="submitQuiz(event)">
+        <!-- Informação Geral -->
+        <div class="card glass-panel" style="padding: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+            <h3 style="color: var(--dark-grey); margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                <i class="fas fa-info-circle" style="color: var(--primary-blue); margin-right: 6px;"></i> Informação Geral
+            </h3>
+            
+            <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                <label style="font-weight: 600; margin-bottom: 6px; display: block;">Título do Quiz <span style="color: red;">*</span></label>
+                <input type="text" id="quizTitle" class="form-control" placeholder="Ex: Literacia Financeira - Nível I" required style="height: 48px;" />
+            </div>
+
+            <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                <label style="font-weight: 600; margin-bottom: 6px; display: block;">Descrição (Opcional)</label>
+                <textarea id="quizDesc" class="form-control" placeholder="Breve resumo sobre o que trata este quiz..." style="height: 80px; resize: none;"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label style="font-weight: 600; margin-bottom: 6px; display: block;">Turma Alvo (Opcional)</label>
+                <select id="quizClass" class="form-control" style="height: 48px;">
+                    <option value="">Nenhuma (Acesso por Código)</option>
+                    @if (ViewBag.Classes != null)
+                    {
+                        foreach (var c in ViewBag.Classes)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Perguntas -->
+        <div id="questionsContainer">
+            <!-- As perguntas serão geradas aqui via JS -->
+        </div>
+
+        <!-- Botão Adicionar Pergunta -->
+        <div style="text-align: center; margin: var(--spacing-lg) 0;">
+            <button type="button" class="btn btn-outline" onclick="addQuestion()" style="padding: 12px 24px; font-weight: 600; font-size: 1rem; border-width: 2px; border-style: dashed;">
+                <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Adicionar Nova Pergunta
+            </button>
+        </div>
+
+        <!-- Barra Inferior Flutuante -->
+        <div class="floating-actions">
+            <div>
+                <a href="/Dashboard/Professor" class="btn btn-outline" style="border: none;">Cancelar</a>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                <span id="questionsCountLabel" style="font-weight: 600; color: var(--text-muted);">0 Perguntas</span>
+                <button type="submit" class="btn btn-primary" id="saveQuizBtn" style="padding: 10px 24px; font-weight: 700; font-size: 1.05rem; box-shadow: var(--shadow-md);">
+                    Guardar e Publicar Quiz <i class="fas fa-paper-plane" style="margin-left: 8px;"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let questionCounter = 0;
+
+    function addQuestion() {
+        questionCounter++;
+        const qId = questionCounter;
+        
+        const questionHtml = `
+            <div class="question-card" id="question-${qId}" data-order="${qId}">
+                <div class="question-header">
+                    <div class="question-number">
+                        <i class="fas fa-quote-left" style="color: rgba(12, 115, 183, 0.3);"></i> Pergunta ${qId}
+                    </div>
+                    <button type="button" class="btn-remove-question" onclick="removeQuestion(${qId})" title="Remover Pergunta">
+                        <i class="fas fa-trash-alt"></i> Remover
+                    </button>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                    <input type="text" class="form-control question-text-input" placeholder="Escreva a sua pergunta aqui..." required style="height: 48px; font-weight: 600; font-size: 1.05rem;" />
+                </div>
+
+                <div class="options-container" id="options-${qId}">
+                    <!-- Options go here -->
+                </div>
+
+                <button type="button" class="add-option-btn" onclick="addOption(${qId})">
+                    <i class="fas fa-plus"></i> Adicionar Opção
+                </button>
+            </div>
+        `;
+        
+        document.getElementById('questionsContainer').insertAdjacentHTML('beforeend', questionHtml);
+        
+        // Add 2 default options
+        addOption(qId, true);
+        addOption(qId, false);
+        
+        updateQuestionsCount();
+    }
+
+    function removeQuestion(qId) {
+        if(confirm('Tem a certeza que deseja remover esta pergunta?')) {
+            document.getElementById(`question-${qId}`).remove();
+            updateQuestionsCount();
+        }
+    }
+
+    function addOption(qId, isFirstCorrect = false) {
+        const optionsContainer = document.getElementById(`options-${qId}`);
+        const optionCount = optionsContainer.children.length;
+        const optId = Date.now() + Math.floor(Math.random() * 1000);
+        
+        const optionHtml = `
+            <div class="option-row" id="option-${optId}">
+                <div class="correct-toggle ${isFirstCorrect ? 'active' : ''}" onclick="toggleCorrect(this, ${qId})" title="Marcar como resposta correta">
+                    <i class="fas ${isFirstCorrect ? 'fa-check-circle' : 'fa-circle'}"></i>
+                </div>
+                <input type="text" class="form-control option-input" placeholder="Texto da opção..." required />
+                <button type="button" class="btn-remove-option" onclick="removeOption(${optId})" title="Remover opção" ${optionCount < 2 ? 'style="visibility:hidden;"' : ''}>
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        optionsContainer.insertAdjacentHTML('beforeend', optionHtml);
+        updateOptionRemoveButtons(qId);
+    }
+
+    function removeOption(optId) {
+        const optionRow = document.getElementById(`option-${optId}`);
+        const qId = optionRow.parentElement.id.replace('options-', '');
+        
+        if (optionRow.querySelector('.correct-toggle').classList.contains('active')) {
+            alert('Não pode remover a opção correta. Marque outra opção como correta primeiro.');
+            return;
+        }
+
+        optionRow.remove();
+        updateOptionRemoveButtons(qId);
+    }
+
+    function updateOptionRemoveButtons(qId) {
+        const container = document.getElementById(`options-${qId}`);
+        const buttons = container.querySelectorAll('.btn-remove-option');
+        if (buttons.length <= 2) {
+            buttons.forEach(btn => btn.style.visibility = 'hidden');
+        } else {
+            buttons.forEach(btn => btn.style.visibility = 'visible');
+        }
+    }
+
+    function toggleCorrect(element, qId) {
+        // Remove active from all in this question
+        const container = document.getElementById(`options-${qId}`);
+        const toggles = container.querySelectorAll('.correct-toggle');
+        
+        toggles.forEach(t => {
+            t.classList.remove('active');
+            t.querySelector('i').className = 'fas fa-circle';
+        });
+        
+        // Set active on clicked
+        element.classList.add('active');
+        element.querySelector('i').className = 'fas fa-check-circle';
+    }
+
+    function updateQuestionsCount() {
+        const count = document.querySelectorAll('.question-card').length;
+        document.getElementById('questionsCountLabel').textContent = count === 1 ? '1 Pergunta' : `${count} Perguntas`;
+    }
+
+    async function submitQuiz(e) {
+        e.preventDefault();
+        
+        const title = document.getElementById('quizTitle').value.trim();
+        const desc = document.getElementById('quizDesc').value.trim();
+        const classIdStr = document.getElementById('quizClass').value;
+        const classId = classIdStr ? parseInt(classIdStr) : null;
+
+        const questionsCards = document.querySelectorAll('.question-card');
+        if (questionsCards.length === 0) {
+            alert('Por favor, adicione pelo menos uma pergunta ao quiz.');
+            return;
+        }
+
+        const questions = [];
+        let order = 1;
+        let isValid = true;
+
+        questionsCards.forEach(card => {
+            const text = card.querySelector('.question-text-input').value.trim();
+            if(!text) isValid = false;
+
+            const optionsRows = card.querySelectorAll('.option-row');
+            const options = [];
+            let hasCorrect = false;
+
+            optionsRows.forEach(row => {
+                const optText = row.querySelector('.option-input').value.trim();
+                const isCorrect = row.querySelector('.correct-toggle').classList.contains('active');
+                
+                if(!optText) isValid = false;
+                if(isCorrect) hasCorrect = true;
+
+                options.push({ text: optText, isCorrect: isCorrect });
+            });
+
+            if(!hasCorrect) {
+                alert(`A pergunta ${order} não tem nenhuma opção marcada como correta!`);
+                isValid = false;
+            }
+
+            questions.push({ text: text, order: order++, options: options });
+        });
+
+        if(!isValid) {
+            return;
+        }
+
+        const payload = {
+            Title: title,
+            Description: desc,
+            ClassId: classId,
+            Questions: questions
+        };
+
+        const btn = document.getElementById('saveQuizBtn');
+        const ogText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A guardar...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch('/Challenges/CreateQuiz', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                window.location.href = '/Dashboard/Professor';
+            } else {
+                alert(data.message || 'Ocorreu um erro ao guardar o quiz.');
+                btn.innerHTML = ogText;
+                btn.disabled = false;
+            }
+        } catch(error) {
+            alert('Erro de comunicação com o servidor.');
+            btn.innerHTML = ogText;
+            btn.disabled = false;
+        }
+    }
+
+    // Initialize with 1 question
+    document.addEventListener("DOMContentLoaded", function() {
+        addQuestion();
+    });
+</script>
