@@ -20,7 +20,7 @@ namespace Portal.Services
             _logger = logger;
         }
 
-        public async Task<string?> CreateScenarioAsync(int studentId, string familyName, decimal initialBalance)
+        public async Task<string?> CreateScenarioAsync(int studentId, string familyName, decimal initialBalance, int? challengeId = null)
         {
             if (string.IsNullOrWhiteSpace(familyName))
                 return "O nome de família é obrigatório.";
@@ -29,7 +29,7 @@ namespace Portal.Services
             if (student == null)
                 return $"Erro: O estudante com ID {studentId} não existe na base de dados.";
 
-            var scenario = new Scenario(studentId, familyName, initialBalance);
+            var scenario = new Scenario(studentId, familyName, initialBalance) { ChallengeId = challengeId };
             _context.Scenarios.Add(scenario);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Cenário '{FamilyName}' criado pelo Aluno ID {StudentId}.", familyName, studentId);

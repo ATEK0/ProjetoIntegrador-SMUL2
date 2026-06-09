@@ -24,7 +24,11 @@ namespace Portal.Services
                 .Include(c => c.Enrollments)
                 .Include(c => c.Challenges)
                 .ToListAsync(),
-            Challenges = await _context.Challenges.Include(c => c.Teacher).ToListAsync(),
+            Challenges = await _context.Challenges
+                .Include(c => c.Teacher)
+                .Include(c => c.Class).ThenInclude(cls => cls.Enrollments)
+                .Include(c => c.StudentChallenges)
+                .ToListAsync(),
             Users = await _context.Users.ToListAsync()
         };
 
@@ -41,7 +45,12 @@ namespace Portal.Services
         public async Task<AdminDashboardViewModel> GetAdminChallengesAsync() => new()
         {
             Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
-            Challenges = await _context.Challenges.Include(c => c.Class).Include(c => c.Teacher).ToListAsync()
+            Challenges = await _context.Challenges
+                .Include(c => c.Class).ThenInclude(cls => cls.Enrollments)
+                .Include(c => c.Teacher)
+                .Include(c => c.StudentChallenges)
+                .Include(c => c.Scenarios).ThenInclude(s => s.Entries)
+                .ToListAsync()
         };
 
         public async Task<AdminUsersViewModel> GetAdminUsersAsync()
@@ -116,7 +125,9 @@ namespace Portal.Services
                     MembershipCode = c.MembershipCode,
                     StudentCount = enrollmentCounts.GetValueOrDefault(c.Id)
                 }).ToList(),
-                Challenges = await _context.Challenges.Include(c => c.Class)
+                Challenges = await _context.Challenges
+                    .Include(c => c.Class).ThenInclude(cls => cls.Enrollments)
+                    .Include(c => c.StudentChallenges)
                     .Where(c => c.TeacherId == teacherId)
                     .ToListAsync()
             };
@@ -152,9 +163,14 @@ namespace Portal.Services
 
             var completedChallengeIds = startedScenariosChallengeIds.Concat(submittedQuizChallengeIds).Distinct().ToList();
 
+            var studentChallengeIds = await _context.StudentChallenges
+                .Where(sc => sc.StudentId == studentId)
+                .Select(sc => sc.ChallengeId)
+                .ToListAsync();
+
             var pendingChallenges = await _context.Challenges
                 .Include(c => c.Class)
-                .Where(c => classIds.Contains(c.ClassId.Value) && !completedChallengeIds.Contains(c.Id))
+                .Where(c => (classIds.Contains(c.ClassId ?? 0) || studentChallengeIds.Contains(c.Id)) && !completedChallengeIds.Contains(c.Id))
                 .ToListAsync();
 
             return new StudentDashboardViewModel

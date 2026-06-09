@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models
@@ -17,6 +17,7 @@ namespace Portal.Models
         private readonly List<ClassEnrollment> _enrollments = new();
         private readonly List<Challenge> _createdChallenges = new();
         private readonly List<Scenario> _scenarios = new();
+        private readonly List<StudentChallenge> _studentChallenges = new();
 
         [Required]
         [MaxLength(255)]
@@ -82,6 +83,7 @@ namespace Portal.Models
         public IReadOnlyCollection<ClassEnrollment> Enrollments => _enrollments.AsReadOnly();
         public IReadOnlyCollection<Challenge> CreatedChallenges => _createdChallenges.AsReadOnly();
         public IReadOnlyCollection<Scenario> Scenarios => _scenarios.AsReadOnly();
+        public IReadOnlyCollection<StudentChallenge> StudentChallenges => _studentChallenges.AsReadOnly();
 
         public User(string name, int userStatusId, int roleId)
         {

@@ -21,6 +21,7 @@ namespace Portal.Data
         public DbSet<QuizOption> QuizOptions { get; set; }
         public DbSet<QuizSubmission> QuizSubmissions { get; set; }
         public DbSet<QuizAnswer> QuizAnswers { get; set; }
+        public DbSet<StudentChallenge> StudentChallenges { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

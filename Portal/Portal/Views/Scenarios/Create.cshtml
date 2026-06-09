@@ -13,6 +13,11 @@
     </p>
 
     <form asp-action="Create" method="post" class="flex flex-col gap-md">
+        @if (ViewBag.ChallengeId != null)
+        {
+            <input type="hidden" name="challengeId" value="@ViewBag.ChallengeId" />
+        }
+        
         <div class="form-group">
             <label asp-for="FamilyName" class="form-label">Nome da Família</label>
             <input asp-for="FamilyName" class="form-control" placeholder="Ex: Família Silva" required />

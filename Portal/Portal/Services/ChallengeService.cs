@@ -89,23 +89,94 @@ namespace Portal.Services
 
             var availableClasses = await _context.Classes.ToListAsync();
 
+            var participants = new List<ParticipantViewModel>();
+            
+            // Get all potential participants
+            var enrolledUsers = new List<User>();
+            if (challenge.ClassId.HasValue)
+            {
+                enrolledUsers = await _context.ClassEnrollments
+                    .Include(ce => ce.Student)
+                    .Where(ce => ce.ClassId == challenge.ClassId.Value)
+                    .Select(ce => ce.Student)
+                    .ToListAsync();
+            }
+            else
+            {
+                enrolledUsers = await _context.StudentChallenges
+                    .Include(sc => sc.Student)
+                    .Where(sc => sc.ChallengeId == challenge.Id)
+                    .Select(sc => sc.Student)
+                    .ToListAsync();
+            }
+
+            foreach (var student in enrolledUsers)
+            {
+                if (challenge.Type == Models.Enums.ChallengeType.Quiz)
+                {
+                    var submission = quizSubmissions.FirstOrDefault(qs => qs.StudentId == student.Id);
+                    if (submission != null)
+                    {
+                        participants.Add(new ParticipantViewModel
+                        {
+                            Name = student.Name,
+                            Status = "Respondeu",
+                            Detail = ""
+                        });
+                    }
+                    else
+                    {
+                        participants.Add(new ParticipantViewModel
+                        {
+                            Name = student.Name,
+                            Status = "Não Respondeu",
+                            Detail = ""
+                        });
+                    }
+                }
+                else
+                {
+                    var scenario = scenarios.FirstOrDefault(s => s.StudentId == student.Id);
+                    if (scenario != null)
+                    {
+                        participants.Add(new ParticipantViewModel
+                        {
+                            Name = student.Name,
+                            Status = "Respondeu",
+                            Detail = ""
+                        });
+                    }
+                    else
+                    {
+                        participants.Add(new ParticipantViewModel
+                        {
+                            Name = student.Name,
+                            Status = "Não Respondeu",
+                            Detail = ""
+                        });
+                    }
+                }
+            }
+
             return new ChallengeDetailsViewModel
             {
                 Challenge = challenge,
                 Scenarios = scenarios,
                 QuizSubmissions = quizSubmissions,
-                AvailableClasses = availableClasses
+                AvailableClasses = availableClasses,
+                Participants = participants
             };
         }
 
-        public async Task<string?> EditChallengeAsync(int id, string title, string description)
+        public async Task<string?> EditChallengeAsync(int id, string title, string description, int? classId)
         {
             var challenge = await _context.Challenges.FindAsync(id);
             if (challenge == null) return "Desafio não encontrado.";
             if (string.IsNullOrWhiteSpace(title)) return "O título é obrigatório.";
 
             challenge.Title = title.Trim();
-            challenge.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+            challenge.Description = string.IsNullOrWhiteSpace(description) ? "" : description.Trim();
+            challenge.ClassId = classId;
             await _context.SaveChangesAsync();
             return null;
         }
@@ -220,6 +291,31 @@ namespace Portal.Services
             await _context.SaveChangesAsync();
 
             return score;
+        }
+
+        public async Task<Challenge?> GetChallengeByCodeAsync(string accessCode)
+        {
+            return await _context.Challenges.FirstOrDefaultAsync(c => c.AccessLinkCode == accessCode);
+        }
+
+        public async Task<bool> HasStudentCompletedChallengeAsync(int studentId, int challengeId)
+        {
+            var hasScenario = await _context.Scenarios.AnyAsync(s => s.StudentId == studentId && s.ChallengeId == challengeId);
+            var hasQuiz = await _context.QuizSubmissions.AnyAsync(q => q.StudentId == studentId && q.ChallengeId == challengeId);
+            
+            return hasScenario || hasQuiz;
+        }
+
+        public async Task<bool> IsStudentEnrolledInChallengeAsync(int studentId, int challengeId)
+        {
+            return await _context.StudentChallenges.AnyAsync(sc => sc.StudentId == studentId && sc.ChallengeId == challengeId);
+        }
+
+        public async Task EnrollStudentInChallengeAsync(int studentId, int challengeId)
+        {
+            var enrollment = new StudentChallenge(studentId, challengeId);
+            _context.StudentChallenges.Add(enrollment);
+            await _context.SaveChangesAsync();
         }
 
     }

@@ -107,7 +107,7 @@
             </div>
             
             <nav class="sidebar-nav">
-                @if (User.IsInRole("Aluno") || User.IsInRole("Admin"))
+                @if (User.IsInRole("Aluno"))
                 {
                     <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
                         <i class="fas fa-home"></i> Dashboard Aluno
@@ -116,7 +116,7 @@
                         <i class="fas fa-calculator"></i> Simulador Financeiro
                     </a>
                 }
-                @if (User.IsInRole("Professor") || User.IsInRole("Admin"))
+                @if (User.IsInRole("Professor"))
                 {
                     <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Professor" ? "active" : "")">
                         <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor

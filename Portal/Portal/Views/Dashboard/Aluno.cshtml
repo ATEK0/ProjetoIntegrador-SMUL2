@@ -326,9 +326,14 @@
 
             <!-- Pending Challenges -->
             <div class="card glass-panel" style="padding: var(--spacing-lg);">
-                <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <i class="fas fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Desafios das Turmas
-                </h3>
+                <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin: 0;">
+                        <i class="fas fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Desafios das Turmas
+                    </h3>
+                    <a href="#" onclick="openChallengeAccessModal(event)" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none; border-color: #f59e0b; color: #f59e0b;">
+                        <i class="fas fa-key" style="margin-right: 4px;"></i> Por Código
+                    </a>
+                </div>
 
                 @if (!Model.PendingChallenges.Any())
                 {
@@ -348,7 +353,7 @@
                                     <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-muted);">@challenge.Description</p>
                                 }
                                 <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="color: var(--primary-blue); font-weight: 600;"><i class="fas fa-users"></i> @challenge.Class.Name</span>
+                                    <span style="color: var(--primary-blue); font-weight: 600;"><i class="fas fa-users"></i> @(challenge.Class?.Name ?? "Desafio Independente")</span>
                                 @if (challenge.Type == Portal.Models.Enums.ChallengeType.Quiz)
                                     {
                                         <a href="/Challenges/SolveQuiz/@challenge.Id" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none; color: #f59e0b; border-color: #f59e0b;">
@@ -357,7 +362,7 @@
                                     }
                                     else
                                     {
-                                        <a href="/Scenarios/Create" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                        <a href="/Scenarios/Create?challengeId=@challenge.Id" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
                                             Resolver Desafio <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
                                         </a>
                                     }
@@ -477,6 +482,54 @@
     </div>
 </div>
 
+<!-- Modal Aceder a Desafio Premium -->
+<div id="accessChallengeModal" class="modal-overlay">
+    <div class="modal-card glass-panel">
+        <button type="button" class="modal-close-btn" id="closeAccessModalBtn">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div style="text-align: left;">
+            <div class="flex items-center gap-md mb-2">
+                <div style="background-color: rgba(245, 158, 11, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                    <i class="fas fa-trophy fa-lg"></i>
+                </div>
+                <div>
+                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Aceder a Desafio</h3>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Inicia um desafio através do código.</p>
+                </div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
+
+            <form action="/Challenges/AccessChallenge" method="post" id="accessChallengeForm">
+                <div class="form-group">
+                    <label for="accessCodeInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
+                        <i class="fas fa-key"></i> Código do Desafio
+                    </label>
+                    <div class="input-icon-group">
+                        <input type="text" name="accessCode" id="accessCodeInput" class="form-control" placeholder="EX: A1B2C3" required autocomplete="off" maxlength="8" style="height: 44px; font-size: 1.15rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;" />
+                        <i class="fas fa-hashtag"></i>
+                    </div>
+                    <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
+                        <i class="fas fa-info-circle"></i> Introduz o código fornecido pelo professor.
+                    </span>
+                </div>
+
+                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" id="cancelAccessModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm); background-color: #f59e0b; border-color: #f59e0b;">
+                        Começar Desafio <i class="fas fa-play" style="margin-left: 5px;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
 <script>
     // Tornado global para o inline onclick
     window.openJoinModal = function(e) {
@@ -503,13 +556,13 @@
         if (btn) btn.addEventListener("click", openScenarioModal);
         if (btnEmpty) btnEmpty.addEventListener("click", openScenarioModal);
 
-        // Lógica de fecho do Modal Premium
+        // Lógica de fecho do Modal Premium (Join Class)
         const joinModal = document.getElementById("joinClassModal");
         const closeBtn = document.getElementById("closeJoinModalBtn");
         const cancelBtn = document.getElementById("cancelJoinModalBtn");
 
         function closeJoinModalFunc() {
-            joinModal.classList.remove("active");
+            if (joinModal) joinModal.classList.remove("active");
         }
 
         if (closeBtn) closeBtn.addEventListener("click", closeJoinModalFunc);
@@ -523,9 +576,47 @@
             });
         }
         
+        // Lógica de fecho do Modal Premium (Access Challenge)
+        window.openChallengeAccessModal = function(e) {
+            if(e) e.preventDefault();
+            var modal = document.getElementById('accessChallengeModal');
+            if(modal) {
+                modal.classList.add('active');
+                var input = document.getElementById('accessCodeInput');
+                if (input) {
+                    input.value = '';
+                    setTimeout(function() { input.focus(); }, 100);
+                }
+            }
+        }
+
+        const accessModal = document.getElementById("accessChallengeModal");
+        const closeAccessBtn = document.getElementById("closeAccessModalBtn");
+        const cancelAccessBtn = document.getElementById("cancelAccessModalBtn");
+
+        function closeAccessModalFunc() {
+            if (accessModal) accessModal.classList.remove("active");
+        }
+
+        if (closeAccessBtn) closeAccessBtn.addEventListener("click", closeAccessModalFunc);
+        if (cancelAccessBtn) cancelAccessBtn.addEventListener("click", closeAccessModalFunc);
+        
+        if (accessModal) {
+            accessModal.addEventListener("click", function(e) {
+                if (e.target === accessModal) {
+                    closeAccessModalFunc();
+                }
+            });
+        }
+
         document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape" && joinModal && joinModal.classList.contains("active")) {
-                closeJoinModalFunc();
+            if (e.key === "Escape") {
+                if (joinModal && joinModal.classList.contains("active")) {
+                    closeJoinModalFunc();
+                }
+                if (accessModal && accessModal.classList.contains("active")) {
+                    closeAccessModalFunc();
+                }
             }
         });
 

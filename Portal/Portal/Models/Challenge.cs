@@ -26,6 +26,12 @@ namespace Portal.Models
         public ICollection<Scenario> Scenarios { get; set; }
         public ICollection<QuizQuestion> QuizQuestions { get; set; }
         public ICollection<QuizSubmission> Submissions { get; set; }
+        public ICollection<StudentChallenge> StudentChallenges { get; set; }
+
+        [NotMapped]
+        public int ParticipantsCount => ClassId.HasValue 
+            ? (Class?.Enrollments?.Count ?? 0) 
+            : (StudentChallenges?.Count ?? 0);
 
         public int? ClassId
         {

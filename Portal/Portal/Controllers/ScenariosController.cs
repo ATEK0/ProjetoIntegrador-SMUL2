@@ -22,19 +22,20 @@ namespace Portal.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
+        public IActionResult Create(int? challengeId = null)
         {
+            ViewBag.ChallengeId = challengeId;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(string familyName, decimal initialBalance)
+        public async Task<IActionResult> Create(string familyName, decimal initialBalance, int? challengeId = null)
         {
             try
             {
                 var studentId = GetUserId();
-                var error = await _scenarioService.CreateScenarioAsync(studentId, familyName, initialBalance);
+                var error = await _scenarioService.CreateScenarioAsync(studentId, familyName, initialBalance, challengeId);
 
                 if (error != null)
                 {

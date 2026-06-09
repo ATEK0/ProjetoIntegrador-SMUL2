@@ -78,9 +78,9 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, string title, string description)
+        public async Task<IActionResult> Edit(int id, string title, string description, int? classId)
         {
-            var error = await _challengeService.EditChallengeAsync(id, title, description);
+            var error = await _challengeService.EditChallengeAsync(id, title, description, classId);
             if (error != null) TempData["Error"] = error;
             else TempData["Success"] = "Desafio atualizado com sucesso!";
             return RedirectToAction("Details", new { id = id });
@@ -165,6 +165,45 @@ namespace Portal.Controllers
                 _logger.LogError(ex, "Erro ao submeter Quiz");
                 return StatusCode(500, new { success = false, message = $"Erro interno: {ex.Message}" });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AccessChallenge(string accessCode)
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            if (string.IsNullOrWhiteSpace(accessCode))
+            {
+                TempData["Error"] = "O código de acesso é obrigatório.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            var challenge = await _challengeService.GetChallengeByCodeAsync(accessCode);
+            if (challenge == null)
+            {
+                TempData["Error"] = "Desafio não encontrado com o código fornecido.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            var isCompleted = await _challengeService.HasStudentCompletedChallengeAsync(userId.Value, challenge.Id);
+            if (isCompleted)
+            {
+                TempData["Error"] = "Já concluiu ou iniciou este desafio.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            var isEnrolled = await _challengeService.IsStudentEnrolledInChallengeAsync(userId.Value, challenge.Id);
+            if (isEnrolled)
+            {
+                TempData["Error"] = "Já aderiu a este desafio. Verifique os Desafios das Turmas.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            await _challengeService.EnrollStudentInChallengeAsync(userId.Value, challenge.Id);
+            
+            TempData["Success"] = "Aderiu ao desafio com sucesso! Agora pode resolvê-lo quando quiser.";
+            return RedirectToAction("Aluno", "Dashboard");
         }
 
         private IActionResult RedirectByRole() =>
