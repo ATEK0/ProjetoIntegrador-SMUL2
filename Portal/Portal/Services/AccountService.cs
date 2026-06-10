@@ -47,7 +47,7 @@ namespace Portal.Services
             return (user, GenerateToken(user));
         }
 
-        public async Task<string?> RegisterAsync(string name, string email, string password, string role)
+        public async Task<string?> RegisterAsync(string name, string email, string password, int? genderId, DateTime? birthDate, string role)
         {
             if (string.IsNullOrWhiteSpace(role)) role = "aluno";
 
@@ -63,7 +63,7 @@ namespace Portal.Services
             if (status == null)
                 return "Não foi possível encontrar o estado 'Ativo' na base de dados.";
 
-            var newUser = new User(name.Trim(), status.Id, dbRole.Id) { Email = email };
+            var newUser = new User(name.Trim(), status.Id, dbRole.Id) { Email = email, GenderId = genderId, BirthDate = birthDate };
             newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
             _context.Users.Add(newUser);
             await _context.SaveChangesAsync();
@@ -82,6 +82,8 @@ namespace Portal.Services
                 Name = user.Name,
                 Email = user.Email,
                 Role = user.Role?.RoleName ?? "—",
+                GenderId = user.GenderId,
+                BirthDate = user.BirthDate,
                 CreatedAt = user.CreatedAt
             };
         }
@@ -96,6 +98,8 @@ namespace Portal.Services
 
             user.Name = vm.Name.Trim();
             user.Email = vm.Email.Trim().ToLower();
+            user.GenderId = vm.GenderId;
+            user.BirthDate = vm.BirthDate;
             await _context.SaveChangesAsync();
             return null;
         }
