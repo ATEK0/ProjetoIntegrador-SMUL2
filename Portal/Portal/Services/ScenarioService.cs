@@ -260,7 +260,7 @@ namespace Portal.Services
         {
             var scenario = await _context.Scenarios.FirstOrDefaultAsync(s => s.Id == scenarioId && s.StudentId == studentId);
             if (scenario == null) return "Cenário não encontrado.";
-            if (string.IsNullOrWhiteSpace(description) || targetValue <= 0 || termMonths <= 0) 
+            if (string.IsNullOrWhiteSpace(description) || targetValue <= 0 || termMonths <= 0)
                 return "Descrição obrigatória, valor-alvo e prazo devem ser maiores que zero.";
 
             var objective = new Objective(scenarioId, description, targetValue, termMonths);
