@@ -173,7 +173,10 @@
                 <thead>
                     <tr>
                         <th>Data</th>
-                        <th>Utilizador</th>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th>Utilizador</th>
+                        }
                         <th>Modo</th>
                         <th>Regime / Tipo</th>
                         <th>Capital</th>
@@ -204,12 +207,15 @@
                                 <span style="font-weight: 500; display: block;">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
                                 <span style="font-size: 0.75rem; color: var(--text-muted);">@item.CreatedAt.ToLocalTime().ToString("HH:mm")</span>
                             </td>
-                            <td>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <div style="width: 30px; height: 30px; border-radius: var(--radius-full); background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; flex-shrink: 0;">@(item.User?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")</div>
-                                    <span style="font-weight: 500;">@(item.User?.Name ?? "—")</span>
-                                </div>
-                            </td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 30px; height: 30px; border-radius: var(--radius-full); background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; flex-shrink: 0;">@(item.User?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")</div>
+                                        <span style="font-weight: 500;">@(item.User?.Name ?? "—")</span>
+                                    </div>
+                                </td>
+                            }
                             <td>
                                 <span class="mode-badge @modeBadgeClass">
                                     <i class="fas @modeIcon"></i> @modeLabel
