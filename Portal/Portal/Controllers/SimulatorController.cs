@@ -124,7 +124,7 @@ namespace Portal.Controllers
             }
 
             bool isAdmin = User.IsInRole("Admin");
-            var history = isAdmin 
+            var history = isAdmin
                 ? await _historyService.GetAllHistoryAsync()
                 : await _historyService.GetHistoryAsync(userId);
 
