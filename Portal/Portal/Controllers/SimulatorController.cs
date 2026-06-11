@@ -15,11 +15,13 @@ namespace Portal.Controllers
     {
         private readonly SimulationService _simulationService;
         private readonly ApplicationDbContext _context;
+        private readonly SimulationHistoryService _historyService;
 
-        public SimulatorController(SimulationService simulationService, ApplicationDbContext context)
+        public SimulatorController(SimulationService simulationService, ApplicationDbContext context, SimulationHistoryService historyService)
         {
             _simulationService = simulationService;
             _context = context;
+            _historyService = historyService;
         }
 
         [HttpGet]
@@ -38,12 +40,14 @@ namespace Portal.Controllers
                 if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
                     var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-                    if (claim != null && int.TryParse(claim.Value, out int studentId))
+                    if (claim != null && int.TryParse(claim.Value, out int userId))
                     {
                         result.UserScenarios = await _context.Scenarios
-                            .Where(s => s.StudentId == studentId)
+                            .Where(s => s.StudentId == userId)
                             .OrderByDescending(s => s.CreatedAt)
                             .ToListAsync();
+
+                        await _historyService.SaveSimulationAsync(userId, request, result);
                     }
                 }
 
@@ -87,6 +91,15 @@ namespace Portal.Controllers
                 vm.ResultA = taskA.Result.AmortizationResult;
                 vm.ResultB = taskB.Result.AmortizationResult;
 
+                if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+                    if (claim != null && int.TryParse(claim.Value, out int userId))
+                    {
+                        await _historyService.SaveCompareSimulationsAsync(userId, request, vm);
+                    }
+                }
+
                 return View("CompareResults", vm);
             }
             catch (Exception ex)
@@ -94,6 +107,78 @@ namespace Portal.Controllers
                 ModelState.AddModelError(string.Empty, "Erro ao simular a comparação: " + ex.Message);
                 return View(request);
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> History()
+        {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            bool isAdmin = User.IsInRole("Admin");
+            var history = isAdmin
+                ? await _historyService.GetAllHistoryAsync()
+                : await _historyService.GetHistoryAsync(userId);
+
+            return View(history);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> HistoryDetails(int id)
+        {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            bool isAdmin = User.IsInRole("Admin");
+            var result = await _historyService.GetHistoryDetailsAsync(id, userId, isAdmin);
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.IsFromHistory = true;
+            return View("Results", result);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHistory(int id)
+        {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim == null || !int.TryParse(claim.Value, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            bool isAdmin = User.IsInRole("Admin");
+            var deleted = await _historyService.DeleteHistoryAsync(id, userId, isAdmin);
+            if (deleted)
+            {
+                TempData["Success"] = "Registo de simulação eliminado com sucesso.";
+            }
+
+            return RedirectToAction("History");
         }
     }
 }

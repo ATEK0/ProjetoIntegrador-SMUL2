@@ -17,6 +17,7 @@ namespace Portal.Data
         public DbSet<ScenarioMember> ScenarioMembers { get; set; }
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Objective> Objectives { get; set; }
+        public DbSet<SimulationHistory> SimulationHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +34,7 @@ namespace Portal.Data
             modelBuilder.Entity<ScenarioMember>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Entry>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Objective>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<SimulationHistory>().HasQueryFilter(x => x.DeletedAt == null);
 
             // Traduzir os Enums para String no MySQL
             modelBuilder.Entity<Entry>().Property(e => e.EntryType).HasConversion<string>();
@@ -62,6 +64,7 @@ namespace Portal.Data
             modelBuilder.Entity<ScenarioMember>().HasIndex(sm => new { sm.ScenarioId, sm.DeletedAt });
             modelBuilder.Entity<Entry>().HasIndex(e => new { e.ScenarioId, e.DeletedAt });
             modelBuilder.Entity<Objective>().HasIndex(o => new { o.ScenarioId, o.DeletedAt });
+            modelBuilder.Entity<SimulationHistory>().HasIndex(sh => new { sh.UserId, sh.DeletedAt });
         }
     }
 }

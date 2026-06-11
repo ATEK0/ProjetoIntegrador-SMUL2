@@ -22,10 +22,20 @@
 <div class="sim-results">
     <div class="sim-results-header">
         <div style="display: flex; gap: 12px; align-items: center;">
-            <a href="/Simulator" class="sim-back">
-                <i class="fas fa-arrow-left"></i>
-                Nova simulação
-            </a>
+            @if (ViewBag.IsFromHistory == true)
+            {
+                <a href="/Simulator/History" class="sim-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Voltar ao histórico
+                </a>
+            }
+            else
+            {
+                <a href="/Simulator" class="sim-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Nova simulação
+                </a>
+            }
             @if (Model.UserScenarios != null && Model.UserScenarios.Any())
             {
                 <button type="button" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.3rem 0.75rem;" onclick="document.getElementById('integrateScenarioModal').classList.add('active');">
