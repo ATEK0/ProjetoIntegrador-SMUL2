@@ -63,6 +63,7 @@ namespace Portal
             builder.Services.AddScoped<ChallengeService>();
             builder.Services.AddScoped<DashboardService>();
             builder.Services.AddScoped<ScenarioService>();
+            builder.Services.AddScoped<SimulationHistoryService>();
             builder.Services.AddMvc();
             builder.Services.AddHttpClient<SimulationService>((sp, client) =>
             {

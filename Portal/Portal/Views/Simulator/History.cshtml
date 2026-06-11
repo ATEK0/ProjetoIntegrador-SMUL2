@@ -1,0 +1,261 @@
+@model IEnumerable<Portal.Models.SimulationHistory>
+@{
+    ViewData["Title"] = "Histórico de Simulações";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/simulator.css" asp-append-version="true" />
+    <style>
+        .history-table-container {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            margin-top: var(--spacing-lg);
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .history-table th {
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: rgba(12, 115, 183, 0.06);
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .history-table td {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-main);
+            vertical-align: middle;
+            transition: var(--transition);
+        }
+
+        .history-row {
+            transition: var(--transition);
+        }
+
+        .history-row:hover {
+            background-color: rgba(12, 115, 183, 0.03);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .mode-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .mode-badge--amortization {
+            background-color: rgba(12, 115, 183, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .mode-badge--interest {
+            background-color: rgba(234, 179, 8, 0.15);
+            color: #a16207;
+        }
+
+        .regime-label {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-action:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            background: rgba(12, 115, 183, 0.04);
+            transform: scale(1.05);
+        }
+
+        .btn-action--danger:hover {
+            border-color: #dc2626;
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.04);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xxl) var(--spacing-xl);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            margin-top: var(--spacing-lg);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .empty-state h4 {
+            font-size: 1.25rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            max-width: 450px;
+            margin: 0 auto var(--spacing-lg) auto;
+        }
+    </style>
+}
+
+<div class="sim-page">
+    <div class="sim-hero">
+        <div class="sim-hero-icon">
+            <i class="fas fa-history"></i>
+        </div>
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+                <div>
+                    <h3>Histórico de Simulações</h3>
+                    <p>Consulte e compare cenários, parâmetros e decisões tomadas ao longo do tempo.</p>
+                </div>
+                <a href="/Simulator" class="btn btn-primary">
+                    <i class="fas fa-calculator" style="margin-right: 8px;"></i> Nova Simulação
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-folder-open"></i>
+            </div>
+            <h4>Sem simulações guardadas</h4>
+            <p>Ainda não efetuou nenhuma simulação para podermos registar. Execute uma simulação de juros ou amortização no simulador financeiro!</p>
+            <a href="/Simulator" class="btn btn-primary">
+                Começar a Simular
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="history-table-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Utilizador</th>
+                        <th>Modo</th>
+                        <th>Regime / Tipo</th>
+                        <th>Capital</th>
+                        <th>Taxa</th>
+                        <th>Prazo</th>
+                        <th style="text-align: center; width: 120px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var regimeLabel = item.Type?.ToLower() switch
+                        {
+                            "simple" => "Juros Simples",
+                            "compound" => "Juros Compostos",
+                            "french" => "Sistema Francês",
+                            "sac" => "Sistema SAC",
+                            "american" => "Sistema Americano",
+                            _ => item.Type ?? "—"
+                        };
+
+                        var modeBadgeClass = item.SimulationMode == "interest" ? "mode-badge--interest" : "mode-badge--amortization";
+                        var modeLabel = item.SimulationMode == "interest" ? "Juros" : "Amortização";
+                        var modeIcon = item.SimulationMode == "interest" ? "fa-percent" : "fa-home";
+
+                        <tr class="history-row">
+                            <td>
+                                <span style="font-weight: 500; display: block;">@item.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">@item.CreatedAt.ToLocalTime().ToString("HH:mm")</span>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 30px; height: 30px; border-radius: var(--radius-full); background-color: var(--primary-blue); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; flex-shrink: 0;">@(item.User?.Name?.FirstOrDefault().ToString().ToUpper() ?? "U")</div>
+                                    <span style="font-weight: 500;">@(item.User?.Name ?? "—")</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="mode-badge @modeBadgeClass">
+                                    <i class="fas @modeIcon"></i> @modeLabel
+                                </span>
+                            </td>
+                            <td>
+                                <span class="regime-label">@regimeLabel</span>
+                                @if (item.SimulationMode == "amortization" && !string.IsNullOrEmpty(item.Periodicity))
+                                {
+                                    var periodicityLabel = item.Periodicity.ToLower() switch
+                                    {
+                                        "monthly" => "Mensal",
+                                        "quarterly" => "Trimestral",
+                                        "semiannual" => "Semestral",
+                                        "annual" => "Anual",
+                                        _ => item.Periodicity
+                                    };
+                                    <span style="display: block; font-size: 0.75rem; color: var(--text-muted);">Periodicidade: @periodicityLabel</span>
+                                }
+                            </td>
+                            <td style="font-weight: 600; font-variant-numeric: tabular-nums;">
+                                @item.Principal.ToString("C")
+                            </td>
+                            <td style="font-variant-numeric: tabular-nums;">
+                                @item.RatePercentage.ToString("N2") %
+                            </td>
+                            <td>
+                                @item.Time @(item.SimulationMode == "amortization" ? "Anos" : "Períodos")
+                            </td>
+                            <td style="text-align: center;">
+                                <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+                                    <a href="/Simulator/HistoryDetails/@item.Id" class="btn-action" title="Ver Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form action="/Simulator/DeleteHistory/@item.Id" method="post" style="margin: 0;" onsubmit="return confirm('Tem a certeza que deseja eliminar esta simulação do seu histórico?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-action btn-action--danger" title="Eliminar Simulação">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
