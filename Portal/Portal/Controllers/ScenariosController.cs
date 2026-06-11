@@ -237,6 +237,51 @@ namespace Portal.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddObjective(int scenarioId, string description, decimal targetValue, int termMonths, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var error = await _scenarioService.AddObjectiveAsync(scenarioId, studentId, description, targetValue, termMonths);
+
+                if (error == null) TempData["Success"] = $"Objetivo '{description}' adicionado com sucesso!";
+                else TempData["Error"] = error;
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao adicionar objetivo: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = scenarioId, month = month });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteObjective(int id, int? month)
+        {
+            try
+            {
+                int studentId = GetUserId();
+                var result = await _scenarioService.DeleteObjectiveAsync(id, studentId);
+
+                if (result.Error == null)
+                {
+                    TempData["Success"] = "Objetivo removido com sucesso!";
+                    return RedirectToAction("Details", new { id = result.ScenarioId, month = month });
+                }
+
+                TempData["Error"] = result.Error;
+                return result.ScenarioId.HasValue ? RedirectToAction("Details", new { id = result.ScenarioId, month = month }) : RedirectToAction("Aluno", "Dashboard");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Erro ao remover objetivo: {ex.Message}";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+        }
+
         private int GetUserId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier);
