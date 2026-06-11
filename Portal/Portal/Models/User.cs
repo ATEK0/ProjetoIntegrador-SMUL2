@@ -13,11 +13,6 @@ namespace Portal.Models
         private int _userStatusId;
         private int _roleId;
 
-        private readonly List<SchoolClass> _taughtClasses = new();
-        private readonly List<ClassEnrollment> _enrollments = new();
-        private readonly List<Challenge> _createdChallenges = new();
-        private readonly List<Scenario> _scenarios = new();
-
         [Required]
         [MaxLength(255)]
         public string Name
@@ -78,10 +73,10 @@ namespace Portal.Models
         [ForeignKey(nameof(RoleId))]
         public Role Role { get; set; }
 
-        public IReadOnlyCollection<SchoolClass> TaughtClasses => _taughtClasses.AsReadOnly();
-        public IReadOnlyCollection<ClassEnrollment> Enrollments => _enrollments.AsReadOnly();
-        public IReadOnlyCollection<Challenge> CreatedChallenges => _createdChallenges.AsReadOnly();
-        public IReadOnlyCollection<Scenario> Scenarios => _scenarios.AsReadOnly();
+        public List<SchoolClass> TaughtClasses { get; set; } = new();
+        public List<ClassEnrollment> Enrollments { get; set; } = new();
+        public List<Challenge> CreatedChallenges { get; set; } = new();
+        public List<Scenario> Scenarios { get; set; } = new();
 
         public User(string name, int userStatusId, int roleId)
         {

@@ -28,7 +28,7 @@ namespace Portal.Models
         [ForeignKey(nameof(ChallengeId))]
         public Challenge Challenge { get; set; }
 
-        public ICollection<Entry> Entries { get; set; }
+        public List<Entry> Entries { get; set; } = new();
 
         [Required]
         [MaxLength(255)]

@@ -13,11 +13,13 @@ namespace Portal.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ScenarioService> _logger;
+        private readonly IAuditService _audit;
 
-        public ScenarioService(ApplicationDbContext context, ILogger<ScenarioService> logger)
+        public ScenarioService(ApplicationDbContext context, ILogger<ScenarioService> logger, IAuditService audit)
         {
             _context = context;
             _logger = logger;
+            _audit = audit;
         }
 
         public async Task<string?> CreateScenarioAsync(int studentId, string familyName, decimal initialBalance)
@@ -33,6 +35,7 @@ namespace Portal.Services
             _context.Scenarios.Add(scenario);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Cenário '{FamilyName}' criado pelo Aluno ID {StudentId}.", familyName, studentId);
+            await _audit.LogAsync(AuditAction.Create, "Scenario", scenario.Id.ToString(), userId: studentId);
             return null;
         }
 
@@ -133,6 +136,7 @@ namespace Portal.Services
 
             scenario.FamilyName = familyName;
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "Scenario", scenarioId.ToString(), userId: studentId);
             return null;
         }
 
@@ -145,6 +149,7 @@ namespace Portal.Services
             _context.Entries.RemoveRange(entries);
             _context.Scenarios.Remove(scenario);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Delete, "Scenario", scenarioId.ToString(), userId: studentId);
             return null;
         }
 
@@ -160,6 +165,7 @@ namespace Portal.Services
             entry.Recurrence = recurrence;
 
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "Entry", entryId.ToString(), userId: studentId);
             return (null, entry.ScenarioId);
         }
 
@@ -172,6 +178,7 @@ namespace Portal.Services
 
             _context.Entries.Remove(entry);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Delete, "Entry", entryId.ToString(), userId: studentId);
             return (null, scenarioId);
         }
 
@@ -184,6 +191,7 @@ namespace Portal.Services
             var entry = new Entry(scenarioId, EntryType.Income, category, amount, entryMonth, recurrence);
             _context.Entries.Add(entry);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Create, "Entry", entry.Id.ToString(), userId: studentId);
             return null;
         }
 
@@ -196,6 +204,7 @@ namespace Portal.Services
             var entry = new Entry(scenarioId, EntryType.Expense, category, amount, entryMonth, recurrence);
             _context.Entries.Add(entry);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Create, "Entry", entry.Id.ToString(), userId: studentId);
             return null;
         }
 
@@ -205,18 +214,16 @@ namespace Portal.Services
             if (scenario == null) return "Cenário não encontrado.";
             if (string.IsNullOrWhiteSpace(category)) return "Categoria obrigatória.";
 
-            // Registar IS Inicial
             if (isInicial > 0)
             {
                 var entryIs = new Entry(scenarioId, EntryType.Expense, $"{category} (IS Inicial)", isInicial, entryMonth, RecurrenceType.Once);
                 _context.Entries.Add(entryIs);
             }
 
-            // Registar parcelas até ao fim do ano
             int currentMonth = entryMonth;
             for (int i = 0; i < schedule.Count; i++)
             {
-                if (currentMonth > 12) break; // O cenário é anual, só vai até dezembro
+                if (currentMonth > 12) break;
 
                 if (schedule[i] > 0)
                 {
@@ -228,6 +235,7 @@ namespace Portal.Services
             }
 
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Create, "Entry", scenarioId.ToString(), userId: studentId);
             return null;
         }
 
@@ -240,6 +248,7 @@ namespace Portal.Services
             var member = new ScenarioMember(scenarioId, name, monthlyIncome);
             _context.ScenarioMembers.Add(member);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Create, "ScenarioMember", member.Id.ToString(), userId: studentId);
             return null;
         }
 
@@ -251,6 +260,7 @@ namespace Portal.Services
             int scenarioId = member.ScenarioId;
             member.MarkAsDeleted();
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Delete, "ScenarioMember", memberId.ToString(), userId: studentId);
             return (null, scenarioId);
         }
     }

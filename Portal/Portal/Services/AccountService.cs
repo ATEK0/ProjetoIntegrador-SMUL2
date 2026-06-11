@@ -21,12 +21,14 @@ namespace Portal.Services
         private readonly PasswordHasher<User> _passwordHasher = new();
         private readonly IConfiguration _configuration;
         private readonly ILogger<AccountService> _logger;
+        private readonly IAuditService _audit;
 
-        public AccountService(ApplicationDbContext context, IConfiguration configuration, ILogger<AccountService> logger)
+        public AccountService(ApplicationDbContext context, IConfiguration configuration, ILogger<AccountService> logger, IAuditService audit)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _audit = audit;
         }
 
         public async Task<(User user, string token)?> TryLoginAsync(string email, string password)
@@ -69,6 +71,8 @@ namespace Portal.Services
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Registo concluído para {Email}.", email);
+            await _audit.LogAsync(AuditAction.Create, "User", newUser.Id.ToString(),
+                userId: newUser.Id, userEmail: newUser.Email);
             return null;
         }
 
@@ -101,6 +105,7 @@ namespace Portal.Services
             user.GenderId = vm.GenderId;
             user.BirthDate = vm.BirthDate;
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "User", userId.ToString(), userId: userId);
             return null;
         }
 
@@ -114,6 +119,7 @@ namespace Portal.Services
 
             user.PasswordHash = _passwordHasher.HashPassword(user, vm.NewPassword);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "User", userId.ToString(), userId: userId);
             return null;
         }
 

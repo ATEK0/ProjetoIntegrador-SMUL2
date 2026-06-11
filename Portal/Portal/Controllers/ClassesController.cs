@@ -92,15 +92,27 @@ namespace Portal.Controllers
 
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Professor")]
         public async Task<IActionResult> Details(int id)
         {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
             var viewModel = await _classService.GetClassDetailsAsync(id);
             if (viewModel == null)
             {
                 TempData["Error"] = "Turma não encontrada.";
-                return RedirectToAction("AdminClasses", "Dashboard");
+                return RedirectToAction(User.IsInRole("Admin") ? "AdminClasses" : "Professor", "Dashboard");
             }
+
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && viewModel.TeacherId != userId.Value)
+            {
+                TempData["Error"] = "Não tem permissão para ver esta turma.";
+                return RedirectToAction("Professor", "Dashboard");
+            }
+
+            viewModel.CanEdit = isAdmin;
             return View(viewModel);
         }
 

@@ -5,7 +5,6 @@ namespace Portal.Models
     public class Role : BaseEntity
     {
         private string _roleName;
-        private readonly List<User> _users = new();
 
         [Required]
         [MaxLength(255)]
@@ -22,7 +21,7 @@ namespace Portal.Models
             }
         }
 
-        public IReadOnlyCollection<User> Users => _users.AsReadOnly();
+        public List<User> Users { get; set; } = new();
 
         public Role(string roleName)
         {

@@ -20,7 +20,7 @@ namespace Portal.Models
         [ForeignKey(nameof(TeacherId))]
         public User Teacher { get; set; }
 
-        public ICollection<Scenario> Scenarios { get; set; }
+        public List<Scenario> Scenarios { get; set; } = new();
 
         public int? ClassId
         {

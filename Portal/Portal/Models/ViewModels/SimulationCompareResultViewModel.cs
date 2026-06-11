@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Portal.Models;
 
 namespace Portal.Models.ViewModels
 {

@@ -107,24 +107,9 @@
             </div>
             
             <nav class="sidebar-nav">
-                @if (User.IsInRole("Aluno") || User.IsInRole("Admin"))
-                {
-                    <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
-                        <i class="fas fa-home"></i> Dashboard Aluno
-                    </a>
-                    <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" ? "active" : "")">
-                        <i class="fas fa-calculator"></i> Simulador Financeiro
-                    </a>
-                }
-                @if (User.IsInRole("Professor") || User.IsInRole("Admin"))
-                {
-                    <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Professor" ? "active" : "")">
-                        <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor
-                    </a>
-                }
                 @if (User.IsInRole("Admin"))
                 {
-                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin: var(--spacing-lg) var(--spacing-md) var(--spacing-sm) var(--spacing-md);">Administração</div>
+                    <div class="sidebar-section-title">Administração</div>
                     <a href="/Dashboard/Admin" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Admin" ? "active" : "")">
                         <i class="fas fa-server"></i> Dashboard Infra
                     </a>
@@ -136,6 +121,26 @@
                     </a>
                     <a href="/Dashboard/AdminUsers" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminUsers" ? "active" : "")">
                         <i class="fas fa-users-cog"></i> Gestão de Utilizadores
+                    </a>
+                    <a href="/Dashboard/AdminAuditLogs" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AdminAuditLogs" ? "active" : "")">
+                        <i class="fas fa-clipboard-list"></i> Audit Logs
+                    </a>
+                }
+                else if (User.IsInRole("Professor"))
+                {
+                    <div class="sidebar-section-title">Professor</div>
+                    <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Professor" ? "active" : "")">
+                        <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor
+                    </a>
+                }
+                else if (User.IsInRole("Aluno"))
+                {
+                    <div class="sidebar-section-title">Aluno</div>
+                    <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
+                        <i class="fas fa-home"></i> Dashboard Aluno
+                    </a>
+                    <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" ? "active" : "")">
+                        <i class="fas fa-calculator"></i> Simulador Financeiro
                     </a>
                 }
             </nav>

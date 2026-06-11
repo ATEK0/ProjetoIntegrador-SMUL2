@@ -19,8 +19,8 @@ namespace Portal.Models
         [ForeignKey(nameof(TeacherId))]
         public User Teacher { get; set; }
 
-        public ICollection<ClassEnrollment> Enrollments { get; set; }
-        public ICollection<Challenge> Challenges { get; set; }
+        public List<ClassEnrollment> Enrollments { get; set; } = new();
+        public List<Challenge> Challenges { get; set; } = new();
 
         [Required]
         [MaxLength(255)]

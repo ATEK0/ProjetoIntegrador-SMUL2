@@ -5,47 +5,6 @@
 }
 
 <style>
-    .admin-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: var(--spacing-xl);
-        gap: var(--spacing-md);
-    }
-
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .tab-btn:hover {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-blue);
-    }
-
     .table-row-hover:hover {
         background-color: rgba(12, 115, 183, 0.02);
     }
@@ -163,20 +122,16 @@
     }
 </style>
 
-<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+<div class="container dashboard-page">
 
-
+    <div class="dashboard-top">
+        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Desafios", Subtitle = "Visualizar e criar desafios." }' />
+        <button type="button" id="openChallengeModalBtn" class="btn btn-primary">
+            <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Novo Desafio
+        </button>
+    </div>
 
     <div>
-        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg);">
-            <div>
-                <h3 style="color: var(--primary-blue); margin-bottom: 4px; font-size: 1.4rem;">Gestão de Desafios</h3>
-                <p class="text-muted" style="font-size: 0.875rem; margin: 0;">Visualize, crie e associe desafios de literacia financeira.</p>
-            </div>
-            <button type="button" id="openChallengeModalBtn" class="btn btn-primary" style="font-weight: 600; box-shadow: var(--shadow-sm);">
-                <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Novo Desafio
-            </button>
-        </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--spacing-lg);">
             @if (!Model.Challenges.Any())

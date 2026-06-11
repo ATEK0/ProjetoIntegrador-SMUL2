@@ -11,10 +11,41 @@ namespace Portal.Services
     public class DashboardService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IAuditService _audit;
 
-        public DashboardService(ApplicationDbContext context)
+        public DashboardService(ApplicationDbContext context, IAuditService audit)
         {
             _context = context;
+            _audit = audit;
+        }
+
+        public async Task<AdminInfraViewModel> GetAdminInfraAsync()
+        {
+            bool dbOnline = false;
+            try
+            {
+                dbOnline = await _context.Database.CanConnectAsync();
+            }
+            catch
+            {
+                dbOnline = false;
+            }
+
+            int auditCount = 0;
+            if (dbOnline)
+            {
+                try { auditCount = await _context.AuditLogs.CountAsync(); }
+                catch { auditCount = 0; }
+            }
+
+            return new AdminInfraViewModel
+            {
+                TotalUsers = await _context.Users.CountAsync(),
+                TotalClasses = await _context.Classes.CountAsync(),
+                TotalChallenges = await _context.Challenges.CountAsync(),
+                TotalAuditLogs = auditCount,
+                DatabaseOnline = dbOnline
+            };
         }
 
         public async Task<AdminDashboardViewModel> GetAdminDashboardAsync() => new()
@@ -28,6 +59,76 @@ namespace Portal.Services
             Users = await _context.Users.ToListAsync()
         };
 
+        public async Task<List<AuditLogItemViewModel>> GetRecentAuditLogsAsync(int count = 10)
+        {
+            var logs = await _context.AuditLogs
+                .OrderByDescending(a => a.Timestamp)
+                .Take(count)
+                .ToListAsync();
+            return logs.Select(MapAuditLog).ToList();
+        }
+
+        public async Task<AdminAuditLogsViewModel> GetAuditLogsAsync(int page = 1, string? filterAction = null, string? entityType = null, int pageSize = 25)
+        {
+            if (page < 1) page = 1;
+
+            try
+            {
+                var query = _context.AuditLogs.AsNoTracking().AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(filterAction))
+                    query = query.Where(a => a.ActionName == filterAction);
+
+                if (!string.IsNullOrWhiteSpace(entityType))
+                    query = query.Where(a => a.EntityType == entityType);
+
+                var totalCount = await query.CountAsync();
+                var totalPages = totalCount == 0 ? 1 : (int)System.Math.Ceiling(totalCount / (double)pageSize);
+
+                var entities = await query
+                    .OrderByDescending(a => a.Timestamp)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return new AdminAuditLogsViewModel
+                {
+                    Logs = entities.Select(MapAuditLog).ToList(),
+                    Page = page,
+                    TotalPages = totalPages,
+                    TotalCount = totalCount,
+                    FilterAction = filterAction,
+                    FilterEntityType = entityType,
+                    AvailableActions = await _context.AuditLogs.AsNoTracking().Select(a => a.ActionName).Distinct().OrderBy(a => a).ToListAsync(),
+                    AvailableEntityTypes = await _context.AuditLogs.AsNoTracking().Select(a => a.EntityType).Distinct().OrderBy(a => a).ToListAsync()
+                };
+            }
+            catch (System.Exception ex)
+            {
+                return new AdminAuditLogsViewModel
+                {
+                    Logs = new List<AuditLogItemViewModel>(),
+                    Page = page,
+                    TotalPages = 1,
+                    TotalCount = 0,
+                    FilterAction = filterAction,
+                    FilterEntityType = entityType,
+                    LoadError = ex.Message
+                };
+            }
+        }
+
+        private static AuditLogItemViewModel MapAuditLog(AuditLog a) => new()
+        {
+            Id = a.Id,
+            Timestamp = a.Timestamp,
+            UserId = a.UserId,
+            UserEmail = a.UserEmail,
+            Action = a.ActionName,
+            EntityType = a.EntityType,
+            EntityId = a.EntityId,
+        };
+
         public async Task<AdminDashboardViewModel> GetAdminClassesAsync() => new()
         {
             Classes = await _context.Classes
@@ -35,7 +136,7 @@ namespace Portal.Services
                 .Include(c => c.Enrollments)
                 .Include(c => c.Challenges)
                 .ToListAsync(),
-            Challenges = Enumerable.Empty<Challenge>()
+            Challenges = new List<Challenge>()
         };
 
         public async Task<AdminDashboardViewModel> GetAdminChallengesAsync() => new()
@@ -80,7 +181,7 @@ namespace Portal.Services
             if (newRoleName is not ("Professor" or "Aluno" or "Admin"))
                 return "Função/Role inválida.";
 
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return "Utilizador não encontrado.";
 
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == newRoleName);
@@ -88,6 +189,7 @@ namespace Portal.Services
 
             user.RoleId = role.Id;
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "User", userId.ToString());
             return null;
         }
 

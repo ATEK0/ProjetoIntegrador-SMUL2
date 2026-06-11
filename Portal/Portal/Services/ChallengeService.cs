@@ -14,24 +14,28 @@ namespace Portal.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ChallengeService> _logger;
+        private readonly IAuditService _audit;
 
-        public ChallengeService(ApplicationDbContext context, ILogger<ChallengeService> logger)
+        public ChallengeService(ApplicationDbContext context, ILogger<ChallengeService> logger, IAuditService audit)
         {
             _context = context;
             _logger = logger;
+            _audit = audit;
         }
 
         public async Task CreateAsync(int teacherId, CreateChallengeViewModel model)
         {
             var code = await CodeGenerator.GenerateUniqueAsync(c =>
                 _context.Challenges.AnyAsync(x => x.AccessLinkCode == c));
-            _context.Challenges.Add(new Challenge(teacherId, model.Title, code)
+            var challenge = new Challenge(teacherId, model.Title, code)
             {
                 Description = model.Description?.Trim() ?? "",
                 ClassId = model.ClassId
-            });
+            };
+            _context.Challenges.Add(challenge);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Desafio '{Title}' criado.", model.Title);
+            await _audit.LogAsync(AuditAction.Create, "Challenge", challenge.Id.ToString());
         }
 
         public async Task<string?> AssociateClassAsync(int challengeId, int? classId)
@@ -41,6 +45,7 @@ namespace Portal.Services
 
             challenge.ClassId = classId;
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "Challenge", challengeId.ToString());
             return null;
         }
 
@@ -51,6 +56,7 @@ namespace Portal.Services
 
             challenge.MarkAsDeleted();
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Delete, "Challenge", id.ToString());
             return null;
         }
 
@@ -87,6 +93,7 @@ namespace Portal.Services
             challenge.Title = title.Trim();
             challenge.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "Challenge", id.ToString());
             return null;
         }
 
