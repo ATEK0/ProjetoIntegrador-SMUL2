@@ -139,8 +139,11 @@
                     <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
                         <i class="fas fa-home"></i> Dashboard Aluno
                     </a>
-                    <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" ? "active" : "")">
+                    <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" && ViewContext.RouteData.Values["action"]?.ToString() != "History" ? "active" : "")">
                         <i class="fas fa-calculator"></i> Simulador Financeiro
+                    </a>
+                    <a href="/Simulator/History" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" && ViewContext.RouteData.Values["action"]?.ToString() == "History" ? "active" : "")">
+                        <i class="fas fa-history"></i> Histórico de Simulações
                     </a>
                 }
             </nav>
