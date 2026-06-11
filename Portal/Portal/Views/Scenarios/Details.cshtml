@@ -206,6 +206,63 @@
                     </div>
                 }
             </div>
+
+            <!-- Objectives Card -->
+            <div class="card glass-panel" style="padding: var(--spacing-lg);">
+                <div class="flex justify-between items-center" style="margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin: 0;">
+                        <i class="fas fa-bullseye" style="margin-right: 8px;"></i> Objetivos
+                    </h3>
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('addObjectiveModal').classList.add('active');" title="Definir Objetivo">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                
+                @if (!Model.Objectives.Any())
+                {
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
+                        Sem objetivos definidos.
+                        <button class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 8px; margin-top: 8px; display: block; margin-left: auto; margin-right: auto;" onclick="document.getElementById('addObjectiveModal').classList.add('active');">
+                            Definir Meta
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        @foreach (var obj in Model.Objectives)
+                        {
+                            var progressPercent = Model.FinalBankBalance > 0 && obj.TargetValue > 0
+                                ? (int)Math.Min(100, Math.Round((Model.FinalBankBalance / obj.TargetValue) * 100))
+                                : 0;
+                            
+                            var colorHex = progressPercent >= 100 ? "#10b981" : (progressPercent >= 50 ? "#3b82f6" : "#f59e0b");
+
+                            <div style="background: rgba(255,255,255,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; font-size: 0.85rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem;">@obj.Description</div>
+                                        <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 2px;">
+                                            Meta: <strong style="color: var(--primary-blue);">€@obj.TargetValue.ToString("N2")</strong> (@obj.TermMonths meses)
+                                        </div>
+                                    </div>
+                                    <button onclick="openDeleteObjectiveModal(@obj.Id)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remover Objetivo">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.75rem; color: var(--text-muted);">
+                                    <span>Saldo: €@Model.FinalBankBalance.ToString("N2")</span>
+                                    <span style="font-weight: 700; color: @colorHex;">@progressPercent%</span>
+                                </div>
+                                <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.06); border-radius: var(--radius-full); overflow: hidden; margin-top: 4px;">
+                                    <div style="width: @progressPercent%; height: 100%; background: @colorHex; border-radius: var(--radius-full); transition: width 0.6s ease;"></div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
 
         <!-- RIGHT COLUMN: Entries -->
@@ -587,6 +644,59 @@
     </div>
 </div>
 
+<!-- Add Objective Modal -->
+<div id="addObjectiveModal" class="modal-overlay">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Definir Objetivo Financeiro</h3>
+        <form action="/Scenarios/AddObjective" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="scenarioId" value="@Model.Scenario.Id" />
+            <input type="hidden" name="month" value="@Model.SelectedMonth" />
+            
+            <div class="form-group">
+                <label class="premium-label">Descrição do Objetivo</label>
+                <input type="text" name="description" class="form-control" placeholder="Ex: Poupar para Entrada da Casa, Comprar Carro..." required />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label class="premium-label">Valor Alvo (€)</label>
+                    <input type="number" name="targetValue" class="form-control" min="0.01" step="0.01" placeholder="Ex: 5000" required />
+                </div>
+                <div class="form-group">
+                    <label class="premium-label">Prazo (Meses)</label>
+                    <input type="number" name="termMonths" class="form-control" min="1" placeholder="Ex: 12" required />
+                </div>
+            </div>
+
+            <div class="flex gap-md" style="margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Objetivo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Objective Modal -->
+<div id="deleteObjectiveModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="color: #ef4444; margin-bottom: 16px;"><i class="fas fa-trash-alt fa-3x"></i></div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Remover Objetivo</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza que deseja remover este objetivo do cenário?</p>
+        <form action="/Scenarios/DeleteObjective" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="deleteObjectiveId" />
+            <input type="hidden" name="month" value="@Model.SelectedMonth" />
+            <div class="flex gap-md" style="justify-content: center;">
+                <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="background-color: #ef4444; border-color: #ef4444;">Sim, Remover</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openEditEntryModal(id, category, amount, month, recurrence) {
         document.getElementById('editEntryId').value = id;
@@ -605,6 +715,11 @@
     function openDeleteMemberModal(id) {
         document.getElementById('deleteMemberId').value = id;
         document.getElementById('deleteMemberModal').classList.add('active');
+    }
+
+    function openDeleteObjectiveModal(id) {
+        document.getElementById('deleteObjectiveId').value = id;
+        document.getElementById('deleteObjectiveModal').classList.add('active');
     }
 
     // Auto dismiss flash

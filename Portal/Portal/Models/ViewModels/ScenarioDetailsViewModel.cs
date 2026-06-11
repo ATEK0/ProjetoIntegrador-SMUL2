@@ -18,5 +18,6 @@ namespace Portal.Models.ViewModels
         public decimal SavingsRate { get; set; }
         public decimal EffortRate { get; set; }
         public decimal FinalBankBalance { get; set; }
+        public List<Objective> Objectives { get; set; } = new List<Objective>();
     }
 }

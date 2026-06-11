@@ -59,6 +59,7 @@ namespace Portal.Services
             var expenses = entries.Where(e => e.EntryType == EntryType.Expense).ToList();
 
             var members = await _context.ScenarioMembers.Where(sm => sm.ScenarioId == scenarioId).ToListAsync();
+            var objectives = await _context.Objectives.Where(o => o.ScenarioId == scenarioId).ToListAsync();
 
             decimal totalIncome = incomes.Sum(i => i.Amount) + members.Sum(m => m.MonthlyIncome);
             decimal totalExpense = expenses.Sum(e => e.Amount);
@@ -115,6 +116,7 @@ namespace Portal.Services
                 Expenses = expenses,
                 SelectedMonth = targetMonth,
                 Members = members,
+                Objectives = objectives,
                 TotalIncome = totalIncome,
                 TotalExpense = totalExpense,
                 Balance = balance,
@@ -250,6 +252,30 @@ namespace Portal.Services
 
             int scenarioId = member.ScenarioId;
             member.MarkAsDeleted();
+            await _context.SaveChangesAsync();
+            return (null, scenarioId);
+        }
+
+        public async Task<string?> AddObjectiveAsync(int scenarioId, int studentId, string description, decimal targetValue, int termMonths)
+        {
+            var scenario = await _context.Scenarios.FirstOrDefaultAsync(s => s.Id == scenarioId && s.StudentId == studentId);
+            if (scenario == null) return "Cenário não encontrado.";
+            if (string.IsNullOrWhiteSpace(description) || targetValue <= 0 || termMonths <= 0)
+                return "Descrição obrigatória, valor-alvo e prazo devem ser maiores que zero.";
+
+            var objective = new Objective(scenarioId, description, targetValue, termMonths);
+            _context.Objectives.Add(objective);
+            await _context.SaveChangesAsync();
+            return null;
+        }
+
+        public async Task<(string? Error, int? ScenarioId)> DeleteObjectiveAsync(int objectiveId, int studentId)
+        {
+            var objective = await _context.Objectives.Include(o => o.Scenario).FirstOrDefaultAsync(o => o.Id == objectiveId);
+            if (objective == null || objective.Scenario.StudentId != studentId) return ("Objetivo não encontrado.", null);
+
+            int scenarioId = objective.ScenarioId;
+            objective.MarkAsDeleted();
             await _context.SaveChangesAsync();
             return (null, scenarioId);
         }
