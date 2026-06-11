@@ -79,15 +79,15 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string name, string email, string password, string role = "aluno")
+        public async Task<IActionResult> Register(string name, string email, string password, int? genderId, DateTime? birthDate, string role = "aluno")
         {
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError(string.Empty, "Por favor, preencha todos os campos.");
+                ModelState.AddModelError(string.Empty, "Por favor, preencha todos os campos obrigatórios.");
                 return View();
             }
 
-            var error = await _accountService.RegisterAsync(name, email, password, role);
+            var error = await _accountService.RegisterAsync(name, email, password, genderId, birthDate, role);
             if (error != null)
             {
                 ModelState.AddModelError(string.Empty, error);

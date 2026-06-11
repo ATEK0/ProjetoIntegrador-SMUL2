@@ -16,6 +16,11 @@ namespace Portal.Models.ViewModels
 
         public string Role { get; set; } = string.Empty;
 
+        public int? GenderId { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? BirthDate { get; set; }
+
         public DateTime CreatedAt { get; set; }
     }
 }
