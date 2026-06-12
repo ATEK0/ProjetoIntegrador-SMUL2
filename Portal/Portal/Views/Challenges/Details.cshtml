@@ -84,9 +84,18 @@
 <div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
 
     <div style="margin-bottom: var(--spacing-lg); display: flex; justify-content: space-between; align-items: center;">
-        <a href="/Dashboard/AdminChallenges" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
-            <i class="fas fa-arrow-left"></i> Voltar à Administração
-        </a>
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="/Dashboard/AdminChallenges" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-arrow-left"></i> Voltar à Administração
+            </a>
+        }
+        else
+        {
+            <a href="/Dashboard/Professor" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        }
     </div>
 
     @if (TempData["Success"] != null)
@@ -187,6 +196,10 @@
                                                 Correta: @(q.CorrectAnswer == "true" ? "Verdadeiro" : "Falso")
                                             </div>
                                         }
+                                        else if (q.QuestionType == Portal.Models.QuestionType.Scenario)
+                                        {
+                                            <span class="badge-type badge-simple" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">Cenário</span>
+                                        }
                                     </div>
                                 </div>
                             </div>
@@ -221,13 +234,19 @@
                                     {
                                         <span class="status-badge status-notstarted"><i class="fas fa-minus-circle"></i> Não Iniciado</span>
                                     }
-                                    else if (s.IsSubmitted && !s.IsGraded)
+                                    else if (!s.IsGraded)
                                     {
-                                        <span class="status-badge status-submitted"><i class="fas fa-clock"></i> Por Avaliar</span>
+                                        <span class="status-badge status-submitted" style="margin-right: 8px;"><i class="fas fa-clock"></i> Por Avaliar</span>
+                                        <a href="/Challenges/GradeSubmission/@s.SubmissionId" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.775rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; line-height: 1;">
+                                            Avaliar
+                                        </a>
                                     }
                                     else
                                     {
-                                        <span class="status-badge status-graded"><i class="fas fa-check-circle"></i> Avaliado</span>
+                                        <span class="status-badge status-graded" style="margin-right: 8px;"><i class="fas fa-check-circle"></i> Avaliado</span>
+                                        <a href="/Challenges/GradeSubmission/@s.SubmissionId" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.775rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; line-height: 1; border-color: var(--primary-blue); color: var(--primary-blue);">
+                                            Reavaliar
+                                        </a>
                                     }
                                 </div>
                             </div>

@@ -90,6 +90,30 @@ namespace Portal.Controllers
             return View(await _dashboardService.GetStudentDashboardAsync(id.Value, User.Identity?.Name ?? "Aluno"));
         }
 
+        [Authorize(Roles = "Aluno,Admin")]
+        public async Task<IActionResult> AlunoClasses()
+        {
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _dashboardService.GetStudentClassesAsync(id.Value, User.Identity?.Name ?? "Aluno"));
+        }
+
+        [Authorize(Roles = "Aluno,Admin")]
+        public async Task<IActionResult> AlunoChallenges()
+        {
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _dashboardService.GetStudentChallengesAsync(id.Value, User.Identity?.Name ?? "Aluno"));
+        }
+
+        [Authorize(Roles = "Aluno,Admin")]
+        public async Task<IActionResult> AlunoScenarios()
+        {
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _dashboardService.GetStudentScenariosAsync(id.Value, User.Identity?.Name ?? "Aluno"));
+        }
+
         private int? GetUserId()
         {
             var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -106,6 +130,22 @@ namespace Portal.Controllers
             var id = GetUserId();
             if (id == null) return Unauthorized();
             return View(await _dashboardService.GetTeacherDashboardAsync(id.Value));
+        }
+
+        [Authorize(Roles = "Professor,Admin")]
+        public async Task<IActionResult> ProfessorClasses()
+        {
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _dashboardService.GetTeacherClassesAsync(id.Value));
+        }
+
+        [Authorize(Roles = "Professor,Admin")]
+        public async Task<IActionResult> ProfessorChallenges()
+        {
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _dashboardService.GetTeacherChallengesAsync(id.Value));
         }
 
 

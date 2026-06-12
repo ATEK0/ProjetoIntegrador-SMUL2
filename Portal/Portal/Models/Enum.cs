@@ -18,6 +18,7 @@ namespace Portal.Models
         Simple = 1,
         MultipleChoice = 2,
         TrueFalse = 3,
-        FillInTheBlank = 4
+        FillInTheBlank = 4,
+        Scenario = 5
     }
 }

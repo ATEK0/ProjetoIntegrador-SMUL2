@@ -34,14 +34,14 @@ namespace Portal.Controllers
             try
             {
                 var studentId = GetUserId();
-                var error = await _scenarioService.CreateScenarioAsync(studentId, familyName, initialBalance);
+                var result = await _scenarioService.CreateScenarioAsync(studentId, familyName, initialBalance);
 
-                if (error != null)
+                if (result.Error != null)
                 {
-                    return Content(error);
+                    return Content(result.Error);
                 }
 
-                return RedirectToAction("Aluno", "Dashboard");
+                return RedirectToAction("Details", new { id = result.ScenarioId });
             }
             catch (Exception ex)
             {
@@ -50,17 +50,19 @@ namespace Portal.Controllers
             }
         }
 
-        [Authorize(Roles = "Aluno,Admin")]
+        [Authorize(Roles = "Aluno,Admin,Professor")]
         public async Task<IActionResult> Details(int id, int? month)
         {
             try
             {
-                int studentId = GetUserId();
+                int? studentId = User.IsInRole("Professor") || User.IsInRole("Admin") ? null : GetUserId();
                 var viewModel = await _scenarioService.GetScenarioDetailsAsync(id, studentId, month);
 
                 if (viewModel == null)
                 {
                     TempData["Error"] = "Cenário não encontrado.";
+                    if (User.IsInRole("Professor")) return RedirectToAction("Professor", "Dashboard");
+                    if (User.IsInRole("Admin")) return RedirectToAction("AdminChallenges", "Dashboard");
                     return RedirectToAction("Aluno", "Dashboard");
                 }
 
@@ -68,6 +70,8 @@ namespace Portal.Controllers
             }
             catch (Exception)
             {
+                if (User.IsInRole("Professor")) return RedirectToAction("Professor", "Dashboard");
+                if (User.IsInRole("Admin")) return RedirectToAction("AdminChallenges", "Dashboard");
                 return RedirectToAction("Aluno", "Dashboard");
             }
         }

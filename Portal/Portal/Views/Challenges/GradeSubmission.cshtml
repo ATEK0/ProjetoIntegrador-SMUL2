@@ -259,6 +259,22 @@
                         {
                             <span>Opção @ansText - @(ansText == "A" ? q.OptionA : ansText == "B" ? q.OptionB : ansText == "C" ? q.OptionC : ansText == "D" ? q.OptionD : "")</span>
                         }
+                        else if (q.QuestionType == Portal.Models.QuestionType.Scenario)
+                        {
+                            if (int.TryParse(ansText, out int scenarioId))
+                            {
+                                var scenarios = ViewBag.Scenarios as List<Portal.Models.Scenario>;
+                                var scenarioName = scenarios?.FirstOrDefault(s => s.Id == scenarioId)?.FamilyName ?? $"ID {scenarioId}";
+                                
+                                <a href="/Scenarios/Details/@scenarioId" target="_blank" style="color: var(--primary-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: rgba(12, 115, 183, 0.1); padding: 4px 10px; border-radius: var(--radius-sm);">
+                                    <i class="fas fa-external-link-alt"></i> Ver Cenário Família @scenarioName
+                                </a>
+                            }
+                            else
+                            {
+                                <span style="white-space: pre-wrap; font-weight: 500;">@ansText</span>
+                            }
+                        }
                         else
                         {
                             <span style="white-space: pre-wrap; font-weight: 500;">@ansText</span>

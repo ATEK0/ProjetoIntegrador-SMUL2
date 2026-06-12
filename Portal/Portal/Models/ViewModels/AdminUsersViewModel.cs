@@ -21,5 +21,6 @@ namespace Portal.Models.ViewModels
     {
         public int ClassId { get; set; }
         public string ClassName { get; set; }
+        public string MembershipCode { get; set; }
     }
 }

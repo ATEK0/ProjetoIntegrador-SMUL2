@@ -22,32 +22,37 @@ namespace Portal.Services
             _audit = audit;
         }
 
-        public async Task<string?> CreateScenarioAsync(int studentId, string familyName, decimal initialBalance)
+        public async Task<(string? Error, int? ScenarioId)> CreateScenarioAsync(int studentId, string familyName, decimal initialBalance)
         {
             if (string.IsNullOrWhiteSpace(familyName))
-                return "O nome de família é obrigatório.";
+                return ("O nome de família é obrigatório.", null);
 
             var student = await _context.Users.FindAsync(studentId);
             if (student == null)
-                return $"Erro: O estudante com ID {studentId} não existe na base de dados.";
+                return ($"Erro: O estudante com ID {studentId} não existe na base de dados.", null);
 
             var scenario = new Scenario(studentId, familyName, initialBalance);
             _context.Scenarios.Add(scenario);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Cenário '{FamilyName}' criado pelo Aluno ID {StudentId}.", familyName, studentId);
             await _audit.LogAsync(AuditAction.Create, "Scenario", scenario.Id.ToString(), userId: studentId);
-            return null;
+            return (null, scenario.Id);
         }
 
-        public async Task<ScenarioDetailsViewModel?> GetScenarioDetailsAsync(int scenarioId, int studentId, int? month)
+        public async Task<ScenarioDetailsViewModel?> GetScenarioDetailsAsync(int scenarioId, int? studentId, int? month)
         {
-            var scenario = await _context.Scenarios
-                .Include(s => s.Challenge)
-                .FirstOrDefaultAsync(s => s.Id == scenarioId && s.StudentId == studentId);
+            var queryScenarios = _context.Scenarios.Include(s => s.Challenge).AsQueryable();
+            
+            if (studentId.HasValue)
+            {
+                queryScenarios = queryScenarios.Where(s => s.StudentId == studentId.Value);
+            }
+
+            var scenario = await queryScenarios.FirstOrDefaultAsync(s => s.Id == scenarioId);
 
             if (scenario == null) return null;
 
-            int targetMonth = month ?? DateTime.Now.Month;
+            int targetMonth = month ?? 1;
 
             var query = _context.Entries.Where(e => e.ScenarioId == scenarioId);
 

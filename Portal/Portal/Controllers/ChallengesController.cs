@@ -76,10 +76,8 @@ namespace Portal.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            if (User.IsInRole("Professor"))
-            {
-                return RedirectToAction("Professor", "Dashboard");
-            }
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
 
             var viewModel = await _challengeService.GetChallengeDetailsAsync(id);
             if (viewModel == null)
@@ -87,6 +85,13 @@ namespace Portal.Controllers
                 TempData["Error"] = "Desafio não encontrado.";
                 return RedirectByRole();
             }
+
+            if (User.IsInRole("Professor") && viewModel.Challenge.TeacherId != userId.Value)
+            {
+                TempData["Error"] = "Não tem permissão para ver este desafio.";
+                return RedirectToAction("Professor", "Dashboard");
+            }
+
             return View(viewModel);
         }
 
@@ -122,6 +127,7 @@ namespace Portal.Controllers
             var submission = await _challengeService.GetSubmissionAsync(id, studentId.Value);
             ViewBag.Submission = submission;
             ViewBag.Questions = questions;
+            ViewBag.Scenarios = await _challengeService.GetStudentScenariosAsync(studentId.Value);
 
             return View(challenge);
         }
@@ -220,6 +226,8 @@ namespace Portal.Controllers
                 Submission = submission,
                 Questions = questions
             };
+
+            ViewBag.Scenarios = await _challengeService.GetStudentScenariosAsync(submission.StudentId);
 
             return View(viewModel);
         }

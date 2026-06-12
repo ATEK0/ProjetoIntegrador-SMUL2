@@ -281,5 +281,13 @@ namespace Portal.Services
             return await _context.Challenges
                 .FirstOrDefaultAsync(c => c.AccessLinkCode == cleanCode);
         }
+
+        public async Task<List<Scenario>> GetStudentScenariosAsync(int studentId)
+        {
+            return await _context.Scenarios
+                .Where(s => s.StudentId == studentId)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+        }
     }
 }

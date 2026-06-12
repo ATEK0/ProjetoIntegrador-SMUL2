@@ -21,6 +21,7 @@ namespace Portal.Models
         public User Teacher { get; set; }
 
         public List<Scenario> Scenarios { get; set; } = new();
+        public List<ChallengeSubmission> Submissions { get; set; } = new();
 
         public int? ClassId
         {
