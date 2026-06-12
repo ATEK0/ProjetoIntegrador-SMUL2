@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Portal.Models.ViewModels;
+using Portal.Models;
 using Portal.Services;
 using Portal;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Professor")]
         public async Task<IActionResult> Create(CreateChallengeViewModel model)
         {
             var id = GetUserId();
@@ -30,6 +32,12 @@ namespace Portal.Controllers
             if (!ModelState.IsValid)
             {
                 ToastMessages.SetErrors(this);
+                return RedirectByRole();
+            }
+
+            if (model.Questions == null || !model.Questions.Any(q => !string.IsNullOrWhiteSpace(q.QuestionText)))
+            {
+                TempData["Error"] = "O desafio deve conter pelo menos uma pergunta.";
                 return RedirectByRole();
             }
 
@@ -68,6 +76,11 @@ namespace Portal.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
+            if (User.IsInRole("Professor"))
+            {
+                return RedirectToAction("Professor", "Dashboard");
+            }
+
             var viewModel = await _challengeService.GetChallengeDetailsAsync(id);
             if (viewModel == null)
             {
@@ -84,6 +97,165 @@ namespace Portal.Controllers
             if (error != null) TempData["Error"] = error;
             else TempData["Success"] = "Desafio atualizado com sucesso!";
             return RedirectToAction("Details", new { id = id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Submit(int id)
+        {
+            var studentId = GetUserId();
+            if (studentId == null) return Unauthorized();
+
+            var challenge = await _challengeService.GetChallengeByIdAsync(id);
+            if (challenge == null)
+            {
+                TempData["Error"] = "Desafio não encontrado.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            var questions = await _challengeService.GetQuestionsByChallengeIdAsync(id);
+            if (!questions.Any())
+            {
+                TempData["Error"] = "Este desafio ainda não tem perguntas criadas pelo professor.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            var submission = await _challengeService.GetSubmissionAsync(id, studentId.Value);
+            ViewBag.Submission = submission;
+            ViewBag.Questions = questions;
+
+            return View(challenge);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Submit(int id, Dictionary<int, string> answers)
+        {
+            var studentId = GetUserId();
+            if (studentId == null) return Unauthorized();
+
+            if (answers == null || !answers.Any())
+            {
+                TempData["Error"] = "Deve responder a todas as perguntas do desafio.";
+                return RedirectToAction("Submit", new { id = id });
+            }
+
+            try
+            {
+                await _challengeService.SubmitAnswersAsync(studentId.Value, id, answers);
+                TempData["Success"] = "Respostas ao desafio submetidas com sucesso!";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao submeter respostas ao desafio {ChallengeId}", id);
+                TempData["Error"] = $"Erro ao submeter respostas: {ex.Message}";
+                return RedirectToAction("Submit", new { id = id });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Professor,Admin")]
+        public async Task<IActionResult> AddQuestion(int challengeId, string questionText, string questionType, string? optionA, string? optionB, string? optionC, string? optionD, string? correctAnswer)
+        {
+            if (string.IsNullOrWhiteSpace(questionText))
+            {
+                TempData["Error"] = "O texto da pergunta é obrigatório.";
+                return RedirectToAction("Details", new { id = challengeId });
+            }
+
+            if (!Enum.TryParse<QuestionType>(questionType, out var type))
+            {
+                TempData["Error"] = "Tipo de pergunta inválido.";
+                return RedirectToAction("Details", new { id = challengeId });
+            }
+
+            var question = new ChallengeQuestion(challengeId, questionText, type)
+            {
+                OptionA = optionA,
+                OptionB = optionB,
+                OptionC = optionC,
+                OptionD = optionD,
+                CorrectAnswer = correctAnswer
+            };
+
+            try
+            {
+                await _challengeService.AddQuestionAsync(challengeId, question);
+                TempData["Success"] = "Pergunta adicionada com sucesso!";
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao adicionar pergunta ao desafio {ChallengeId}", challengeId);
+                TempData["Error"] = $"Erro ao adicionar pergunta: {ex.Message}";
+            }
+
+            return RedirectToAction("Details", new { id = challengeId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Professor,Admin")]
+        public async Task<IActionResult> DeleteQuestion(int id, int challengeId)
+        {
+            var error = await _challengeService.DeleteQuestionAsync(id);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Pergunta removida com sucesso!";
+
+            return RedirectToAction("Details", new { id = challengeId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Professor,Admin")]
+        public async Task<IActionResult> GradeSubmission(int id)
+        {
+            var submission = await _challengeService.GetSubmissionByIdAsync(id);
+            if (submission == null)
+            {
+                TempData["Error"] = "Submissão não encontrada.";
+                return RedirectByRole();
+            }
+
+            var questions = await _challengeService.GetQuestionsByChallengeIdAsync(submission.ChallengeId);
+
+            var viewModel = new GradeSubmissionViewModel
+            {
+                Submission = submission,
+                Questions = questions
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Professor,Admin")]
+        public async Task<IActionResult> GradeSubmission(int id, Dictionary<int, bool> grades, string? feedback)
+        {
+            var error = await _challengeService.GradeSubmissionAsync(id, grades, feedback);
+            if (error != null)
+            {
+                TempData["Error"] = error;
+                return RedirectToAction("GradeSubmission", new { id = id });
+            }
+
+            TempData["Success"] = "Avaliação guardada com sucesso!";
+            return RedirectByRole();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AccessByCode(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                TempData["Error"] = "O código do desafio é obrigatório.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            var challenge = await _challengeService.GetChallengeByCodeAsync(code);
+            if (challenge == null)
+            {
+                TempData["Error"] = "Desafio não encontrado com o código fornecido.";
+                return RedirectToAction("Aluno", "Dashboard");
+            }
+
+            return RedirectToAction("Submit", new { id = challenge.Id });
         }
 
         private IActionResult RedirectByRole() =>

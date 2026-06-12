@@ -242,17 +242,33 @@ namespace Portal.Services
 
             var classIds = enrollments.Select(e => e.ClassId).ToList();
 
-            var pendingChallenges = await _context.Challenges
+            var submissions = await _context.ChallengeSubmissions
+                .Where(cs => cs.StudentId == studentId)
+                .GroupBy(cs => cs.ChallengeId)
+                .ToDictionaryAsync(g => g.Key, g => g.First());
+
+            var submittedChallengeIds = submissions.Keys.ToList();
+
+            var challenges = await _context.Challenges
                 .Include(c => c.Class)
-                .Where(c => classIds.Contains(c.ClassId.Value))
+                .Where(c => (c.ClassId != null && classIds.Contains(c.ClassId.Value)) || submittedChallengeIds.Contains(c.Id))
                 .ToListAsync();
+
+            var studentChallenges = challenges.Select(c => new StudentChallengeViewModel
+            {
+                Challenge = c,
+                IsSubmitted = submissions.ContainsKey(c.Id),
+                SubmittedAt = submissions.TryGetValue(c.Id, out var s) ? s.CreatedAt : null,
+                SubmissionId = submissions.TryGetValue(c.Id, out s) ? s.Id : null,
+                IsGraded = submissions.TryGetValue(c.Id, out s) && s.GradedAt != null
+            }).ToList();
 
             return new StudentDashboardViewModel
             {
                 StudentName = studentName,
                 Scenarios = scenarios,
                 EnrolledClasses = enrollments,
-                PendingChallenges = pendingChallenges
+                PendingChallenges = studentChallenges
             };
         }
 

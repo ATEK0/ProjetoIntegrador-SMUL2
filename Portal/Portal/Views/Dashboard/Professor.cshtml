@@ -302,6 +302,9 @@
             <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
 
             <form action="/Challenges/Create" method="post" id="createChallengeForm">
+                <div id="modalErrorContainer" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; margin-bottom: 12px; border-radius: var(--radius-md); color: #991b1b; font-size: 0.85rem; align-items: center; gap: 8px;">
+                    <i class="fas fa-exclamation-circle"></i> <span id="modalErrorMessage"></span>
+                </div>
                 <div class="form-group">
                     <label for="challengeTitleInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
                         <i class="fas fa-edit"></i> Título do Desafio
@@ -330,7 +333,21 @@
                     <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
                         <i class="fas fa-info-circle"></i> O desafio receberá um código alfanumérico único para os alunos entrarem diretamente.
                     </span>
-                </div>
+                    <!-- Secção de Perguntas Dinâmicas na Criação -->
+                    <div style="margin-top: var(--spacing-md); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md); margin-bottom: var(--spacing-md);">
+                        <div class="flex justify-between items-center" style="margin-bottom: 12px;">
+                            <label class="premium-label" style="font-size: 0.9rem; margin-bottom: 0;">
+                                <i class="fas fa-question-circle"></i> Perguntas do Desafio
+                            </label>
+                            <button type="button" class="btn btn-outline" id="addQuestionBtn" style="font-size: 0.75rem; padding: 0.3rem 0.60rem;">
+                                <i class="fas fa-plus"></i> Adicionar Pergunta
+                            </button>
+                        </div>
+
+                        <div id="questionsContainer" style="display: flex; flex-direction: column; gap: var(--spacing-md); max-height: 250px; overflow-y: auto; padding-right: 4px;">
+                            <!-- Perguntas serão adicionadas dinamicamente via JS -->
+                        </div>
+                    </div>
 
                 <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
                     <button type="button" class="btn btn-outline" id="cancelChallengeModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
@@ -363,6 +380,16 @@
             if (challengeTitleInput) challengeTitleInput.value = "";
             const challengeDescInput = document.getElementById("challengeDescInput");
             if (challengeDescInput) challengeDescInput.value = "";
+            const challengeClassSelect = document.getElementById("challengeClassSelect");
+            if (challengeClassSelect) challengeClassSelect.value = "";
+
+            // Limpar perguntas adicionadas
+            const container = document.getElementById("questionsContainer");
+            if (container) container.innerHTML = "";
+
+            // Ocultar erros
+            const errContainer = document.getElementById("modalErrorContainer");
+            if (errContainer) errContainer.style.display = "none";
         }
 
         if (openChallengeModalBtn) openChallengeModalBtn.addEventListener("click", openChallengeModal);
@@ -380,5 +407,182 @@
                 closeChallengeModal();
             }
         });
+
+        // Lógica de adição de perguntas dinâmicas na criação
+        const container = document.getElementById("questionsContainer");
+        const addBtn = document.getElementById("addQuestionBtn");
+
+        const form = document.getElementById("createChallengeForm");
+        if (form && container) {
+            form.addEventListener("submit", function(e) {
+                const questions = container.querySelectorAll(".create-question-card");
+                let hasValidQuestion = false;
+                questions.forEach(card => {
+                    const textInput = card.querySelector("input[name$='.QuestionText']");
+                    if (textInput && textInput.value.trim() !== "") {
+                        hasValidQuestion = true;
+                    }
+                });
+                
+                if (!hasValidQuestion) {
+                    e.preventDefault();
+                    const errContainer = document.getElementById("modalErrorContainer");
+                    const errMsg = document.getElementById("modalErrorMessage");
+                    if (errContainer && errMsg) {
+                        errMsg.innerText = "O desafio deve conter pelo menos uma pergunta.";
+                        errContainer.style.display = "flex";
+                        challengeModal.querySelector(".modal-card").scrollTop = 0;
+                    } else {
+                        alert("O desafio deve conter pelo menos uma pergunta.");
+                    }
+                }
+            });
+        }
+
+        if (addBtn && container) {
+            addBtn.addEventListener("click", function() {
+                const count = container.querySelectorAll(".create-question-card").length;
+                
+                const card = document.createElement("div");
+                card.className = "create-question-card";
+                card.style.cssText = "background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; position: relative; text-align: left;";
+                card.setAttribute("data-index", count);
+                
+                card.innerHTML = `
+                    <button type="button" class="remove-question-btn" style="position: absolute; top: 8px; right: 8px; background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; font-size: 0.9rem;" onclick="removeQuestionCard(this)" title="Remover Pergunta">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    <div class="question-num-label" style="font-weight: 700; font-size: 0.8rem; color: var(--primary-blue); margin-bottom: 6px;">Pergunta #${count + 1}</div>
+                    
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px; font-weight: 600;">Texto da Pergunta</label>
+                        <input type="text" name="Questions[${count}].QuestionText" class="form-control" style="height: 34px; padding: 0 8px; font-size: 0.85rem;" required autocomplete="off" />
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px; font-weight: 600;">Tipo de Pergunta</label>
+                        <select name="Questions[${count}].QuestionType" class="form-control question-type-select" style="height: 34px; padding: 0 8px; font-size: 0.85rem;" onchange="changeCreateQuestionType(this, ${count})" required>
+                            <option value="Simple">Pergunta Simples (Texto Livre)</option>
+                            <option value="MultipleChoice">Escolha Múltipla</option>
+                            <option value="TrueFalse">Verd/Falso</option>
+                        </select>
+                    </div>
+
+                    <!-- MC Options (hidden by default) -->
+                    <div class="create-mc-options-group" style="display: none; background: white; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 8px; margin-bottom: 8px;">
+                        <div class="form-group" style="margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.7rem; margin-bottom: 2px;">Opção A</label>
+                            <input type="text" name="Questions[${count}].OptionA" id="optA_${count}" class="form-control mc-input" style="height: 30px; padding: 0 8px; font-size: 0.8rem;" />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.7rem; margin-bottom: 2px;">Opção B</label>
+                            <input type="text" name="Questions[${count}].OptionB" id="optB_${count}" class="form-control mc-input" style="height: 30px; padding: 0 8px; font-size: 0.8rem;" />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.7rem; margin-bottom: 2px;">Opção C</label>
+                            <input type="text" name="Questions[${count}].OptionC" id="optC_${count}" class="form-control mc-input" style="height: 30px; padding: 0 8px; font-size: 0.8rem;" />
+                        </div>
+                        <div class="form-group" style="margin-bottom: 4px;">
+                            <label class="form-label" style="font-size: 0.7rem; margin-bottom: 2px;">Opção D</label>
+                            <input type="text" name="Questions[${count}].OptionD" id="optD_${count}" class="form-control mc-input" style="height: 30px; padding: 0 8px; font-size: 0.8rem;" />
+                        </div>
+                    </div>
+
+                    <!-- Correct Answer -->
+                    <div class="create-correct-answer-group" style="display: none; margin-bottom: 4px;">
+                        <label class="form-label" style="font-size: 0.75rem; margin-bottom: 2px; font-weight: 600;">Resposta Correta</label>
+                        <select name="Questions[${count}].CorrectAnswer" class="form-control correct-ans-select" style="height: 34px; padding: 0 8px; font-size: 0.85rem;">
+                            <option value="">Nenhuma</option>
+                        </select>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+                container.scrollTop = container.scrollHeight;
+            });
+        }
+
+        window.changeCreateQuestionType = function(select, index) {
+            const card = select.closest(".create-question-card");
+            const mcGroup = card.querySelector(".create-mc-options-group");
+            const ansGroup = card.querySelector(".create-correct-answer-group");
+            const ansSelect = card.querySelector(".correct-ans-select");
+            
+            const optA = card.querySelector(`#optA_${index}`);
+            const optB = card.querySelector(`#optB_${index}`);
+            const optC = card.querySelector(`#optC_${index}`);
+            const optD = card.querySelector(`#optD_${index}`);
+
+            const val = select.value;
+            if (val === "MultipleChoice") {
+                mcGroup.style.display = "block";
+                ansGroup.style.display = "block";
+                
+                if (optA) optA.required = true;
+                if (optB) optB.required = true;
+                if (optC) optC.required = true;
+                if (optD) optD.required = true;
+                
+                ansSelect.innerHTML = `
+                    <option value="A">Opção A</option>
+                    <option value="B">Opção B</option>
+                    <option value="C">Opção C</option>
+                    <option value="D">Opção D</option>
+                `;
+            } else if (val === "TrueFalse") {
+                mcGroup.style.display = "none";
+                ansGroup.style.display = "block";
+                
+                if (optA) { optA.required = false; optA.value = ""; }
+                if (optB) { optB.required = false; optB.value = ""; }
+                if (optC) { optC.required = false; optC.value = ""; }
+                if (optD) { optD.required = false; optD.value = ""; }
+                
+                ansSelect.innerHTML = `
+                    <option value="true">Verdadeiro</option>
+                    <option value="false">Falso</option>
+                `;
+            } else {
+                mcGroup.style.display = "none";
+                ansGroup.style.display = "none";
+                
+                if (optA) { optA.required = false; optA.value = ""; }
+                if (optB) { optB.required = false; optB.value = ""; }
+                if (optC) { optC.required = false; optC.value = ""; }
+                if (optD) { optD.required = false; optD.value = ""; }
+                
+                ansSelect.innerHTML = `<option value="">Nenhuma</option>`;
+            }
+        };
+
+        window.removeQuestionCard = function(btn) {
+            const card = btn.closest(".create-question-card");
+            card.remove();
+            reindexQuestions();
+        };
+
+        function reindexQuestions() {
+            const container = document.getElementById("questionsContainer");
+            if (!container) return;
+            
+            const cards = container.querySelectorAll(".create-question-card");
+            cards.forEach((card, newIndex) => {
+                card.setAttribute("data-index", newIndex);
+                
+                const label = card.querySelector(".question-num-label");
+                if (label) label.innerText = `Pergunta #${newIndex + 1}`;
+                
+                card.querySelectorAll("[name]").forEach(input => {
+                    const nameAttr = input.getAttribute("name");
+                    const updatedName = nameAttr.replace(/Questions\[\d+\]/, `Questions[${newIndex}]`);
+                    input.setAttribute("name", updatedName);
+                });
+                
+                const selectType = card.querySelector(".question-type-select");
+                if (selectType) {
+                    selectType.setAttribute("onchange", `changeCreateQuestionType(this, ${newIndex})`);
+                }
+            });
+        }
     });
 </script>

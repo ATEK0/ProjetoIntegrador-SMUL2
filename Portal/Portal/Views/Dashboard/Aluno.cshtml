@@ -256,7 +256,7 @@
             </div>
             <div class="stat-details">
                 <h3>Desafios Ativos</h3>
-                <div class="value">@Model.PendingChallenges.Count</div>
+                <div class="value">@Model.PendingChallenges.Count(c => !c.IsSubmitted)</div>
             </div>
         </div>
     </div>
@@ -307,9 +307,14 @@
 
             <!-- Pending Challenges -->
             <div class="card glass-panel" style="padding: var(--spacing-lg);">
-                <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                    <i class="fas fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Desafios das Turmas
-                </h3>
+                <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+                    <h3 style="color: var(--dark-grey); font-size: 1.15rem; margin: 0;">
+                        <i class="fas fa-trophy" style="color: #f59e0b; margin-right: 8px;"></i> Desafios das Turmas
+                    </h3>
+                    <a href="#" onclick="openChallengeCodeModal(event)" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                        <i class="fas fa-hashtag" style="margin-right: 4px;"></i> Inserir Código
+                    </a>
+                </div>
 
                 @if (!Model.PendingChallenges.Any())
                 {
@@ -320,19 +325,49 @@
                 else
                 {
                     <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                        @foreach (var challenge in Model.PendingChallenges)
+                        @foreach (var item in Model.PendingChallenges)
                         {
-                            <div class="challenge-card">
-                                <h4 style="margin: 0 0 4px 0; font-size: 1.05rem; color: var(--dark-grey); font-weight: 700;">@challenge.Title</h4>
-                                @if (!string.IsNullOrWhiteSpace(challenge.Description))
+                            var borderLeftColor = item.IsSubmitted ? (item.IsGraded ? "#10b981" : "#3b82f6") : "#f59e0b";
+                            <div class="challenge-card" style="border-left-color: @borderLeftColor;">
+                                <div class="flex justify-between items-start" style="margin-bottom: 4px;">
+                                    <h4 style="margin: 0; font-size: 1.05rem; color: var(--dark-grey); font-weight: 700;">@item.Challenge.Title</h4>
+                                    @if (!item.IsSubmitted)
+                                    {
+                                        <span style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-clock"></i> Pendente</span>
+                                    }
+                                    else if (item.IsSubmitted && !item.IsGraded)
+                                    {
+                                        <span style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-check-circle"></i> Entregue</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-graduation-cap"></i> Avaliado</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(item.Challenge.Description))
                                 {
-                                    <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-muted);">@challenge.Description</p>
+                                    <p style="margin: 0 0 8px 0; font-size: 0.85rem; color: var(--text-muted);">@item.Challenge.Description</p>
                                 }
-                                <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="color: var(--primary-blue); font-weight: 600;"><i class="fas fa-users"></i> @challenge.Class.Name</span>
-                                    <a href="/Scenarios/Create" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
-                                        Resolver Desafio <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
-                                    </a>
+                                <div style="font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                                    <span style="color: var(--primary-blue); font-weight: 600;"><i class="fas fa-users"></i> @(item.Challenge.Class != null ? item.Challenge.Class.Name : "Geral")</span>
+                                    @if (!item.IsSubmitted)
+                                    {
+                                        <a href="/Challenges/Submit/@item.Challenge.Id" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                            Resolver Desafio <i class="fas fa-arrow-right" style="margin-left: 4px;"></i>
+                                        </a>
+                                    }
+                                    else if (item.IsSubmitted && !item.IsGraded)
+                                    {
+                                        <a href="/Challenges/Submit/@item.Challenge.Id" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none; border-color: #3b82f6; color: #3b82f6; background: transparent;">
+                                            Ver Resposta <i class="fas fa-eye" style="margin-left: 4px;"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Challenges/Submit/@item.Challenge.Id" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none; border-color: #10b981; color: #10b981; background: transparent;">
+                                            Ver Feedback <i class="fas fa-comment-dots" style="margin-left: 4px;"></i>
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         }
@@ -400,9 +435,7 @@
                     </div>
                 }
             </div>
-
-        </div>
-   <!-- Modal Aderir Turma Premium -->
+    <!-- Modal Aderir Turma Premium -->
 <div id="joinClassModal" class="modal-overlay">
     <div class="modal-card glass-panel">
         <button type="button" class="modal-close-btn" id="closeJoinModalBtn">
@@ -449,6 +482,53 @@
     </div>
 </div>
 
+<!-- Modal Aderir Desafio por Código -->
+<div id="joinChallengeModal" class="modal-overlay">
+    <div class="modal-card glass-panel">
+        <button type="button" class="modal-close-btn" id="closeJoinChallengeModalBtn">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <div style="text-align: left;">
+            <div class="flex items-center gap-md mb-2">
+                <div style="background-color: rgba(245, 158, 11, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                    <i class="fas fa-trophy fa-lg"></i>
+                </div>
+                <div>
+                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Aceder a Desafio</h3>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Entra num desafio utilizando o código de acesso.</p>
+                </div>
+            </div>
+            
+            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
+
+            <form action="/Challenges/AccessByCode" method="post" id="joinChallengeForm">
+                <div class="form-group">
+                    <label for="challengeCodeInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
+                        <i class="fas fa-key"></i> Código do Desafio
+                    </label>
+                    <div class="input-icon-group">
+                        <input type="text" name="code" id="challengeCodeInput" class="form-control" placeholder="EX: A1B2C3" required autocomplete="off" style="height: 44px; font-size: 1.15rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase;" />
+                        <i class="fas fa-hashtag"></i>
+                    </div>
+                    <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
+                        <i class="fas fa-info-circle"></i> Insere o código alfanumérico fornecido pelo teu professor.
+                    </span>
+                </div>
+
+                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" id="cancelJoinChallengeModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm); background-color: #f59e0b; border-color: #f59e0b;">
+                        Entrar no Desafio <i class="fas fa-arrow-right" style="margin-left: 5px;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     // Tornado global para o inline onclick
     window.openJoinModal = function(e) {
@@ -457,6 +537,18 @@
         modal.classList.add('active');
         
         var input = document.getElementById('joinCodeInput');
+        if (input) {
+            input.value = '';
+            setTimeout(function() { input.focus(); }, 100);
+        }
+    }
+
+    window.openChallengeCodeModal = function(e) {
+        if(e) e.preventDefault();
+        var modal = document.getElementById('joinChallengeModal');
+        modal.classList.add('active');
+        
+        var input = document.getElementById('challengeCodeInput');
         if (input) {
             input.value = '';
             setTimeout(function() { input.focus(); }, 100);
@@ -501,12 +593,47 @@
             }
         });
 
+        // Lógica de fecho do Modal do Desafio
+        const joinChallengeModal = document.getElementById("joinChallengeModal");
+        const closeChallengeBtn = document.getElementById("closeJoinChallengeModalBtn");
+        const cancelChallengeBtn = document.getElementById("cancelJoinChallengeModalBtn");
+
+        function closeJoinChallengeModalFunc() {
+            joinChallengeModal.classList.remove("active");
+        }
+
+        if (closeChallengeBtn) closeChallengeBtn.addEventListener("click", closeJoinChallengeModalFunc);
+        if (cancelChallengeBtn) cancelChallengeBtn.addEventListener("click", closeJoinChallengeModalFunc);
+        
+        if (joinChallengeModal) {
+            joinChallengeModal.addEventListener("click", function(e) {
+                if (e.target === joinChallengeModal) {
+                    closeJoinChallengeModalFunc();
+                }
+            });
+        }
+        
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape" && joinChallengeModal && joinChallengeModal.classList.contains("active")) {
+                closeJoinChallengeModalFunc();
+            }
+        });
+
         // Formatação do input do código da turma
         var joinInput = document.getElementById('joinCodeInput');
         if(joinInput) {
             joinInput.addEventListener('input', function(e) {
                 var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                 if(v.length > 6) v = v.slice(0,6);
+                e.target.value = v;
+            });
+        }
+
+        // Formatação do input do código do desafio
+        var challengeCodeInput = document.getElementById('challengeCodeInput');
+        if(challengeCodeInput) {
+            challengeCodeInput.addEventListener('input', function(e) {
+                var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
                 e.target.value = v;
             });
         }

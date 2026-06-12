@@ -1,0 +1,560 @@
+@model Portal.Models.Challenge
+
+@{
+    ViewData["Title"] = "Resolver Desafio";
+    var submission = ViewBag.Submission as Portal.Models.ChallengeSubmission;
+    var questions = ViewBag.Questions as List<Portal.Models.ChallengeQuestion> ?? new List<Portal.Models.ChallengeQuestion>();
+    bool isSubmitted = submission != null;
+    bool isGraded = isSubmitted && submission!.GradedAt != null;
+}
+
+<style>
+    .submit-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xl) var(--spacing-md);
+    }
+
+    .challenge-header-card {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, #1e40af 100%);
+        color: var(--white);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .challenge-header-card::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        border-radius: var(--radius-full);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .challenge-header-card h2 {
+        color: var(--white);
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .challenge-description {
+        font-size: 0.95rem;
+        opacity: 0.9;
+        line-height: 1.6;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .challenge-meta-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+        font-size: 0.8rem;
+        opacity: 0.8;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        padding-top: var(--spacing-sm);
+    }
+
+    .challenge-meta-info span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .question-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+    }
+
+    .question-card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: rgba(12, 115, 183, 0.2);
+    }
+
+    .question-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(12, 115, 183, 0.1);
+        color: var(--primary-blue);
+        font-weight: 700;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-full);
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .question-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dark-grey);
+        margin-bottom: var(--spacing-md);
+        line-height: 1.4;
+    }
+
+    /* Option Cards for MC & TF */
+    .options-grid {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+    }
+
+    .option-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        cursor: pointer;
+        transition: var(--transition);
+        background: #fdfdfd;
+        position: relative;
+    }
+
+    .option-card:hover {
+        background: rgba(12, 115, 183, 0.02);
+        border-color: rgba(12, 115, 183, 0.3);
+    }
+
+    .option-card input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary-blue);
+        cursor: pointer;
+    }
+
+    .option-card.selected {
+        border-color: var(--primary-blue);
+        background: rgba(12, 115, 183, 0.04);
+        box-shadow: 0 0 0 2px rgba(12, 115, 183, 0.1);
+    }
+
+    .option-card.disabled {
+        cursor: default;
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .option-letter {
+        font-weight: 700;
+        color: var(--primary-blue);
+        background: rgba(12, 115, 183, 0.1);
+        width: 28px;
+        height: 28px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+
+    .option-text {
+        font-size: 0.95rem;
+        color: var(--text-main);
+        flex: 1;
+    }
+
+    /* TF toggle cards */
+    .tf-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-md);
+    }
+
+    .tf-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        cursor: pointer;
+        transition: var(--transition);
+        background: #fdfdfd;
+    }
+
+    .tf-card:hover {
+        background: rgba(12, 115, 183, 0.02);
+        border-color: rgba(12, 115, 183, 0.3);
+    }
+
+    .tf-card.selected-true {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.04);
+    }
+
+    .tf-card.selected-false {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.04);
+    }
+
+    .tf-card.disabled {
+        cursor: default;
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .tf-icon {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+
+    .tf-card.selected-true .tf-icon {
+        color: #10b981;
+    }
+
+    .tf-card.selected-false .tf-icon {
+        color: #ef4444;
+    }
+
+    /* Custom Textarea styling */
+    .premium-textarea {
+        width: 100%;
+        min-height: 120px;
+        padding: var(--spacing-md);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        font-family: var(--font-family);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        transition: var(--transition);
+        resize: vertical;
+        outline: none;
+        background: #fdfdfd;
+    }
+
+    .premium-textarea:focus {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(12, 115, 183, 0.15);
+        background: var(--white);
+    }
+
+    .premium-textarea:disabled {
+        background: #f3f4f6;
+        color: var(--text-muted);
+        cursor: not-allowed;
+    }
+
+    /* Info banner for completed challenges */
+    .status-banner {
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid transparent;
+    }
+
+    .status-banner.submitted {
+        background: rgba(245, 158, 11, 0.08);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #b45309;
+    }
+
+    .status-banner.graded {
+        background: rgba(16, 185, 129, 0.08);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #065f46;
+    }
+
+    /* Grading Status badges next to question */
+    .answer-grade-badge {
+        position: absolute;
+        top: var(--spacing-xl);
+        right: var(--spacing-xl);
+        font-size: 0.775rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: var(--radius-full);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .grade-correct { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .grade-incorrect { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .grade-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+
+    .action-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: var(--spacing-xl);
+        border-top: 1px solid var(--border-color);
+        padding-top: var(--spacing-lg);
+    }
+</style>
+
+<div class="submit-page animate-fade-in">
+
+    <div style="margin-bottom: var(--spacing-md);">
+        <a href="/Dashboard/Aluno" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-arrow-left"></i> Voltar ao Painel do Aluno
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b; font-size: 0.9rem;">
+            <i class="fas fa-exclamation-circle" style="margin-right: 6px;"></i> @TempData["Error"]
+        </div>
+    }
+
+    <!-- Challenge Header -->
+    <div class="challenge-header-card">
+        <h2>@Model.Title</h2>
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="challenge-description">@Model.Description</div>
+        }
+        <div class="challenge-meta-info">
+            <span><i class="fas fa-user-tie"></i> Professor: <strong>@Model.Teacher?.Name</strong></span>
+            <span><i class="fas fa-calendar-alt"></i> Publicado em: <strong>@Model.CreatedAt.ToString("dd/MM/yyyy")</strong></span>
+            <span><i class="fas fa-hashtag"></i> Código: <strong>@Model.AccessLinkCode</strong></span>
+            @if (Model.Class != null)
+            {
+                <span><i class="fas fa-graduation-cap"></i> Turma: <strong>@Model.Class.Name</strong></span>
+            }
+        </div>
+    </div>
+
+    <!-- Submission Status Banners -->
+    @if (isSubmitted)
+    {
+        if (isGraded)
+        {
+            <div class="status-banner graded">
+                <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                    <span style="font-size: 1.5rem;"><i class="fas fa-graduation-cap"></i></span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.05rem;">Desafio Avaliado pelo Professor!</div>
+                        <div style="font-size: 0.85rem; opacity: 0.9;">
+                            Avaliação recebida em @submission!.GradedAt!.Value.ToString("dd/MM/yyyy HH:mm"). Veja abaixo as correções.
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(submission.Feedback))
+                {
+                    <div style="margin-top: var(--spacing-sm); background: white; padding: var(--spacing-md); border-radius: var(--radius-md); border: 1px solid rgba(16, 185, 129, 0.2); color: var(--dark-grey);">
+                        <strong style="color: var(--primary-blue); font-size: 0.85rem; display: block; margin-bottom: 4px; text-transform: uppercase;">Feedback do Professor:</strong>
+                        <span style="font-size: 0.95rem; white-space: pre-wrap;">@submission.Feedback</span>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="status-banner submitted">
+                <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                    <span style="font-size: 1.5rem;"><i class="fas fa-check-circle"></i></span>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1.05rem;">Desafio Submetido com Sucesso!</div>
+                        <div style="font-size: 0.85rem; opacity: 0.9;">
+                            Entregue em @submission!.CreatedAt.ToString("dd/MM/yyyy HH:mm"). A aguardar avaliação do professor.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Challenge Form -->
+    <form action="/Challenges/Submit/@Model.Id" method="post" id="challengeForm">
+        
+        @foreach (var q in questions)
+        {
+            var answer = submission?.Answers.FirstOrDefault(a => a.ChallengeQuestionId == q.Id);
+            var ansText = answer?.AnswerText ?? "";
+            
+            <div class="question-card">
+                <div class="question-number">@(questions.IndexOf(q) + 1)</div>
+                <div class="question-title">@q.QuestionText</div>
+
+                <!-- Grading Badge next to question if evaluated -->
+                @if (isSubmitted)
+                {
+                    if (isGraded && answer != null)
+                    {
+                        if (answer.IsCorrect == true)
+                        {
+                            <span class="answer-grade-badge grade-correct"><i class="fas fa-check-circle"></i> Correta</span>
+                        }
+                        else if (answer.IsCorrect == false)
+                        {
+                            <span class="answer-grade-badge grade-incorrect"><i class="fas fa-times-circle"></i> Incorreta</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="answer-grade-badge grade-pending"><i class="fas fa-clock"></i> Por Avaliar</span>
+                    }
+                }
+
+                @if (q.QuestionType == Portal.Models.QuestionType.Simple)
+                {
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <textarea 
+                            name="answers[@q.Id]" 
+                            class="premium-textarea" 
+                            placeholder="Escreve aqui a tua resposta detalhadamente..."
+                            required
+                            maxLength="1000"
+                            @(isSubmitted ? "disabled" : "")>@ansText</textarea>
+                    </div>
+                }
+                else if (q.QuestionType == Portal.Models.QuestionType.MultipleChoice)
+                {
+                    <div class="options-grid">
+                        @{
+                            var mcOptions = new[] {
+                                new { Code = "A", Text = q.OptionA },
+                                new { Code = "B", Text = q.OptionB },
+                                new { Code = "C", Text = q.OptionC },
+                                new { Code = "D", Text = q.OptionD }
+                            };
+                        }
+
+                        @foreach (var opt in mcOptions)
+                        {
+                            bool isSelected = isSubmitted && ansText == opt.Code;
+                            <div class="option-card @(isSelected ? "selected" : "") @(isSubmitted ? "disabled" : "")" onclick="selectOption(this, '@opt.Code', @q.Id)">
+                                <input 
+                                    type="radio" 
+                                    name="answers[@q.Id]" 
+                                    value="@opt.Code" 
+                                    id="mc_@(q.Id)_@opt.Code" 
+                                    required
+                                    @(isSelected ? "checked" : "")
+                                    @(isSubmitted ? "disabled" : "") />
+                                <span class="option-letter">@opt.Code</span>
+                                <span class="option-text">@opt.Text</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else if (q.QuestionType == Portal.Models.QuestionType.TrueFalse)
+                {
+                    <div class="tf-grid">
+                        @{
+                            bool isTrueSelected = isSubmitted && ansText == "true";
+                            bool isFalseSelected = isSubmitted && ansText == "false";
+                        }
+                        
+                        <div class="tf-card @(isTrueSelected ? "selected-true" : "") @(isSubmitted ? "disabled" : "")" onclick="selectTF(this, true, @q.Id)" id="tfCardTrue_@q.Id">
+                            <span class="tf-icon"><i class="fas fa-check"></i></span>
+                            <strong style="font-size: 1.1rem;">Verdadeiro</strong>
+                            <input 
+                                type="radio" 
+                                name="answers[@q.Id]" 
+                                value="true" 
+                                id="tf_@(q.Id)_true" 
+                                required 
+                                style="display: none;"
+                                @(isTrueSelected ? "checked" : "")
+                                @(isSubmitted ? "disabled" : "") />
+                        </div>
+
+                        <div class="tf-card @(isFalseSelected ? "selected-false" : "") @(isSubmitted ? "disabled" : "")" onclick="selectTF(this, false, @q.Id)" id="tfCardFalse_@q.Id">
+                            <span class="tf-icon"><i class="fas fa-times"></i></span>
+                            <strong style="font-size: 1.1rem;">Falso</strong>
+                            <input 
+                                type="radio" 
+                                name="answers[@q.Id]" 
+                                value="false" 
+                                id="tf_@(q.Id)_false" 
+                                required 
+                                style="display: none;"
+                                @(isFalseSelected ? "checked" : "")
+                                @(isSubmitted ? "disabled" : "") />
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Action Buttons -->
+        <div class="action-row">
+            <a href="/Dashboard/Aluno" class="btn btn-outline" style="text-decoration: none;">
+                <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> Cancelar
+            </a>
+            
+            @if (!isSubmitted)
+            {
+                <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-weight: 700;">
+                    Submeter Respostas <i class="fas fa-paper-plane" style="margin-left: 8px;"></i>
+                </button>
+            }
+        </div>
+    </form>
+</div>
+
+<script>
+    function selectOption(element, code, questionId) {
+        if (element.classList.contains('disabled')) return;
+        
+        // Deselect all cards for this question
+        const container = element.closest('.options-grid');
+        container.querySelectorAll('.option-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Select clicked card
+        element.classList.add('selected');
+        const radio = document.getElementById(`mc_${questionId}_${code}`);
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+
+    function selectTF(element, isTrue, questionId) {
+        if (element.classList.contains('disabled')) return;
+
+        // Deselect all tf cards for this question
+        const tfGrid = element.closest('.tf-grid');
+        tfGrid.querySelectorAll('.tf-card').forEach(card => {
+            card.classList.remove('selected-true', 'selected-false');
+        });
+
+        if (isTrue) {
+            element.classList.add('selected-true');
+            const radio = document.getElementById(`tf_${questionId}_true`);
+            if (radio) radio.checked = true;
+        } else {
+            element.classList.add('selected-false');
+            const radio = document.getElementById(`tf_${questionId}_false`);
+            if (radio) radio.checked = true;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Auto-dismiss alert
+        var alert = document.querySelector(".alert-flash");
+        if (alert) {
+            setTimeout(function() {
+                alert.style.transition = "opacity .5s";
+                alert.style.opacity = "0";
+                setTimeout(function() { alert.remove(); }, 500);
+            }, 6000);
+        }
+    });
+</script>

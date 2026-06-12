@@ -125,10 +125,7 @@
 <div class="container dashboard-page">
 
     <div class="dashboard-top">
-        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Desafios", Subtitle = "Visualizar e criar desafios." }' />
-        <button type="button" id="openChallengeModalBtn" class="btn btn-primary">
-            <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Novo Desafio
-        </button>
+        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Desafios", Subtitle = "Visualizar desafios do sistema." }' />
     </div>
 
     <div>
@@ -141,8 +138,7 @@
                         <i class="fas fa-trophy fa-3x"></i>
                     </div>
                     <h4 style="font-size: 1.2rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Nenhum Desafio Configurado</h4>
-                    <p class="text-muted" style="max-width: 450px; margin: 0 auto var(--spacing-lg) auto; font-size: 0.875rem; line-height: 1.4;">Ainda não existem desafios de simulação registados no sistema. Comece por criar o primeiro desafio clicando abaixo.</p>
-                    <button type="button" id="openChallengeModalBtnEmpty" class="btn btn-primary">Criar Primeiro Desafio</button>
+                    <p class="text-muted" style="max-width: 450px; margin: 0 auto; font-size: 0.875rem; line-height: 1.4;">Ainda não existem desafios de simulação registados no sistema.</p>
                 </div>
             }
             else
@@ -191,109 +187,3 @@
         </div>
     </div>
 </div>
-
-<div id="createChallengeModal" class="modal-overlay">
-    <div class="modal-card glass-panel">
-        <button type="button" class="modal-close-btn" id="closeChallengeModalBtn">
-            <i class="fas fa-times"></i>
-        </button>
-        
-        <div style="text-align: left;">
-            <div class="flex items-center gap-md mb-2">
-                <div style="background-color: rgba(12, 115, 183, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
-                    <i class="fas fa-trophy fa-lg"></i>
-                </div>
-                <div>
-                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Criar Novo Desafio</h3>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Configure um desafio de literacia financeira.</p>
-                </div>
-            </div>
-            
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
-
-            <form asp-controller="Challenges" asp-action="Create" method="post" id="createChallengeForm">
-                <div class="form-group">
-                    <label for="challengeTitleInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-edit"></i> Título do Desafio
-                    </label>
-                    <div class="input-icon-group">
-                        <input type="text" name="title" id="challengeTitleInput" class="form-control" placeholder="Ex: Simulação Orçamento Familiar" required autocomplete="off" maxlength="255" style="height: 44px; font-size: 0.95rem;" />
-                        <i class="fas fa-bullseye"></i>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label for="challengeDescInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-align-left"></i> Descrição / Notas (Opcional)
-                    </label>
-                    <textarea name="description" id="challengeDescInput" class="form-control" placeholder="Descreva brevemente o objetivo do desafio..." style="height: 80px; font-size: 0.9rem; padding: 10px; resize: none;"></textarea>
-                </div>
-
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label for="challengeClassSelect" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-graduation-cap"></i> Associar a uma Turma (Opcional)
-                    </label>
-                    <select name="classId" id="challengeClassSelect" class="form-control" style="height: 44px; font-size: 0.9rem; padding-left: 10px;">
-                        <option value="">Nenhuma (Desafio Independente - Acesso por Código)</option>
-                        @foreach (var cls in Model.Classes)
-                        {
-                            <option value="@cls.Id">@cls.Name</option>
-                        }
-                    </select>
-                    <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
-                        <i class="fas fa-info-circle"></i> O desafio receberá um código alfanumérico único para os alunos entrarem diretamente.
-                    </span>
-                </div>
-
-                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
-                    <button type="button" class="btn btn-outline" id="cancelChallengeModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm);">
-                        Criar Desafio <i class="fas fa-plus-circle" style="margin-left: 5px;"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const challengeModal = document.getElementById("createChallengeModal");
-        const openChallengeModalBtn = document.getElementById("openChallengeModalBtn");
-        const openChallengeModalBtnEmpty = document.getElementById("openChallengeModalBtnEmpty");
-        const closeChallengeModalBtn = document.getElementById("closeChallengeModalBtn");
-        const cancelChallengeModalBtn = document.getElementById("cancelChallengeModalBtn");
-        const challengeTitleInput = document.getElementById("challengeTitleInput");
-
-        function openChallengeModal() {
-            challengeModal.classList.add("active");
-            if (challengeTitleInput) challengeTitleInput.focus();
-        }
-
-        function closeChallengeModal() {
-            challengeModal.classList.remove("active");
-            if (challengeTitleInput) challengeTitleInput.value = "";
-            const challengeDescInput = document.getElementById("challengeDescInput");
-            if (challengeDescInput) challengeDescInput.value = "";
-        }
-
-        if (openChallengeModalBtn) openChallengeModalBtn.addEventListener("click", openChallengeModal);
-        if (openChallengeModalBtnEmpty) openChallengeModalBtnEmpty.addEventListener("click", openChallengeModal);
-        if (closeChallengeModalBtn) closeChallengeModalBtn.addEventListener("click", closeChallengeModal);
-        if (cancelChallengeModalBtn) cancelChallengeModalBtn.addEventListener("click", closeChallengeModal);
-        
-        challengeModal.addEventListener("click", function(e) {
-            if (e.target === challengeModal) {
-                closeChallengeModal();
-            }
-        });
-
-        document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape" && challengeModal.classList.contains("active")) {
-                closeChallengeModal();
-            }
-        });
-    });
-</script>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Portal.Data;
 
@@ -11,9 +12,11 @@ using Portal.Data;
 namespace Portal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260612142230_AddChallengeSubmissions")]
+    partial class AddChallengeSubmissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -135,125 +138,6 @@ namespace Portal.Migrations
                     b.ToTable("challenges", (string)null);
                 });
 
-            modelBuilder.Entity("Portal.Models.ChallengeAnswer", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AnswerText")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("answer_text");
-
-                    b.Property<int>("ChallengeQuestionId")
-                        .HasColumnType("int")
-                        .HasColumnName("challenge_question_id");
-
-                    b.Property<int>("ChallengeSubmissionId")
-                        .HasColumnType("int")
-                        .HasColumnName("challenge_submission_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<bool?>("IsCorrect")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("is_correct");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_challenge_answers");
-
-                    b.HasIndex("ChallengeQuestionId")
-                        .HasDatabaseName("ix_challenge_answers_challenge_question_id");
-
-                    b.HasIndex("ChallengeSubmissionId", "ChallengeQuestionId", "DeletedAt")
-                        .HasDatabaseName("ix_challenge_answers_challenge_submission_id_challenge_question");
-
-                    b.ToTable("challenge_answers", (string)null);
-                });
-
-            modelBuilder.Entity("Portal.Models.ChallengeQuestion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ChallengeId")
-                        .HasColumnType("int")
-                        .HasColumnName("challenge_id");
-
-                    b.Property<string>("CorrectAnswer")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("correct_answer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("OptionA")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("option_a");
-
-                    b.Property<string>("OptionB")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("option_b");
-
-                    b.Property<string>("OptionC")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("option_c");
-
-                    b.Property<string>("OptionD")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("option_d");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("question_text");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("question_type");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id")
-                        .HasName("pk_challenge_questions");
-
-                    b.HasIndex("ChallengeId", "DeletedAt")
-                        .HasDatabaseName("ix_challenge_questions_challenge_id_deleted_at");
-
-                    b.ToTable("challenge_questions", (string)null);
-                });
-
             modelBuilder.Entity("Portal.Models.ChallengeSubmission", b =>
                 {
                     b.Property<int>("Id")
@@ -275,17 +159,24 @@ namespace Portal.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("deleted_at");
 
-                    b.Property<string>("Feedback")
-                        .HasColumnType("longtext")
-                        .HasColumnName("feedback");
+                    b.Property<string>("MultipleChoiceAnswer")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("multiple_choice_answer");
 
-                    b.Property<DateTime?>("GradedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("graded_at");
+                    b.Property<string>("SimpleQuestionAnswer")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("simple_question_answer");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("int")
                         .HasColumnName("student_id");
+
+                    b.Property<bool>("TrueFalseAnswer")
+                        .HasColumnType("tinyint(1)")
+                        .HasColumnName("true_false_answer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)")
@@ -829,39 +720,6 @@ namespace Portal.Migrations
                     b.Navigation("Teacher");
                 });
 
-            modelBuilder.Entity("Portal.Models.ChallengeAnswer", b =>
-                {
-                    b.HasOne("Portal.Models.ChallengeQuestion", "ChallengeQuestion")
-                        .WithMany()
-                        .HasForeignKey("ChallengeQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_challenge_answers_challenge_questions_challenge_question_id");
-
-                    b.HasOne("Portal.Models.ChallengeSubmission", "ChallengeSubmission")
-                        .WithMany("Answers")
-                        .HasForeignKey("ChallengeSubmissionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_challenge_answers_challenge_submissions_challenge_submission");
-
-                    b.Navigation("ChallengeQuestion");
-
-                    b.Navigation("ChallengeSubmission");
-                });
-
-            modelBuilder.Entity("Portal.Models.ChallengeQuestion", b =>
-                {
-                    b.HasOne("Portal.Models.Challenge", "Challenge")
-                        .WithMany()
-                        .HasForeignKey("ChallengeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_challenge_questions_challenges_challenge_id");
-
-                    b.Navigation("Challenge");
-                });
-
             modelBuilder.Entity("Portal.Models.ChallengeSubmission", b =>
                 {
                     b.HasOne("Portal.Models.Challenge", "Challenge")
@@ -1007,11 +865,6 @@ namespace Portal.Migrations
             modelBuilder.Entity("Portal.Models.Challenge", b =>
                 {
                     b.Navigation("Scenarios");
-                });
-
-            modelBuilder.Entity("Portal.Models.ChallengeSubmission", b =>
-                {
-                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("Portal.Models.Role", b =>

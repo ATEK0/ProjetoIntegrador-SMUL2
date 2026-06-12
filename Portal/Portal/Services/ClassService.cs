@@ -130,6 +130,36 @@ namespace Portal.Services
                 .Where(u => u.Role.RoleName == "Professor" || u.Role.RoleName == "Admin")
                 .ToListAsync();
 
+            var challenges = await _context.Challenges
+                .Where(ch => ch.ClassId == id)
+                .ToListAsync();
+
+            var challengeIds = challenges.Select(ch => ch.Id).ToList();
+
+            var submissions = await _context.ChallengeSubmissions
+                .Where(cs => challengeIds.Contains(cs.ChallengeId))
+                .ToListAsync();
+
+            var studentChallengeStatuses = new Dictionary<int, List<StudentChallengeStatusViewModel>>();
+            foreach (var student in enrolledStudents)
+            {
+                var statuses = new List<StudentChallengeStatusViewModel>();
+                foreach (var challenge in challenges)
+                {
+                    var sub = submissions.FirstOrDefault(s => s.StudentId == student.Id && s.ChallengeId == challenge.Id);
+                    statuses.Add(new StudentChallengeStatusViewModel
+                    {
+                        ChallengeId = challenge.Id,
+                        ChallengeTitle = challenge.Title,
+                        IsSubmitted = sub != null,
+                        IsGraded = sub?.GradedAt != null,
+                        SubmissionId = sub?.Id,
+                        SubmittedAt = sub?.CreatedAt
+                    });
+                }
+                studentChallengeStatuses[student.Id] = statuses;
+            }
+
             return new ClassDetailsViewModel
             {
                 Id = schoolClass.Id,
@@ -138,7 +168,9 @@ namespace Portal.Services
                 TeacherId = schoolClass.TeacherId,
                 Teacher = schoolClass.Teacher,
                 EnrolledStudents = enrolledStudents,
-                AvailableTeachers = availableTeachers
+                AvailableTeachers = availableTeachers,
+                Challenges = challenges,
+                StudentChallengeStatuses = studentChallengeStatuses
             };
         }
 
@@ -166,10 +198,23 @@ namespace Portal.Services
             var schoolClass = await _context.Classes.FindAsync(id);
             if (schoolClass == null) return "Turma não encontrada.";
 
-            var enrollments = _context.ClassEnrollments.Where(ce => ce.ClassId == id);
-            _context.ClassEnrollments.RemoveRange(enrollments);
+            // Soft-delete all enrollments in the class
+            var enrollments = await _context.ClassEnrollments.Where(ce => ce.ClassId == id).ToListAsync();
+            foreach (var enrollment in enrollments)
+            {
+                enrollment.MarkAsDeleted();
+            }
 
-            _context.Classes.Remove(schoolClass);
+            // Unlink any challenges from this class
+            var challenges = await _context.Challenges.Where(ch => ch.ClassId == id).ToListAsync();
+            foreach (var challenge in challenges)
+            {
+                challenge.ClassId = null;
+            }
+
+            // Soft-delete the class itself
+            schoolClass.MarkAsDeleted();
+
             await _context.SaveChangesAsync();
             await _audit.LogAsync(AuditAction.Delete, "SchoolClass", id.ToString());
             return null;
