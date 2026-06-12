@@ -15,11 +15,13 @@ namespace Portal.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<ClassService> _logger;
+        private readonly IAuditService _audit;
 
-        public ClassService(ApplicationDbContext context, ILogger<ClassService> logger)
+        public ClassService(ApplicationDbContext context, ILogger<ClassService> logger, IAuditService audit)
         {
             _context = context;
             _logger = logger;
+            _audit = audit;
         }
 
         public async Task<List<TeacherClassViewModel>> GetTeacherClassesAsync(int teacherId)
@@ -51,9 +53,11 @@ namespace Portal.Services
             var code = await CodeGenerator.GenerateUniqueAsync(code =>
                 _context.Classes.AnyAsync(c => c.MembershipCode == code));
 
-            _context.Classes.Add(new SchoolClass(teacherId, name, code));
+            var schoolClass = new SchoolClass(teacherId, name, code);
+            _context.Classes.Add(schoolClass);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Turma '{Name}' criada com código {Code}.", name, code);
+            await _audit.LogAsync(AuditAction.Create, "SchoolClass", schoolClass.Id.ToString());
         }
 
         public async Task<string?> JoinClassAsync(int studentId, string membershipCode)
@@ -70,8 +74,10 @@ namespace Portal.Services
             if (await _context.ClassEnrollments.AnyAsync(ce => ce.ClassId == targetClass.Id && ce.StudentId == studentId))
                 return "Já estás inscrito nesta turma!";
 
-            _context.ClassEnrollments.Add(new ClassEnrollment(targetClass.Id, studentId));
+            var enrollment = new ClassEnrollment(targetClass.Id, studentId);
+            _context.ClassEnrollments.Add(enrollment);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Create, "ClassEnrollment", enrollment.Id.ToString(), userId: studentId);
             return null;
         }
 
@@ -86,8 +92,10 @@ namespace Portal.Services
             if (await _context.ClassEnrollments.AnyAsync(ce => ce.ClassId == classId && ce.StudentId == userId))
                 return "O utilizador já está inscrito nesta turma.";
 
-            _context.ClassEnrollments.Add(new ClassEnrollment(classId, userId));
+            var enrollment = new ClassEnrollment(classId, userId);
+            _context.ClassEnrollments.Add(enrollment);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Create, "ClassEnrollment", enrollment.Id.ToString());
             return null;
         }
 
@@ -100,6 +108,7 @@ namespace Portal.Services
 
             enrollment.MarkAsDeleted();
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Delete, "ClassEnrollment", enrollment.Id.ToString());
             return null;
         }
 
@@ -148,6 +157,7 @@ namespace Portal.Services
             schoolClass.Name = name;
             schoolClass.TeacherId = teacherId;
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Update, "SchoolClass", id.ToString());
             return null;
         }
 
@@ -161,6 +171,7 @@ namespace Portal.Services
 
             _context.Classes.Remove(schoolClass);
             await _context.SaveChangesAsync();
+            await _audit.LogAsync(AuditAction.Delete, "SchoolClass", id.ToString());
             return null;
         }
     }

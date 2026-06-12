@@ -12,5 +12,6 @@ namespace Portal.Models.ViewModels
         public User Teacher { get; set; }
         public List<User> EnrolledStudents { get; set; } = new List<User>();
         public List<User> AvailableTeachers { get; set; } = new List<User>();
+        public bool CanEdit { get; set; }
     }
 }

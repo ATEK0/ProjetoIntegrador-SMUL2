@@ -58,6 +58,8 @@ namespace Portal
                 };
             });
 
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IAuditService, AuditService>();
             builder.Services.AddScoped<AccountService>();
             builder.Services.AddScoped<ClassService>();
             builder.Services.AddScoped<ChallengeService>();

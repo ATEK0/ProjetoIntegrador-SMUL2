@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Portal.Data;
-using Portal.Models;
 using Portal.Models.ViewModels;
 using Portal.Services;
 using System;

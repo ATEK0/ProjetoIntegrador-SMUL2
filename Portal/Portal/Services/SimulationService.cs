@@ -1,11 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Portal.Models;
 using Portal.Models.ViewModels;
 
 namespace Portal.Services
@@ -17,6 +18,56 @@ namespace Portal.Services
         public SimulationService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+        }
+
+        public async Task<MsHealthStatusViewModel> CheckHealthAsync()
+        {
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                var response = await _httpClient.GetAsync("api/v1/health/");
+                sw.Stop();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new MsHealthStatusViewModel
+                    {
+                        IsOnline = false,
+                        Error = $"HTTP {(int)response.StatusCode}",
+                        CheckedAt = DateTime.UtcNow,
+                        ResponseTimeMs = sw.ElapsedMilliseconds
+                    };
+                }
+
+                var data = await response.Content.ReadFromJsonAsync<MsHealthApiResponse>();
+                return new MsHealthStatusViewModel
+                {
+                    IsOnline = true,
+                    Service = data?.Service,
+                    Status = data?.Status,
+                    Version = data?.Version,
+                    CheckedAt = DateTime.UtcNow,
+                    ResponseTimeMs = sw.ElapsedMilliseconds
+                };
+            }
+            catch (Exception ex)
+            {
+                sw.Stop();
+                return new MsHealthStatusViewModel
+                {
+                    IsOnline = false,
+                    Error = ex.Message,
+                    CheckedAt = DateTime.UtcNow,
+                    ResponseTimeMs = sw.ElapsedMilliseconds
+                };
+            }
+        }
+
+        private class MsHealthApiResponse
+        {
+            public string? Service { get; set; }
+            public string? Status { get; set; }
+            public string? Version { get; set; }
         }
 
         public async Task<SimulationResultViewModel> CalculateAsync(SimulationRequest request)

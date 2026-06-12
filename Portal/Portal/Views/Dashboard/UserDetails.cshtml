@@ -76,31 +76,16 @@
     }
 </style>
 
-<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+<div class="container dashboard-page">
 
-    <div style="margin-bottom: var(--spacing-lg);">
-        <a href="/Dashboard/AdminUsers" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s;">
-            <i class="fas fa-arrow-left"></i> Voltar aos Utilizadores
-        </a>
-    </div>
+    <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = Model.User.Name, Subtitle = Model.User.Email }' />
 
-    <!-- Hero Header / Profile Banner -->
-    <div class="info-card" style="margin-bottom: var(--spacing-lg); display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-lg); background: linear-gradient(135deg, rgba(12, 115, 183, 0.03) 0%, rgba(12, 115, 183, 0.08) 100%);">
-        
-        <div style="display: flex; align-items: center; gap: var(--spacing-lg);">
-            <div class="user-avatar-lg" style="box-shadow: var(--shadow-md); background: white; border: 2px solid var(--primary-blue);">
-                @(!string.IsNullOrWhiteSpace(Model.User.Name) ? Model.User.Name.Substring(0, 1).ToUpper() : "U")
-            </div>
-            <div>
-                <h2 style="margin: 0; color: var(--dark-grey); font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">@Model.User.Name</h2>
-                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                    <i class="fas fa-envelope text-muted" style="font-size: 0.85rem;"></i>
-                    <span class="text-muted" style="font-size: 0.95rem;">@Model.User.Email</span>
-                </div>
-            </div>
+    <div class="info-card" style="margin-bottom: var(--spacing-lg); display: flex; flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--spacing-lg);">
+        <div class="user-avatar-lg">
+            @(!string.IsNullOrWhiteSpace(Model.User.Name) ? Model.User.Name.Substring(0, 1).ToUpper() : "U")
         </div>
 
-        <div style="min-width: 250px; display: flex; flex-direction: column; align-items: flex-end;">
+        <div style="min-width: 250px; display: flex; flex-direction: column; align-items: flex-end; margin-left: auto;">
             <label style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px; display: block; letter-spacing: 0.5px;"><i class="fas fa-user-shield" style="margin-right: 4px; color: var(--primary-blue);"></i> Permissões do Utilizador</label>
             @if (Model.User.Role.RoleName == "Admin")
             {

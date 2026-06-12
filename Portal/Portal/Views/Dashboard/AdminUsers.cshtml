@@ -5,48 +5,6 @@
 }
 
 <style>
-    .admin-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: var(--spacing-xl);
-        gap: var(--spacing-md);
-        flex-wrap: wrap;
-    }
-
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-sm);
-    }
-
-    .tab-btn:hover {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-blue);
-    }
-
     .users-grid {
         display: grid;
         grid-template-columns: 1fr;
@@ -139,12 +97,11 @@
     }
 </style>
 
-<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+<div class="container dashboard-page">
 
-    <!-- Navigation Tabs -->
+    <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Utilizadores", Subtitle = "Gerir contas e funções." }' />
 
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--spacing-md);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--spacing-md);">
                 @foreach (var user in Model.Users)
                 {
                     <div style="background: rgba(12, 115, 183, 0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; flex-direction: column;">
@@ -184,9 +141,6 @@
 
                     </div>
                 }
-            </div>
-
-
     </div>
 
 </div>

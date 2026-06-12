@@ -1,135 +1,217 @@
-@model Portal.Models.ViewModels.AdminDashboardViewModel
+@model Portal.Models.ViewModels.AdminInfraViewModel
 
 @{
-    ViewData["Title"] = "Administração de System";
+    ViewData["Title"] = "Administração";
 }
 
 <style>
-    .admin-tabs {
-        display: flex;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: var(--spacing-xl);
+    .infra-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
     }
 
-    .tab-btn {
-        background: transparent;
-        border: none;
-        padding: var(--spacing-md) var(--spacing-lg);
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-muted);
+    .infra-card {
+        background: var(--white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
         text-decoration: none;
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
+        color: inherit;
+        display: block;
+    }
+
+    .infra-card:hover {
+        border-color: var(--primary-blue);
+        box-shadow: var(--shadow-md);
+    }
+
+    .infra-card .icon {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .infra-card .count {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-grey);
+        line-height: 1.2;
+    }
+
+    .infra-card .label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .health-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: var(--spacing-lg);
+    }
+
+    .health-card {
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        border: 1px solid var(--border-color);
+        background: var(--white);
+    }
+
+    .health-card h3 {
+        margin: 0 0 var(--spacing-md) 0;
+        font-size: 1rem;
+        color: var(--dark-grey);
         display: flex;
         align-items: center;
         gap: var(--spacing-sm);
     }
 
-    .tab-btn:hover {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active {
-        color: var(--primary-blue);
-    }
-
-    .tab-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background-color: var(--primary-blue);
-    }
-
-    .table-row-hover:hover {
-        background-color: rgba(12, 115, 183, 0.02);
-    }
-
-    .badge-status {
-        background-color: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        padding: 4px 10px;
-        border-radius: var(--radius-sm);
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
         display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .status-online { background: #10b981; }
+    .status-offline { background: #ef4444; }
+    .status-checking { background: #f59e0b; }
+
+    .health-detail {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin: 4px 0;
+    }
+
+    .health-detail strong {
+        color: var(--dark-grey);
+    }
+
+    .health-meta {
+        margin-top: var(--spacing-md);
+        padding-top: var(--spacing-md);
+        border-top: 1px solid var(--border-color);
+        font-size: 0.8rem;
+        color: var(--text-muted);
     }
 </style>
 
-<div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
+<div class="container dashboard-page">
 
-    <div class="admin-tabs">
-        <a href="/Dashboard/Admin" class="tab-btn active">
-            <i class="fas fa-server"></i> Infraestrutura & Saúde
+    <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Administração", Subtitle = "Monitorização da infraestrutura e acesso rápido à gestão." }' />
+
+    <div class="infra-grid">
+        <a href="/Dashboard/AdminUsers" class="infra-card">
+            <div class="icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;"><i class="fas fa-users-cog"></i></div>
+            <div class="count">@Model.TotalUsers</div>
+            <div class="label">Utilizadores</div>
         </a>
-        <a href="/Dashboard/AdminClasses" class="tab-btn">
-            <i class="fas fa-graduation-cap"></i> Gestão de Turmas (@Model.Classes.Count())
+        <a href="/Dashboard/AdminClasses" class="infra-card">
+            <div class="icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;"><i class="fas fa-graduation-cap"></i></div>
+            <div class="count">@Model.TotalClasses</div>
+            <div class="label">Turmas</div>
         </a>
-        <a href="/Dashboard/AdminChallenges" class="tab-btn">
-            <i class="fas fa-trophy"></i> Gestão de Desafios (@Model.Challenges.Count())
+        <a href="/Dashboard/AdminChallenges" class="infra-card">
+            <div class="icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;"><i class="fas fa-trophy"></i></div>
+            <div class="count">@Model.TotalChallenges</div>
+            <div class="label">Desafios</div>
         </a>
-        <a href="/Dashboard/AdminUsers" class="tab-btn">
-            <i class="fas fa-users-cog"></i> Gestão de Utilizadores
+        <a href="/Dashboard/AdminAuditLogs" class="infra-card">
+            <div class="icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;"><i class="fas fa-clipboard-list"></i></div>
+            <div class="count">@Model.TotalAuditLogs</div>
+            <div class="label">Audit Logs</div>
         </a>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="card glass-panel" style="grid-column: span 2;">
-            <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Estado da Infraestrutura</h3>
-            <div class="flex gap-lg">
-                <div class="stat-card" style="flex: 1;">
-                    <div class="stat-icon" style="color: #10b981; background-color: rgba(16,185,129,0.1);"><i class="fas fa-server"></i></div>
-                    <div class="stat-details">
-                        <h3>Servidores</h3>
-                        <div class="value" style="color: #10b981;">Online</div>
-                    </div>
-                </div>
-                <div class="stat-card" style="flex: 1;">
-                    <div class="stat-icon" style="color: #3b82f6; background-color: rgba(59,130,246,0.1);"><i class="fas fa-database"></i></div>
-                    <div class="stat-details">
-                        <h3>Base de Dados</h3>
-                        <div class="value">Sincronizada</div>
-                    </div>
-                </div>
-                <div class="stat-card" style="flex: 1;">
-                    <div class="stat-icon"><i class="fas fa-users"></i></div>
-                    <div class="stat-details">
-                        <h3>Utilizadores Ativos</h3>
-                        <div class="value">458</div>
-                    </div>
-                </div>
+    <div class="health-grid">
+        <div class="health-card glass-panel">
+            <h3>
+                <span id="ms-dot" class="status-dot status-checking"></span>
+                MS-CAFIN (Microserviço)
+            </h3>
+            <div id="ms-status-text" class="health-detail">A verificar ligação...</div>
+            <div id="ms-service" class="health-detail" style="display:none;">Serviço: <strong id="ms-service-val"></strong></div>
+            <div id="ms-version" class="health-detail" style="display:none;">Versão: <strong id="ms-version-val"></strong></div>
+            <div id="ms-error" class="health-detail" style="display:none; color: #ef4444;">Erro: <strong id="ms-error-val"></strong></div>
+            <div class="health-meta">
+                <i class="fas fa-sync-alt"></i> Atualização automática a cada 15s
+                <span id="ms-last-check"></span>
             </div>
         </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: var(--spacing-md);">Ações de Gestão</h3>
-            <div class="flex flex-col gap-sm">
-                <button class="btn btn-primary" style="justify-content: flex-start;"><i class="fas fa-user-shield" style="margin-right: 8px;"></i> Gerir Utilizadores</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cloud-download-alt" style="margin-right: 8px;"></i> Backup Manual</button>
-                <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-cogs" style="margin-right: 8px;"></i> Configurações do Sistema</button>
+        <div class="health-card glass-panel">
+            <h3>
+                <span class="status-dot @(Model.DatabaseOnline ? "status-online" : "status-offline")"></span>
+                Base de Dados (MySQL)
+            </h3>
+            <div class="health-detail">
+                Estado: <strong>@(Model.DatabaseOnline ? "Ligada" : "Indisponível")</strong>
             </div>
-        </div>
-    </div>
-
-    <div class="card glass-panel" style="margin-top: var(--spacing-lg);">
-        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md);">
-            <h3>Logs do Sistema Recentes</h3>
-            <button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver Todos</button>
-        </div>
-        
-        <div style="background-color: var(--dark-grey); color: var(--white); padding: var(--spacing-md); border-radius: var(--radius-md); font-family: monospace; font-size: 0.875rem; height: 200px; overflow-y: auto;">
-            <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:58:01 - System backup completed successfully.</div>
-            <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:55:12 - User professor_silva successfully logged in.</div>
-            <div style="margin-bottom: 4px;"><span style="color: #3b82f6;">[AUTH]</span> 2026-05-17 19:50:45 - User aluno_martins successfully logged in.</div>
-            <div style="margin-bottom: 4px;"><span style="color: #f59e0b;">[WARN]</span> 2026-05-17 19:42:10 - High CPU usage detected on Python Microservice container (85%).</div>
-            <div style="margin-bottom: 4px;"><span style="color: #10b981;">[INFO]</span> 2026-05-17 19:30:00 - API endpoint /api/simulacoes/credito accessed.</div>
+            <div class="health-meta">
+                Verificado no carregamento da página
+            </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    const dot = document.getElementById('ms-dot');
+    const statusText = document.getElementById('ms-status-text');
+    const serviceRow = document.getElementById('ms-service');
+    const serviceVal = document.getElementById('ms-service-val');
+    const versionRow = document.getElementById('ms-version');
+    const versionVal = document.getElementById('ms-version-val');
+    const errorRow = document.getElementById('ms-error');
+    const errorVal = document.getElementById('ms-error-val');
+    const lastCheck = document.getElementById('ms-last-check');
+
+    async function checkMsHealth() {
+        dot.className = 'status-dot status-checking';
+        statusText.innerHTML = 'A verificar ligação...';
+
+        try {
+            const res = await fetch('/Dashboard/MsHealth');
+            const data = await res.json();
+
+            if (data.isOnline) {
+                dot.className = 'status-dot status-online';
+                statusText.innerHTML = 'Estado: <strong>Online</strong> (' + data.responseTimeMs + 'ms)';
+                serviceRow.style.display = 'block';
+                serviceVal.textContent = data.service || 'MS-CAFIN';
+                versionRow.style.display = data.version ? 'block' : 'none';
+                versionVal.textContent = data.version || '';
+                errorRow.style.display = 'none';
+            } else {
+                dot.className = 'status-dot status-offline';
+                statusText.innerHTML = 'Estado: <strong>Offline</strong>';
+                serviceRow.style.display = 'none';
+                versionRow.style.display = 'none';
+                errorRow.style.display = 'block';
+                errorVal.textContent = data.error || 'Sem resposta';
+            }
+
+            const t = new Date(data.checkedAt || Date.now());
+            lastCheck.textContent = ' — última verificação: ' + t.toLocaleTimeString('pt-PT');
+        } catch (e) {
+            dot.className = 'status-dot status-offline';
+            statusText.innerHTML = 'Estado: <strong>Offline</strong>';
+            errorRow.style.display = 'block';
+            errorVal.textContent = e.message;
+        }
+    }
+
+    checkMsHealth();
+    setInterval(checkMsHealth, 15000);
+})();
+</script>
+}

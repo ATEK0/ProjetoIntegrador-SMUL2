@@ -1,0 +1,246 @@
+@model Portal.Models.ViewModels.AdminAuditLogsViewModel
+
+@{
+    ViewData["Title"] = "Audit Logs";
+}
+
+@functions {
+    string GetActionClass(string action)
+    {
+        if (action == "Create") return "action-create";
+        if (action == "Update") return "action-update";
+        if (action == "Delete") return "action-delete";
+        return "";
+    }
+}
+
+<style>
+    .audit-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+        align-items: flex-end;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .audit-filters .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .audit-filters label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .audit-filters select {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        background: var(--surface-color);
+        color: var(--text-main);
+        min-width: 160px;
+    }
+
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    .audit-table th {
+        text-align: left;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .audit-table td {
+        padding: var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: top;
+    }
+
+    .audit-table tr:hover td {
+        background-color: rgba(12, 115, 183, 0.02);
+    }
+
+    .badge-action {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .action-create { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .action-update { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .action-delete { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: var(--spacing-lg);
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .pagination-info {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    .pagination-links {
+        display: flex;
+        gap: var(--spacing-sm);
+    }
+</style>
+
+<div class="container dashboard-page">
+
+    <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Audit Logs", Subtitle = "Histórico de criações, atualizações e eliminações." }' />
+
+    <div class="card glass-panel">
+        @if (!string.IsNullOrEmpty(Model.LoadError))
+        {
+            <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: var(--spacing-md); margin-bottom: var(--spacing-lg); color: #b91c1c;">
+                <i class="fas fa-exclamation-triangle"></i>
+                Erro ao carregar audit logs: @Model.LoadError
+            </div>
+        }
+
+        <form method="get" action="/Dashboard/AdminAuditLogs" class="audit-filters">
+            <div class="filter-group">
+                <label for="filterAction">Ação</label>
+                <select name="filterAction" id="filterAction">
+                    <option value="">Todas</option>
+                    @foreach (var a in Model.AvailableActions)
+                    {
+                        if (Model.FilterAction == a)
+                        {
+                            <option value="@a" selected>@a</option>
+                        }
+                        else
+                        {
+                            <option value="@a">@a</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="entityType">Entidade</label>
+                <select name="entityType" id="entityType">
+                    <option value="">Todas</option>
+                    @foreach (var e in Model.AvailableEntityTypes)
+                    {
+                        if (Model.FilterEntityType == e)
+                        {
+                            <option value="@e" selected>@e</option>
+                        }
+                        else
+                        {
+                            <option value="@e">@e</option>
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary" style="height: fit-content;">
+                <i class="fas fa-filter"></i> Filtrar
+            </button>
+            @if (!string.IsNullOrEmpty(Model.FilterAction) || !string.IsNullOrEmpty(Model.FilterEntityType))
+            {
+                <a href="/Dashboard/AdminAuditLogs" class="btn btn-outline" style="height: fit-content;">
+                    Limpar filtros
+                </a>
+            }
+        </form>
+
+        @if (Model.Logs == null || !Model.Logs.Any())
+        {
+            <div style="text-align: center; padding: var(--spacing-xl); color: var(--text-muted);">
+                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: var(--spacing-md); opacity: 0.5;"></i>
+                <p>Nenhum registo de auditoria encontrado.</p>
+                <p style="font-size: 0.85rem;">Cria, edita ou elimina algo na plataforma para gerar o primeiro registo.</p>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table class="audit-table">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Utilizador</th>
+                            <th>Ação</th>
+                            <th>Entidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.Logs)
+                        {
+                            <tr>
+                                <td style="white-space: nowrap;">
+                                    @log.Timestamp.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(log.UserEmail))
+                                    {
+                                        <div style="font-weight: 600;">@log.UserEmail</div>
+                                    }
+                                    @if (log.UserId.HasValue)
+                                    {
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">ID @log.UserId</div>
+                                    }
+                                    else if (string.IsNullOrEmpty(log.UserEmail))
+                                    {
+                                        <span style="color: var(--text-muted);">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge-action @GetActionClass(log.Action)">@log.ActionLabel</span>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600;">@log.EntityTypeLabel</div>
+                                    @if (!string.IsNullOrEmpty(log.EntityId))
+                                    {
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">#@log.EntityId</div>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <div class="pagination-info">
+                    @Model.TotalCount registo(s) — página @Model.Page de @Model.TotalPages
+                </div>
+                <div class="pagination-links">
+                    @if (Model.Page > 1)
+                    {
+                        <a class="btn btn-outline" href="/Dashboard/AdminAuditLogs?page=@(Model.Page - 1)&filterAction=@Model.FilterAction&entityType=@Model.FilterEntityType">
+                            <i class="fas fa-chevron-left"></i> Anterior
+                        </a>
+                    }
+                    @if (Model.Page < Model.TotalPages)
+                    {
+                        <a class="btn btn-outline" href="/Dashboard/AdminAuditLogs?page=@(Model.Page + 1)&filterAction=@Model.FilterAction&entityType=@Model.FilterEntityType">
+                            Seguinte <i class="fas fa-chevron-right"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

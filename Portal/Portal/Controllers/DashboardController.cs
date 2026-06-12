@@ -15,11 +15,13 @@ namespace Portal.Controllers
     public class DashboardController : BaseController
     {
         private readonly DashboardService _dashboardService;
+        private readonly SimulationService _simulationService;
         private readonly ILogger<DashboardController> _logger;
 
-        public DashboardController(DashboardService dashboardService, ILogger<DashboardController> logger)
+        public DashboardController(DashboardService dashboardService, SimulationService simulationService, ILogger<DashboardController> logger)
         {
             _dashboardService = dashboardService;
+            _simulationService = simulationService;
             _logger = logger;
         }
 
@@ -27,7 +29,15 @@ namespace Portal.Controllers
         public async Task<IActionResult> Admin()
         {
             _logger.LogInformation("Dashboard Admin acedido por {User}", User.Identity?.Name);
-            return View("Admin", await _dashboardService.GetAdminDashboardAsync());
+            return View("Admin", await _dashboardService.GetAdminInfraAsync());
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> MsHealth()
+        {
+            var status = await _simulationService.CheckHealthAsync();
+            return Json(status);
         }
 
         [Authorize(Roles = "Admin")]
@@ -41,6 +51,10 @@ namespace Portal.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AdminUsers() =>
             View("AdminUsers", await _dashboardService.GetAdminUsersAsync());
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AdminAuditLogs(int page = 1, string? filterAction = null, string? entityType = null) =>
+            View("AdminAuditLogs", await _dashboardService.GetAuditLogsAsync(page, filterAction, entityType));
 
         [HttpPost, Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeUserRole(int userId, string newRoleName, string returnUrl = null)

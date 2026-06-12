@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Portal.Data;
 
@@ -11,9 +12,11 @@ using Portal.Data;
 namespace Portal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611200635_RemoveAuditLogDetails")]
+    partial class RemoveAuditLogDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -460,84 +463,6 @@ namespace Portal.Migrations
                     b.ToTable("classes", (string)null);
                 });
 
-            modelBuilder.Entity("Portal.Models.SimulationHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<double?>("MonthlyCommission")
-                        .HasColumnType("double")
-                        .HasColumnName("monthly_commission");
-
-                    b.Property<string>("ParametersJson")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("parameters_json");
-
-                    b.Property<string>("Periodicity")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("periodicity");
-
-                    b.Property<double>("Principal")
-                        .HasColumnType("double")
-                        .HasColumnName("principal");
-
-                    b.Property<double>("RatePercentage")
-                        .HasColumnType("double")
-                        .HasColumnName("rate_percentage");
-
-                    b.Property<string>("ResultJson")
-                        .IsRequired()
-                        .HasColumnType("longtext")
-                        .HasColumnName("result_json");
-
-                    b.Property<string>("SimulationMode")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("simulation_mode");
-
-                    b.Property<double>("Time")
-                        .HasColumnType("double")
-                        .HasColumnName("time");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)")
-                        .HasColumnName("type");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id")
-                        .HasName("pk_simulation_histories");
-
-                    b.HasIndex("UserId", "DeletedAt")
-                        .HasDatabaseName("ix_simulation_histories_user_id_deleted_at");
-
-                    b.ToTable("simulation_histories", (string)null);
-                });
-
             modelBuilder.Entity("Portal.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -747,18 +672,6 @@ namespace Portal.Migrations
                         .HasConstraintName("fk_classes_users_teacher_id");
 
                     b.Navigation("Teacher");
-                });
-
-            modelBuilder.Entity("Portal.Models.SimulationHistory", b =>
-                {
-                    b.HasOne("Portal.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_simulation_histories_users_user_id");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Portal.Models.User", b =>

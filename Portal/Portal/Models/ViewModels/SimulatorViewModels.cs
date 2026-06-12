@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace Portal.Models
+namespace Portal.Models.ViewModels
 {
     public class InterestRateTier
     {

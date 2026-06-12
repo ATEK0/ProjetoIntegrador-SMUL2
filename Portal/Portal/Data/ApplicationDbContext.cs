@@ -17,6 +17,7 @@ namespace Portal.Data
         public DbSet<ScenarioMember> ScenarioMembers { get; set; }
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Objective> Objectives { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<SimulationHistory> SimulationHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -64,6 +65,10 @@ namespace Portal.Data
             modelBuilder.Entity<ScenarioMember>().HasIndex(sm => new { sm.ScenarioId, sm.DeletedAt });
             modelBuilder.Entity<Entry>().HasIndex(e => new { e.ScenarioId, e.DeletedAt });
             modelBuilder.Entity<Objective>().HasIndex(o => new { o.ScenarioId, o.DeletedAt });
+
+            modelBuilder.Entity<AuditLog>().Property(a => a.ActionName).HasColumnName("action");
+            modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.UserId, a.Timestamp });
+            modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
             modelBuilder.Entity<SimulationHistory>().HasIndex(sh => new { sh.UserId, sh.DeletedAt });
         }
     }
