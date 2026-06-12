@@ -42,7 +42,7 @@ namespace Portal.Services
         public async Task<ScenarioDetailsViewModel?> GetScenarioDetailsAsync(int scenarioId, int? studentId, int? month)
         {
             var queryScenarios = _context.Scenarios.Include(s => s.Challenge).AsQueryable();
-            
+
             if (studentId.HasValue)
             {
                 queryScenarios = queryScenarios.Where(s => s.StudentId == studentId.Value);
