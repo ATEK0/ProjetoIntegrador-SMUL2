@@ -101,13 +101,27 @@ namespace Portal
             using (var scope = app.Services.CreateScope())
             {
                 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                try
+                var maxRetries = 6;
+                var retryDelay = TimeSpan.FromSeconds(5);
+
+                for (int i = 0; i < maxRetries; i++)
                 {
-                    DbInitializer.Initialize(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Erro na inicialização da BD.");
+                    try
+                    {
+                        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                        DbInitializer.Initialize(context);
+                        logger.LogInformation("Base de dados inicializada e seed aplicado com sucesso.");
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning($"Erro na inicialização da BD (tentativa {i + 1} de {maxRetries}). A base de dados pode ainda estar a arrancar. A aguardar {retryDelay.TotalSeconds} segundos...");
+                        if (i == maxRetries - 1)
+                        {
+                            logger.LogError(ex, "Falha fatal na inicialização da BD após várias tentativas.");
+                        }
+                        System.Threading.Thread.Sleep(retryDelay);
+                    }
                 }
             }
 
@@ -115,4 +129,3 @@ namespace Portal
         }
     }
 }
-
