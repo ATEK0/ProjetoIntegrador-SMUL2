@@ -1,0 +1,8 @@
+# Backup files
+*.sql
+*.sql.gz
+*.sha256
+logs/
+
+# Keep directory structure
+!.gitkeep
