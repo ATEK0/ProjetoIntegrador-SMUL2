@@ -51,8 +51,10 @@ services:
       - MsCafinApiUrl=http://backend-main:8000/
       - "ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
     depends_on:
-      - backend-main
-      - mysql_db
+      backend-main:
+        condition: service_started
+      mysql_db:
+        condition: service_healthy
     restart: unless-stopped
 
   backend-main:
@@ -73,7 +75,8 @@ services:
       - DB_USER=root
       - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
     depends_on:
-      - mysql_db
+      mysql_db:
+        condition: service_healthy
     restart: unless-stopped
     command: >-
       sh -c "python manage.py migrate --noinput &&
@@ -96,8 +99,10 @@ services:
       - MsCafinApiUrl=http://backend-develop:8000/
       - "ConnectionStrings__DefaultConnection=Server=mysql_db;Port=3306;Database=dec;User=root;Password=${MYSQL_ROOT_PASSWORD:-root};"
     depends_on:
-      - backend-develop
-      - mysql_db
+      backend-develop:
+        condition: service_started
+      mysql_db:
+        condition: service_healthy
     restart: unless-stopped
 
   backend-develop:
@@ -118,7 +123,8 @@ services:
       - DB_USER=root
       - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
     depends_on:
-      - mysql_db
+      mysql_db:
+        condition: service_healthy
     restart: unless-stopped
     command: >-
       sh -c "python manage.py migrate --noinput &&
@@ -140,6 +146,12 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
       - MYSQL_DATABASE=dec
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
 volumes:
   mysql_data:
