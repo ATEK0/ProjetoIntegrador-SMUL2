@@ -1,0 +1,364 @@
+@model Portal.Models.ViewModels.GradeSubmissionViewModel
+
+@{
+    ViewData["Title"] = "Avaliar Entrega de Desafio";
+    bool isGraded = Model.Submission.GradedAt != null;
+}
+
+<style>
+    .grade-page {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--spacing-lg) var(--spacing-md) var(--spacing-xl) var(--spacing-md);
+    }
+
+    .grade-header-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .grade-header-card h2 {
+        color: var(--primary-blue);
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .student-meta {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-sm);
+        border-top: 1px solid var(--border-color);
+        padding-top: var(--spacing-sm);
+    }
+
+    .student-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .evaluation-card {
+        background: var(--surface-color);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        position: relative;
+    }
+
+    .evaluation-card:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .question-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(12, 115, 183, 0.1);
+        color: var(--primary-blue);
+        font-weight: 700;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-full);
+        font-size: 0.9rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .question-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--dark-grey);
+        margin-bottom: var(--spacing-md);
+        line-height: 1.4;
+    }
+
+    .student-answer-box {
+        background: rgba(0, 0, 0, 0.02);
+        border-left: 4px solid var(--primary-blue);
+        padding: var(--spacing-md);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .teacher-grading-box {
+        background: rgba(12, 115, 183, 0.03);
+        border: 1px solid rgba(12, 115, 183, 0.15);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
+    }
+
+    .grading-options {
+        display: flex;
+        gap: var(--spacing-md);
+    }
+
+    .grade-radio-card {
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: var(--transition);
+        background: var(--white);
+    }
+
+    .grade-radio-card.correct:hover, .grade-radio-card.correct.selected {
+        border-color: #10b981;
+        background: rgba(16, 185, 129, 0.05);
+        color: #065f46;
+    }
+
+    .grade-radio-card.incorrect:hover, .grade-radio-card.incorrect.selected {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+        color: #991b1b;
+    }
+
+    .grade-radio-card input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: currentColor;
+    }
+
+    /* Info banners */
+    .status-banner {
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-md) var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        font-weight: 500;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .status-banner.graded {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #065f46;
+    }
+
+    .status-banner-icon {
+        font-size: 1.5rem;
+    }
+
+    .correct-badge {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: var(--radius-sm);
+        font-size: 0.775rem;
+    }
+</style>
+
+<div class="grade-page animate-fade-in">
+
+    <div style="margin-bottom: var(--spacing-md);">
+        <a href="/Dashboard/Professor" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-arrow-left"></i> Voltar ao Painel do Professor
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b; font-size: 0.9rem;">
+            <i class="fas fa-exclamation-circle" style="margin-right: 6px;"></i> @TempData["Error"]
+        </div>
+    }
+
+    <!-- Header Card -->
+    <div class="grade-header-card">
+        <h2>Avaliação de Respostas</h2>
+        <div style="font-size: 1.1rem; font-weight: 600; color: var(--dark-grey);">@Model.Submission.Challenge?.Title</div>
+        
+        <div class="student-meta">
+            <span><i class="fas fa-user"></i> Aluno: <strong>@Model.Submission.Student?.Name</strong></span>
+            <span><i class="fas fa-calendar-alt"></i> Entregue em: <strong>@Model.Submission.CreatedAt.ToString("dd/MM/yyyy HH:mm")</strong></span>
+        </div>
+    </div>
+
+    <!-- Status Banner -->
+    @if (isGraded)
+    {
+        <div class="status-banner graded">
+            <span class="status-banner-icon"><i class="fas fa-info-circle"></i></span>
+            <div>
+                <div style="font-weight: 700; font-size: 1.05rem;">Esta entrega já foi avaliada!</div>
+                <div style="font-size: 0.85rem; opacity: 0.9;">
+                    Avaliado em @Model.Submission.GradedAt!.Value.ToString("dd/MM/yyyy HH:mm"). Pode alterar as classificações e o feedback se desejar.
+                </div>
+            </div>
+        </div>
+    }
+
+    <form action="/Challenges/GradeSubmission/@Model.Submission.Id" method="post">
+        
+        @foreach (var q in Model.Questions)
+        {
+            var answer = Model.Submission.Answers.FirstOrDefault(a => a.ChallengeQuestionId == q.Id);
+            var ansText = answer?.AnswerText ?? "Sem resposta";
+            var isCorrectSelected = answer != null && answer.IsCorrect == true;
+            var isIncorrectSelected = answer != null && answer.IsCorrect == false;
+
+            <!-- Check if matches correctAnswer reference to help teacher -->
+            bool answerMatchesRef = false;
+            if (answer != null && q.CorrectAnswer != null)
+            {
+                answerMatchesRef = string.Equals(answer.AnswerText, q.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+            }
+
+            <div class="evaluation-card">
+                <div class="question-number">@(Model.Questions.IndexOf(q) + 1)</div>
+                <div class="question-title">@q.QuestionText</div>
+                
+                @if (q.QuestionType == Portal.Models.QuestionType.MultipleChoice)
+                {
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <div>A: @q.OptionA @(q.CorrectAnswer == "A" ? "(Correta)" : "")</div>
+                        <div>B: @q.OptionB @(q.CorrectAnswer == "B" ? "(Correta)" : "")</div>
+                        <div>C: @q.OptionC @(q.CorrectAnswer == "C" ? "(Correta)" : "")</div>
+                        <div>D: @q.OptionD @(q.CorrectAnswer == "D" ? "(Correta)" : "")</div>
+                    </div>
+                }
+                else if (q.QuestionType == Portal.Models.QuestionType.TrueFalse)
+                {
+                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+                        Opção correta: <strong>@(q.CorrectAnswer == "true" ? "Verdadeiro" : "Falso")</strong>
+                    </div>
+                }
+
+                <!-- Student Answer -->
+                <div class="student-answer-box">
+                    <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 4px;">Resposta do Aluno:</div>
+                    <div style="font-size: 1rem; color: var(--dark-grey); font-weight: 700;">
+                        @if (q.QuestionType == Portal.Models.QuestionType.TrueFalse)
+                        {
+                            <span>@(ansText == "true" ? "Verdadeiro" : "Falso")</span>
+                        }
+                        else if (q.QuestionType == Portal.Models.QuestionType.MultipleChoice)
+                        {
+                            <span>Opção @ansText - @(ansText == "A" ? q.OptionA : ansText == "B" ? q.OptionB : ansText == "C" ? q.OptionC : ansText == "D" ? q.OptionD : "")</span>
+                        }
+                        else if (q.QuestionType == Portal.Models.QuestionType.Scenario)
+                        {
+                            if (int.TryParse(ansText, out int scenarioId))
+                            {
+                                var scenarios = ViewBag.Scenarios as List<Portal.Models.Scenario>;
+                                var scenarioName = scenarios?.FirstOrDefault(s => s.Id == scenarioId)?.FamilyName ?? $"ID {scenarioId}";
+                                
+                                <a href="/Scenarios/Details/@scenarioId" target="_blank" style="color: var(--primary-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: rgba(12, 115, 183, 0.1); padding: 4px 10px; border-radius: var(--radius-sm);">
+                                    <i class="fas fa-external-link-alt"></i> Ver Cenário Família @scenarioName
+                                </a>
+                            }
+                            else
+                            {
+                                <span style="white-space: pre-wrap; font-weight: 500;">@ansText</span>
+                            }
+                        }
+                        else
+                        {
+                            <span style="white-space: pre-wrap; font-weight: 500;">@ansText</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Teacher grading -->
+                <div class="teacher-grading-box">
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        @if (q.CorrectAnswer != null)
+                        {
+                            <span>Dica do Sistema: @(answerMatchesRef ? "Resposta Certa." : "Resposta Errada.")</span>
+                        }
+                        else
+                        {
+                            <span>Classifique a resposta livre do aluno.</span>
+                        }
+                    </div>
+                    
+                    <div class="grading-options">
+                        <label class="grade-radio-card correct @(isCorrectSelected ? "selected" : "")" onclick="toggleGradeCard(this)">
+                            <input 
+                                type="radio" 
+                                name="grades[@q.Id]" 
+                                value="true" 
+                                required
+                                @(isCorrectSelected ? "checked" : "") />
+                            <i class="fas fa-check"></i> Certa
+                        </label>
+                        
+                        <label class="grade-radio-card incorrect @(isIncorrectSelected ? "selected" : "")" onclick="toggleGradeCard(this)">
+                            <input 
+                                type="radio" 
+                                name="grades[@q.Id]" 
+                                value="false" 
+                                required
+                                @(isIncorrectSelected ? "checked" : "") />
+                            <i class="fas fa-times"></i> Errada
+                        </label>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- General Feedback -->
+        <div class="evaluation-card">
+            <h4 style="color: var(--primary-blue); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; font-weight: 700;">
+                <i class="fas fa-comment-dots"></i> Feedback Geral do Professor
+            </h4>
+            
+            <div class="form-group" style="margin-bottom: 0;">
+                <textarea 
+                    name="feedback" 
+                    class="form-control" 
+                    placeholder="Escreva notas explicativas, conselhos ou parabéns ao aluno..." 
+                    style="height: 100px; padding: 10px; resize: none;">@Model.Submission.Feedback</textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-xl);">
+            <a href="/Dashboard/Professor" class="btn btn-outline">
+                Cancelar
+            </a>
+            
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-weight: 700; box-shadow: var(--shadow-sm);">
+                Gravar Avaliação <i class="fas fa-save" style="margin-left: 8px;"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function toggleGradeCard(element) {
+        // Deselect sibling labels in the same grading-options block
+        const container = element.closest('.grading-options');
+        container.querySelectorAll('.grade-radio-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        element.classList.add('selected');
+        const radio = element.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+</script>

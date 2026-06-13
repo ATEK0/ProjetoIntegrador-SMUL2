@@ -94,9 +94,7 @@
 
     <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: 16px;">
         <div>
-            <a href="/Dashboard/Aluno" class="btn btn-outline" style="font-size: 0.85rem; padding: 0.3rem 0.75rem; text-decoration: none; display: inline-flex; margin-bottom: 8px;">
-                <i class="fas fa-arrow-left" style="margin-right: 6px;"></i> Voltar ao Dashboard
-            </a>
+
             <h2 style="color: var(--primary-blue); font-weight: 700; margin-bottom: 4px;">
                 @Model.Scenario.FamilyName
             </h2>
@@ -122,12 +120,15 @@
                     }
                 </select>
             </form>
-            <button class="btn btn-outline" onclick="document.getElementById('editScenarioModal').classList.add('active');">
-                <i class="fas fa-edit" style="margin-right: 6px;"></i> Editar
-            </button>
-            <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="document.getElementById('deleteScenarioModal').classList.add('active');">
-                <i class="fas fa-trash" style="margin-right: 6px;"></i> Eliminar
-            </button>
+            @if (User.IsInRole("Aluno"))
+            {
+                <button class="btn btn-outline" onclick="document.getElementById('editScenarioModal').classList.add('active');">
+                    <i class="fas fa-edit" style="margin-right: 6px;"></i> Editar
+                </button>
+                <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="document.getElementById('deleteScenarioModal').classList.add('active');">
+                    <i class="fas fa-trash" style="margin-right: 6px;"></i> Eliminar
+                </button>
+            }
         </div>
     </div>
 
@@ -177,9 +178,12 @@
                     <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin: 0;">
                         <i class="fas fa-users" style="margin-right: 8px;"></i> Agregado
                     </h3>
-                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('addMemberModal').classList.add('active');">
-                        <i class="fas fa-plus"></i>
-                    </button>
+                    @if (User.IsInRole("Aluno"))
+                    {
+                        <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('addMemberModal').classList.add('active');">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    }
                 </div>
                 
                 @if (!Model.Members.Any())
@@ -198,9 +202,12 @@
                                     <div style="font-weight: 600; color: var(--primary-blue);">@member.Name</div>
                                     <div style="color: #10b981; font-weight: 700; font-size: 0.8rem;">€ @member.MonthlyIncome.ToString("N2") <span style="color: var(--text-muted); font-weight: 400; font-size: 0.7rem;">/mês</span></div>
                                 </div>
-                                <button onclick="openDeleteMemberModal(@member.Id)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remover">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                @if (User.IsInRole("Aluno"))
+                                {
+                                    <button onclick="openDeleteMemberModal(@member.Id)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remover">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                }
                             </div>
                         }
                     </div>
@@ -213,18 +220,24 @@
                     <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin: 0;">
                         <i class="fas fa-bullseye" style="margin-right: 8px;"></i> Objetivos
                     </h3>
-                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('addObjectiveModal').classList.add('active');" title="Definir Objetivo">
-                        <i class="fas fa-plus"></i>
-                    </button>
+                    @if (User.IsInRole("Aluno"))
+                    {
+                        <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('addObjectiveModal').classList.add('active');" title="Definir Objetivo">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    }
                 </div>
                 
                 @if (!Model.Objectives.Any())
                 {
                     <div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 0.85rem;">
                         Sem objetivos definidos.
-                        <button class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 8px; margin-top: 8px; display: block; margin-left: auto; margin-right: auto;" onclick="document.getElementById('addObjectiveModal').classList.add('active');">
-                            Definir Meta
-                        </button>
+                        @if (User.IsInRole("Aluno"))
+                        {
+                            <button class="btn btn-outline" style="font-size: 0.75rem; padding: 4px 8px; margin-top: 8px; display: block; margin-left: auto; margin-right: auto;" onclick="document.getElementById('addObjectiveModal').classList.add('active');">
+                                Definir Meta
+                            </button>
+                        }
                     </div>
                 }
                 else
@@ -246,9 +259,12 @@
                                             Meta: <strong style="color: var(--primary-blue);">€@obj.TargetValue.ToString("N2")</strong> (@obj.TermMonths meses)
                                         </div>
                                     </div>
-                                    <button onclick="openDeleteObjectiveModal(@obj.Id)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remover Objetivo">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @if (User.IsInRole("Aluno"))
+                                    {
+                                        <button onclick="openDeleteObjectiveModal(@obj.Id)" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'" title="Remover Objetivo">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    }
                                 </div>
 
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 0.75rem; color: var(--text-muted);">
@@ -274,9 +290,12 @@
                 <h3 style="color: #10b981; font-size: 1.1rem; margin: 0;">
                     <i class="fas fa-arrow-trend-up" style="margin-right: 8px;"></i> Rendimentos
                 </h3>
-                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('registerIncomeModal').classList.add('active');">
-                    <i class="fas fa-plus"></i> Adicionar
-                </button>
+                @if (User.IsInRole("Aluno"))
+                {
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('registerIncomeModal').classList.add('active');">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                }
             </div>
             
             @if (!Model.Incomes.Any())
@@ -305,20 +324,32 @@
                                     <td><span style="color:var(--text-muted);">@months[entry.EntryMonth - 1]</span></td>
                                     <td><span style="color: #10b981; font-weight:700;">€ @entry.Amount.ToString("N2")</span></td>
                                     <td class="entry-actions">
-                                        @if (entry.Id > 0)
+                                        @if (User.IsInRole("Aluno"))
                                         {
-                                            <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            if (entry.Id > 0)
+                                            {
+                                                <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; margin-right: 8px; cursor: help;" title="Os salários fixos são geridos no Cartão do Agregado Familiar (à esquerda)">
+                                                    <i class="fas fa-lock"></i>
+                                                </span>
+                                            }
                                         }
                                         else
                                         {
-                                            <span style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; margin-right: 8px; cursor: help;" title="Os salários fixos são geridos no Cartão do Agregado Familiar (à esquerda)">
-                                                <i class="fas fa-lock"></i>
-                                            </span>
+                                            @if (entry.Id <= 0)
+                                            {
+                                                <span style="font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; margin-right: 8px; cursor: help;" title="Salário fixo gerido pelo agregado">
+                                                    <i class="fas fa-lock"></i>
+                                                </span>
+                                            }
                                         }
                                     </td>
                                 </tr>
@@ -335,9 +366,12 @@
                 <h3 style="color: #ef4444; font-size: 1.1rem; margin: 0;">
                     <i class="fas fa-arrow-trend-down" style="margin-right: 8px;"></i> Despesas
                 </h3>
-                <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('registerExpenseModal').classList.add('active');">
-                    <i class="fas fa-plus"></i> Adicionar
-                </button>
+                @if (User.IsInRole("Aluno"))
+                {
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="document.getElementById('registerExpenseModal').classList.add('active');">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                }
             </div>
             
             @if (!Model.Expenses.Any())
@@ -366,12 +400,15 @@
                                     <td><span style="color:var(--text-muted);">@months[entry.EntryMonth - 1]</span></td>
                                     <td><span style="color: #ef4444; font-weight:700;">€ @entry.Amount.ToString("N2")</span></td>
                                     <td class="entry-actions">
-                                        <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @if (User.IsInRole("Aluno"))
+                                        {
+                                            <button onclick="openEditEntryModal(@entry.Id, '@entry.Category', @entry.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture), @entry.EntryMonth, '@entry.Recurrence')" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="delete-btn" onclick="openDeleteEntryModal(@entry.Id)" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
                                     </td>
                                 </tr>
                             }

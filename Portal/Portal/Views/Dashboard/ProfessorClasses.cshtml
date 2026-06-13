@@ -1,0 +1,75 @@
+@model Portal.Models.ViewModels.TeacherDashboardViewModel
+
+@{
+    ViewData["Title"] = "As Minhas Turmas";
+}
+
+<style>
+    .badge-membership {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        background: rgba(12, 115, 183, 0.08);
+        color: var(--primary-blue);
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px dashed rgba(12, 115, 183, 0.25);
+        display: inline-block;
+    }
+
+    .table-row-hover:hover {
+        background-color: rgba(12, 115, 183, 0.02);
+    }
+</style>
+
+<div class="container dashboard-page">
+    <div class="dashboard-top">
+        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "As Minhas Turmas", Subtitle = "Consulte as turmas associadas à sua conta e os alunos inscritos." }' />
+    </div>
+
+    <div>
+        @if (!Model.Classes.Any())
+        {
+            <div class="card glass-panel text-center" style="grid-column: 1 / -1; padding: var(--spacing-xxl) 0;">
+                <div style="background-color: rgba(12, 115, 183, 0.05); width: 80px; height: 80px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: var(--primary-blue); margin-bottom: var(--spacing-md);">
+                    <i class="fas fa-graduation-cap fa-3x"></i>
+                </div>
+                <h4 style="font-size: 1.2rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Sem Turmas Associadas</h4>
+                <p class="text-muted" style="max-width: 450px; margin: 0 auto; font-size: 0.875rem; line-height: 1.4;">Atualmente não tem nenhuma turma associada à sua conta. Por favor, contacte o administrador do sistema para lhe associar uma turma.</p>
+            </div>
+        }
+        else
+        {
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--spacing-lg);">
+                @foreach (var c in Model.Classes)
+                {
+                    <div class="card glass-panel" style="padding: var(--spacing-lg); display: flex; flex-direction: column; position: relative;">
+                        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm); overflow: hidden; width: 100%;">
+                                <div style="overflow: hidden;">
+                                    <h4 style="margin: 0; font-size: 1.1rem; color: var(--dark-grey); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">@c.ClassName</h4>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); color: var(--text-muted); font-size: 0.85rem;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <i class="fas fa-users" style="color: var(--text-muted); opacity: 0.7;"></i> @c.StudentCount alunos
+                            </div>
+                        </div>
+
+                        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-md);">
+                            <div style="font-family: 'Courier New', Courier, monospace; font-size: 1.1rem; font-weight: 700; color: var(--primary-blue); letter-spacing: 1px; padding: 6px 12px; background: rgba(12, 115, 183, 0.05); border-radius: var(--radius-sm); border: 1px dashed rgba(12, 115, 183, 0.2);">
+                                @c.MembershipCode
+                            </div>
+                            <a href="/Classes/Details/@c.ClassId" class="btn btn-outline" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 6px;">
+                                <i class="fas fa-cog"></i> Gerir Turma
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

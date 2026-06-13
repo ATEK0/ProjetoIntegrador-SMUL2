@@ -1,0 +1,92 @@
+@model Portal.Models.ViewModels.StudentDashboardViewModel
+
+@{
+    ViewData["Title"] = "Os Meus Cenários";
+}
+
+<div class="container dashboard-page">
+    <div class="dashboard-top">
+        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Os Meus Cenários", Subtitle = "Gere as suas simulações financeiras e orçamentos." }' />
+        <button type="button" onclick="openScenarioModal(event)" class="btn btn-primary">
+            <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Novo Cenário
+        </button>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
+            @TempData["Success"]
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div>
+        @if (!Model.Scenarios.Any())
+        {
+            <div class="card glass-panel text-center" style="grid-column: 1 / -1; padding: var(--spacing-xxl) 0;">
+                <div style="background-color: rgba(12, 115, 183, 0.05); width: 80px; height: 80px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: var(--primary-blue); margin-bottom: var(--spacing-md);">
+                    <i class="fas fa-home fa-3x"></i>
+                </div>
+                <h4 style="font-size: 1.2rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Sem Cenários</h4>
+                <p class="text-muted" style="max-width: 450px; margin: 0 auto; font-size: 0.875rem; line-height: 1.4;">Ainda não criaste nenhum cenário. Começa por criar uma família virtual para gerir o orçamento!</p>
+                <div style="margin-top: var(--spacing-md);">
+                    <button type="button" class="btn btn-outline" onclick="openScenarioModal(event)" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Criar Cenário</button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--spacing-lg);">
+                @foreach (var scenario in Model.Scenarios)
+                {
+                    <a href="/Scenarios/Details/@scenario.Id" style="text-decoration: none; color: inherit; display: block;">
+                        <div class="card glass-panel" style="padding: var(--spacing-lg); display: flex; flex-direction: column; position: relative; transition: transform 0.2s; cursor: pointer;" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='rgba(12,115,183,0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='var(--border-color)';">
+                            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+                                <div style="display: flex; align-items: center; gap: var(--spacing-sm); overflow: hidden; width: 100%;">
+                                    <div style="overflow: hidden;">
+                                        <h4 style="margin: 0; font-size: 1.1rem; color: var(--primary-blue); font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <i class="fas fa-home" style="margin-right: 6px; font-size: 0.9rem;"></i> @scenario.FamilyName
+                                        </h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 1.6rem; font-weight: 700; color: var(--dark-grey); margin-bottom: var(--spacing-md);">
+                                € @scenario.InitialBalance.ToString("N2")
+                                <span style="font-size: 0.75rem; font-weight: 400; color: var(--text-muted); margin-left: 4px;">saldo total</span>
+                            </div>
+
+                            <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-md); border-top: 1px solid var(--border-color); padding-top: var(--spacing-sm);">
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Criado em @scenario.CreatedAt.ToString("dd MMM yyyy")
+                                </span>
+                                <span class="btn btn-outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; text-decoration: none;">
+                                    Ver Orçamento
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    window.openScenarioModal = function(e) {
+        if(e) e.preventDefault();
+        var modal = document.getElementById("createScenarioModal");
+        if (modal) modal.classList.add("active");
+        
+        var familyNameInput = document.getElementById("FamilyName");
+        if (familyNameInput) {
+            setTimeout(function() { familyNameInput.focus(); }, 100);
+        }
+    }
+</script>

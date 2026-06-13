@@ -40,9 +40,10 @@
 
     .student-item {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: var(--spacing-md);
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg) var(--spacing-md);
         border-bottom: 1px solid var(--border-color);
     }
 
@@ -187,26 +188,29 @@
                     @foreach (var student in Model.EnrolledStudents)
                     {
                         <div class="student-item">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="user-avatar">
-                                    @(!string.IsNullOrWhiteSpace(student.Name) ? student.Name.Substring(0, 1).ToUpper() : "A")
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="user-avatar">
+                                        @(!string.IsNullOrWhiteSpace(student.Name) ? student.Name.Substring(0, 1).ToUpper() : "A")
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--dark-grey); font-size: 1.05rem;">@student.Name</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style="font-weight: 600; color: var(--dark-grey);">@student.Name</div>
-                                    <div style="font-size: 0.8rem; color: var(--text-muted);">@student.Email</div>
-                                </div>
+
+                                @if (Model.CanEdit)
+                                {
+                                    <form action="/Classes/RemoveUserFromClass" method="post" onsubmit="return confirm('Remover este aluno da turma?');">
+                                        <input type="hidden" name="userId" value="@student.Id" />
+                                        <input type="hidden" name="classId" value="@Model.Id" />
+                                        <button type="submit" class="btn-remove-student" title="Remover da turma">
+                                            <i class="fas fa-user-minus"></i>
+                                        </button>
+                                    </form>
+                                }
                             </div>
 
-                            @if (Model.CanEdit)
-                            {
-                                <form action="/Classes/RemoveUserFromClass" method="post" onsubmit="return confirm('Remover este aluno da turma?');">
-                                    <input type="hidden" name="userId" value="@student.Id" />
-                                    <input type="hidden" name="classId" value="@Model.Id" />
-                                    <button type="submit" class="btn-remove-student" title="Remover da turma">
-                                        <i class="fas fa-user-minus"></i>
-                                    </button>
-                                </form>
-                            }
+
                         </div>
                     }
                 }

@@ -19,6 +19,9 @@ namespace Portal.Data
         public DbSet<Objective> Objectives { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<SimulationHistory> SimulationHistories { get; set; }
+        public DbSet<ChallengeSubmission> ChallengeSubmissions { get; set; }
+        public DbSet<ChallengeQuestion> ChallengeQuestions { get; set; }
+        public DbSet<ChallengeAnswer> ChallengeAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -36,10 +39,14 @@ namespace Portal.Data
             modelBuilder.Entity<Entry>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Objective>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<SimulationHistory>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ChallengeSubmission>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ChallengeQuestion>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ChallengeAnswer>().HasQueryFilter(x => x.DeletedAt == null);
 
             // Traduzir os Enums para String no MySQL
             modelBuilder.Entity<Entry>().Property(e => e.EntryType).HasConversion<string>();
             modelBuilder.Entity<Entry>().Property(e => e.Recurrence).HasConversion<string>();
+            modelBuilder.Entity<ChallengeQuestion>().Property(q => q.QuestionType).HasConversion<string>();
 
 
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
@@ -70,6 +77,9 @@ namespace Portal.Data
             modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.UserId, a.Timestamp });
             modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
             modelBuilder.Entity<SimulationHistory>().HasIndex(sh => new { sh.UserId, sh.DeletedAt });
+            modelBuilder.Entity<ChallengeSubmission>().HasIndex(cs => new { cs.StudentId, cs.ChallengeId, cs.DeletedAt });
+            modelBuilder.Entity<ChallengeQuestion>().HasIndex(q => new { q.ChallengeId, q.DeletedAt });
+            modelBuilder.Entity<ChallengeAnswer>().HasIndex(a => new { a.ChallengeSubmissionId, a.ChallengeQuestionId, a.DeletedAt });
         }
     }
 }

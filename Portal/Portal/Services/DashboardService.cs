@@ -142,7 +142,7 @@ namespace Portal.Services
         public async Task<AdminDashboardViewModel> GetAdminChallengesAsync() => new()
         {
             Classes = await _context.Classes.Include(c => c.Teacher).ToListAsync(),
-            Challenges = await _context.Challenges.Include(c => c.Class).Include(c => c.Teacher).ToListAsync()
+            Challenges = await _context.Challenges.Include(c => c.Class).Include(c => c.Teacher).Include(c => c.Scenarios).Include(c => c.Submissions).ToListAsync()
         };
 
         public async Task<AdminUsersViewModel> GetAdminUsersAsync()
@@ -207,10 +207,27 @@ namespace Portal.Services
                 .Select(g => new { ClassId = g.Key, Count = g.Count() })
                 .ToDictionaryAsync(x => x.ClassId, x => x.Count);
 
+            var pendingSubmissions = await _context.ChallengeSubmissions
+                .Include(s => s.Challenge)
+                .Include(s => s.Student)
+                .Where(s => s.Challenge.TeacherId == teacherId && s.GradedAt == null)
+                .OrderByDescending(s => s.CreatedAt)
+                .Select(s => new PendingSubmissionViewModel
+                {
+                    SubmissionId = s.Id,
+                    ChallengeId = s.ChallengeId,
+                    ChallengeTitle = s.Challenge.Title,
+                    StudentName = s.Student.Name,
+                    SubmittedAt = s.CreatedAt
+                })
+                .ToListAsync();
+
             return new TeacherDashboardViewModel
             {
                 TotalStudents = enrollmentCounts.Values.Sum(),
                 TotalChallenges = await _context.Challenges.CountAsync(c => c.TeacherId == teacherId),
+                TotalPendingGrades = pendingSubmissions.Count,
+                PendingSubmissions = pendingSubmissions,
                 Classes = teacherClasses.Select(c => new TeacherClassDetailViewModel
                 {
                     ClassId = c.Id,
@@ -221,6 +238,55 @@ namespace Portal.Services
                 Challenges = await _context.Challenges.Include(c => c.Class)
                     .Where(c => c.TeacherId == teacherId)
                     .ToListAsync()
+            };
+        }
+
+        public async Task<TeacherDashboardViewModel> GetTeacherClassesAsync(int teacherId)
+        {
+            var teacherClasses = await _context.Classes
+                .Where(c => c.TeacherId == teacherId)
+                .ToListAsync();
+
+            var classIds = teacherClasses.Select(c => c.Id).ToList();
+
+            var enrollmentCounts = await _context.ClassEnrollments
+                .Where(ce => classIds.Contains(ce.ClassId))
+                .GroupBy(ce => ce.ClassId)
+                .Select(g => new { ClassId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.ClassId, x => x.Count);
+
+            return new TeacherDashboardViewModel
+            {
+                Classes = teacherClasses.Select(c => new TeacherClassDetailViewModel
+                {
+                    ClassId = c.Id,
+                    ClassName = c.Name,
+                    MembershipCode = c.MembershipCode,
+                    StudentCount = enrollmentCounts.GetValueOrDefault(c.Id)
+                }).ToList()
+            };
+        }
+
+        public async Task<TeacherDashboardViewModel> GetTeacherChallengesAsync(int teacherId)
+        {
+            var teacherClasses = await _context.Classes
+                .Where(c => c.TeacherId == teacherId)
+                .ToListAsync();
+
+            return new TeacherDashboardViewModel
+            {
+                Challenges = await _context.Challenges
+                    .Include(c => c.Class)
+                    .Include(c => c.Scenarios)
+                    .Include(c => c.Submissions)
+                    .Where(c => c.TeacherId == teacherId)
+                    .ToListAsync(),
+                Classes = teacherClasses.Select(c => new TeacherClassDetailViewModel
+                {
+                    ClassId = c.Id,
+                    ClassName = c.Name,
+                    MembershipCode = c.MembershipCode
+                }).ToList()
             };
         }
         public async Task<StudentDashboardViewModel> GetStudentDashboardAsync(int studentId, string studentName)
@@ -236,23 +302,109 @@ namespace Portal.Services
                 .Select(ce => new UserClassEnrollmentDetail
                 {
                     ClassId = ce.ClassId,
-                    ClassName = ce.Class.Name
+                    ClassName = ce.Class.Name,
+                    MembershipCode = ce.Class.MembershipCode
                 })
                 .ToListAsync();
 
             var classIds = enrollments.Select(e => e.ClassId).ToList();
 
-            var pendingChallenges = await _context.Challenges
+            var submissions = await _context.ChallengeSubmissions
+                .Where(cs => cs.StudentId == studentId)
+                .GroupBy(cs => cs.ChallengeId)
+                .ToDictionaryAsync(g => g.Key, g => g.First());
+
+            var submittedChallengeIds = submissions.Keys.ToList();
+
+            var challenges = await _context.Challenges
                 .Include(c => c.Class)
-                .Where(c => classIds.Contains(c.ClassId.Value))
+                .Where(c => (c.ClassId != null && classIds.Contains(c.ClassId.Value)) || submittedChallengeIds.Contains(c.Id))
                 .ToListAsync();
+
+            var studentChallenges = challenges.Select(c => new StudentChallengeViewModel
+            {
+                Challenge = c,
+                IsSubmitted = submissions.ContainsKey(c.Id),
+                SubmittedAt = submissions.TryGetValue(c.Id, out var s) ? s.CreatedAt : null,
+                SubmissionId = submissions.TryGetValue(c.Id, out s) ? s.Id : null,
+                IsGraded = submissions.TryGetValue(c.Id, out s) && s.GradedAt != null
+            }).ToList();
 
             return new StudentDashboardViewModel
             {
                 StudentName = studentName,
                 Scenarios = scenarios,
                 EnrolledClasses = enrollments,
-                PendingChallenges = pendingChallenges
+                PendingChallenges = studentChallenges
+            };
+        }
+
+        public async Task<StudentDashboardViewModel> GetStudentClassesAsync(int studentId, string studentName)
+        {
+            var enrollments = await _context.ClassEnrollments
+                .Include(ce => ce.Class)
+                .Where(ce => ce.StudentId == studentId)
+                .Select(ce => new UserClassEnrollmentDetail
+                {
+                    ClassId = ce.ClassId,
+                    ClassName = ce.Class.Name,
+                    MembershipCode = ce.Class.MembershipCode
+                })
+                .ToListAsync();
+
+            return new StudentDashboardViewModel
+            {
+                StudentName = studentName,
+                EnrolledClasses = enrollments
+            };
+        }
+
+        public async Task<StudentDashboardViewModel> GetStudentChallengesAsync(int studentId, string studentName)
+        {
+            var classIds = await _context.ClassEnrollments
+                .Where(ce => ce.StudentId == studentId)
+                .Select(ce => ce.ClassId)
+                .ToListAsync();
+
+            var submissions = await _context.ChallengeSubmissions
+                .Where(cs => cs.StudentId == studentId)
+                .GroupBy(cs => cs.ChallengeId)
+                .ToDictionaryAsync(g => g.Key, g => g.First());
+
+            var submittedChallengeIds = submissions.Keys.ToList();
+
+            var challenges = await _context.Challenges
+                .Include(c => c.Class)
+                .Where(c => (c.ClassId != null && classIds.Contains(c.ClassId.Value)) || submittedChallengeIds.Contains(c.Id))
+                .ToListAsync();
+
+            var studentChallenges = challenges.Select(c => new StudentChallengeViewModel
+            {
+                Challenge = c,
+                IsSubmitted = submissions.ContainsKey(c.Id),
+                SubmittedAt = submissions.TryGetValue(c.Id, out var s) ? s.CreatedAt : null,
+                SubmissionId = submissions.TryGetValue(c.Id, out s) ? s.Id : null,
+                IsGraded = submissions.TryGetValue(c.Id, out s) && s.GradedAt != null
+            }).ToList();
+
+            return new StudentDashboardViewModel
+            {
+                StudentName = studentName,
+                PendingChallenges = studentChallenges
+            };
+        }
+
+        public async Task<StudentDashboardViewModel> GetStudentScenariosAsync(int studentId, string studentName)
+        {
+            var scenarios = await _context.Scenarios
+                .Where(s => s.StudentId == studentId)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            return new StudentDashboardViewModel
+            {
+                StudentName = studentName,
+                Scenarios = scenarios
             };
         }
 

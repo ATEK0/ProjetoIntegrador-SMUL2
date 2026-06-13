@@ -132,13 +132,30 @@
                     <a href="/Dashboard/Professor" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Professor" ? "active" : "")">
                         <i class="fas fa-chalkboard-teacher"></i> Dashboard Professor
                     </a>
+                    <a href="/Dashboard/ProfessorClasses" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "ProfessorClasses" ? "active" : "")">
+                        <i class="fas fa-users"></i> As Minhas Turmas
+                    </a>
+                    <a href="/Dashboard/ProfessorChallenges" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "ProfessorChallenges" ? "active" : "")">
+                        <i class="fas fa-trophy"></i> Os Meus Desafios
+                    </a>
                 }
                 else if (User.IsInRole("Aluno"))
                 {
                     <div class="sidebar-section-title">Aluno</div>
                     <a href="/Dashboard/Aluno" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Aluno" ? "active" : "")">
-                        <i class="fas fa-home"></i> Dashboard Aluno
+                        <i class="fas fa-home"></i> Resumo Aluno
                     </a>
+                    <a href="/Dashboard/AlunoClasses" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AlunoClasses" ? "active" : "")">
+                        <i class="fas fa-chalkboard"></i> As Minhas Turmas
+                    </a>
+                    <a href="/Dashboard/AlunoChallenges" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AlunoChallenges" ? "active" : "")">
+                        <i class="fas fa-trophy"></i> Os Meus Desafios
+                    </a>
+                    <a href="/Dashboard/AlunoScenarios" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "AlunoScenarios" ? "active" : "")">
+                        <i class="fas fa-home"></i> Os Meus Cenários
+                    </a>
+                    
+                    <div class="sidebar-section-title">Ferramentas</div>
                     <a href="/Simulator" class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Simulator" && ViewContext.RouteData.Values["action"]?.ToString() != "History" ? "active" : "")">
                         <i class="fas fa-calculator"></i> Simulador Financeiro
                     </a>

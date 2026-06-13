@@ -1,124 +1,53 @@
 @model Portal.Models.ViewModels.TeacherDashboardViewModel
 
 @{
-    ViewData["Title"] = "Painel do Professor";
+    ViewData["Title"] = "Painel Principal";
 }
 
 <style>
-    .teacher-grid {
+    .dashboard-stat-row {
         display: grid;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: var(--spacing-lg);
-        margin-top: var(--spacing-lg);
-    }
-    
-    @@media (min-width: 1024px) {
-        .teacher-grid {
-            grid-template-columns: 1.2fr 0.8fr;
-        }
-    }
-    
-    .badge-membership {
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 1.1rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        background: rgba(12, 115, 183, 0.08);
-        color: var(--primary-blue);
-        padding: 4px 10px;
-        border-radius: var(--radius-sm);
-        border: 1px dashed rgba(12, 115, 183, 0.25);
-        display: inline-block;
+        margin-bottom: var(--spacing-xl);
     }
 
-    .badge-access {
-        font-family: 'Courier New', Courier, monospace;
-        font-size: 1.1rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        background: rgba(16, 185, 129, 0.08);
-        color: #10b981;
-        padding: 4px 10px;
-        border-radius: var(--radius-sm);
-        border: 1px dashed rgba(16, 185, 129, 0.25);
-        display: inline-block;
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    /* Modal styles */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: var(--radius-md);
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 9999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-        padding: var(--spacing-md);
+        font-size: 1.5rem;
     }
 
-    .modal-overlay.active {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .modal-card {
-        background: var(--surface-color);
-        border-radius: var(--radius-lg);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        box-shadow: var(--shadow-lg);
-        width: 100%;
-        max-width: 500px;
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: var(--spacing-xl);
-        position: relative;
-        transform: scale(0.95) translateY(15px);
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .modal-overlay.active .modal-card {
-        transform: scale(1) translateY(0);
-    }
-
-    .modal-close-btn {
-        position: absolute;
-        top: var(--spacing-md);
-        right: var(--spacing-md);
-        background: transparent;
-        border: none;
-        font-size: 1.25rem;
-        cursor: pointer;
+    .stat-details h3 {
+        font-size: 0.85rem;
         color: var(--text-muted);
-        transition: var(--transition);
-        width: 32px;
-        height: 32px;
-        border-radius: var(--radius-full);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .modal-close-btn:hover {
-        background-color: rgba(0, 0, 0, 0.05);
+    .stat-details .value {
+        font-size: 1.75rem;
+        font-weight: 700;
         color: var(--text-main);
-    }
-
-    .premium-label {
-        font-weight: 600;
-        color: var(--dark-grey);
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-        margin-bottom: var(--spacing-xs);
-        font-size: 0.95rem;
+        line-height: 1.2;
     }
 
     .table-row-hover:hover {
@@ -127,24 +56,12 @@
 </style>
 
 <div class="container dashboard-page">
-
-    <div class="dashboard-top">
-        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Painel do Professor", Subtitle = "Gerir turmas e criar desafios de literacia financeira." }' />
-        <button type="button" id="openChallengeModalBtn" class="btn btn-primary">
-            <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Novo Desafio
-        </button>
+    <div class="dashboard-top" style="margin-bottom: var(--spacing-lg);">
+        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Resumo", Subtitle = "Bem-vindo ao seu painel de controlo. Acompanhe as suas turmas, desafios e entregas." }' />
     </div>
 
+    <!-- Quick Stats -->
     <div class="dashboard-stat-row">
-        <div class="stat-card card glass-panel">
-            <div class="stat-icon" style="color: var(--primary-blue); background-color: rgba(12, 115, 183, 0.1);">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="stat-details">
-                <h3>Total de Alunos</h3>
-                <div class="value">@Model.TotalStudents</div>
-            </div>
-        </div>
         <div class="stat-card card glass-panel">
             <div class="stat-icon" style="color: #f59e0b; background-color: rgba(245, 158, 11, 0.1);">
                 <i class="fas fa-graduation-cap"></i>
@@ -152,6 +69,15 @@
             <div class="stat-details">
                 <h3>Minhas Turmas</h3>
                 <div class="value">@Model.Classes.Count</div>
+            </div>
+        </div>
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: var(--primary-blue); background-color: rgba(12, 115, 183, 0.1);">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Total de Alunos</h3>
+                <div class="value">@Model.TotalStudents</div>
             </div>
         </div>
         <div class="stat-card card glass-panel">
@@ -163,222 +89,75 @@
                 <div class="value">@Model.TotalChallenges</div>
             </div>
         </div>
+        <div class="stat-card card glass-panel" style="@(Model.TotalPendingGrades > 0 ? "border: 1px solid rgba(239, 68, 68, 0.3); background-color: rgba(239, 68, 68, 0.02);" : "")">
+            <div class="stat-icon" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1);">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="stat-details">
+                <h3 style="color: #ef4444; font-weight: 600;">Entregas Pendentes</h3>
+                <div class="value">@Model.TotalPendingGrades</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="teacher-grid">
-        
-        <!-- Left: Classes Section -->
-        <div class="card glass-panel" style="padding: var(--spacing-lg);">
-            <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                <h3 style="color: var(--primary-blue); font-size: 1.25rem;"><i class="fas fa-graduation-cap" style="margin-right: 8px;"></i> Minhas Turmas</h3>
-            </div>
-
-            @if (!Model.Classes.Any())
-            {
-                <div class="text-center" style="padding: var(--spacing-xl) 0;">
-                    <div style="background-color: rgba(12, 115, 183, 0.05); width: 60px; height: 60px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: var(--primary-blue); margin-bottom: var(--spacing-sm);">
-                        <i class="fas fa-graduation-cap fa-2x"></i>
-                    </div>
-                    <h4 style="font-size: 1.05rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Sem Turmas Associadas</h4>
-                    <p class="text-muted" style="font-size: 0.825rem; max-width: 320px; margin: 0 auto var(--spacing-md) auto;">Atualmente não tem nenhuma turma associada à sua conta. Por favor, contacte o administrador do sistema para lhe associar uma turma.</p>
-                </div>
-            }
-            else
-            {
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--border-color);">
-                                <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Nome da Turma</th>
-                                <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Código de Adesão</th>
-                                <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600; text-align: center;">Alunos Inscritos</th>
-                                <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600; text-align: right;"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var c in Model.Classes)
-                            {
-                                <tr style="border-bottom: 1px solid var(--border-color);" class="table-row-hover">
-                                    <td style="padding: var(--spacing-md) var(--spacing-sm); font-weight: 600;">
-                                        <a href="/Classes/Details/@c.ClassId" style="color: var(--primary-blue); text-decoration: none;">@c.ClassName</a>
-                                    </td>
-                                    <td style="padding: var(--spacing-md) var(--spacing-sm);">
-                                        <span class="badge-membership">@c.MembershipCode</span>
-                                    </td>
-                                    <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: center;">
-                                        <div style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--dark-grey);">
-                                            <i class="fas fa-users" style="color: var(--text-muted); font-size: 0.85rem;"></i>
-                                            @c.StudentCount
-                                        </div>
-                                    </td>
-                                    <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: right;">
-                                        <a href="/Classes/Details/@c.ClassId" class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">Ver alunos</a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+    <!-- Pending Tasks Section -->
+    <div class="card glass-panel" style="padding: var(--spacing-lg);">
+        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+            <h3 style="color: var(--primary-blue); font-size: 1.25rem;">
+                <i class="fas fa-tasks" style="margin-right: 8px;"></i> Submissões por Avaliar
+            </h3>
         </div>
 
-        <!-- Right: Challenges Section -->
-        <div class="card glass-panel" style="padding: var(--spacing-lg);">
-            <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
-                <h3 style="color: var(--primary-blue); font-size: 1.25rem;"><i class="fas fa-trophy" style="margin-right: 8px;"></i> Desafios Criados</h3>
+        @if (!Model.PendingSubmissions.Any())
+        {
+            <div class="text-center" style="padding: var(--spacing-xl) 0;">
+                <div style="background-color: rgba(16, 185, 129, 0.05); width: 60px; height: 60px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: #10b981; margin-bottom: var(--spacing-sm);">
+                    <i class="fas fa-check fa-2x"></i>
+                </div>
+                <h4 style="font-size: 1.05rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Tudo em dia!</h4>
+                <p class="text-muted" style="font-size: 0.825rem; max-width: 320px; margin: 0 auto var(--spacing-md) auto;">Não existem submissões pendentes de avaliação neste momento. Bom trabalho!</p>
             </div>
-
-            @if (!Model.Challenges.Any())
-            {
-                <div class="text-center" style="padding: var(--spacing-xl) 0;">
-                    <div style="background-color: rgba(16, 185, 129, 0.05); width: 60px; height: 60px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: #10b981; margin-bottom: var(--spacing-sm);">
-                        <i class="fas fa-trophy fa-2x"></i>
-                    </div>
-                    <h4 style="font-size: 1.05rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Sem Desafios</h4>
-                    <p class="text-muted" style="font-size: 0.825rem; max-width: 300px; margin: 0 auto var(--spacing-md) auto;">Ainda não tem desafios de literacia financeira configurados.</p>
-                    <button type="button" class="btn btn-outline" onclick="document.getElementById('openChallengeModalBtn').click()" style="padding: 0.4rem 1rem; font-size: 0.85rem;">Criar Desafio</button>
-                </div>
-            }
-            else
-            {
-                <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-                    @foreach (var challenge in Model.Challenges)
-                    {
-                        <div style="background: rgba(255, 255, 255, 0.5); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-xs); transition: var(--transition);" class="table-row-hover">
-                            <div class="flex justify-between items-start">
-                                <h4 style="font-weight: 600; color: var(--primary-blue); margin: 0; font-size: 1rem;">@challenge.Title</h4>
-                                <form action="/Challenges/Delete" method="post" onsubmit="return confirm('Tem a certeza que deseja eliminar este desafio?')">
-                                    <input type="hidden" name="id" value="@challenge.Id" />
-                                    <button type="submit" style="background: transparent; border: none; color: #ef4444; cursor: pointer; padding: 4px; font-size: 0.9rem;" title="Eliminar Desafio">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </div>
-                            
-                            @if (!string.IsNullOrWhiteSpace(challenge.Description))
-                            {
-                                <p class="text-muted" style="font-size: 0.8rem; margin: 0; line-height: 1.4;">@challenge.Description</p>
-                            }
-
-                            <div class="flex justify-between items-center" style="margin-top: 4px; font-size: 0.775rem;">
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <span style="color: var(--text-muted);">Acesso:</span>
-                                    <span class="badge-access" style="font-size: 0.8rem; padding: 2px 6px;">@challenge.AccessLinkCode</span>
-                                </div>
-                                <div style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
-                                    <i class="fas fa-graduation-cap"></i>
-                                    <span>@(challenge.Class != null ? challenge.Class.Name : "Geral (Sem turma)")</span>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-        </div>
-        
-    </div>
-
-</div>
-
-<!-- Modal Criar Desafio -->
-<div id="createChallengeModal" class="modal-overlay">
-    <div class="modal-card">
-        <button type="button" class="modal-close-btn" id="closeChallengeModalBtn">
-            <i class="fas fa-times"></i>
-        </button>
-        
-        <div style="text-align: left;">
-            <div class="flex items-center gap-md mb-2">
-                <div style="background-color: rgba(12, 115, 183, 0.1); width: 44px; height: 44px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--primary-blue);">
-                    <i class="fas fa-trophy fa-lg"></i>
-                </div>
-                <div>
-                    <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin: 0;">Criar Novo Desafio</h3>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Configure um desafio de literacia financeira para os seus alunos.</p>
-                </div>
-            </div>
-            
-            <hr style="border: 0; border-top: 1px solid var(--border-color); margin: var(--spacing-md) 0;" />
-
-            <form action="/Challenges/Create" method="post" id="createChallengeForm">
-                <div class="form-group">
-                    <label for="challengeTitleInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-edit"></i> Título do Desafio
-                    </label>
-                    <input type="text" name="title" id="challengeTitleInput" class="form-control" placeholder="Ex: Simulação Orçamento Familiar" required autocomplete="off" maxlength="255" style="height: 44px; font-size: 0.95rem; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color); padding: 0 12px;" />
-                </div>
-
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label for="challengeDescInput" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-align-left"></i> Descrição / Notas (Opcional)
-                    </label>
-                    <textarea name="description" id="challengeDescInput" class="form-control" placeholder="Descreva brevemente o objetivo do desafio..." style="height: 80px; font-size: 0.9rem; padding: 10px; resize: none; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--border-color);"></textarea>
-                </div>
-
-                <div class="form-group" style="margin-top: var(--spacing-md);">
-                    <label for="challengeClassSelect" class="premium-label" style="font-size: 0.9rem; margin-bottom: 6px;">
-                        <i class="fas fa-graduation-cap"></i> Associar a uma Turma (Opcional)
-                    </label>
-                    <select name="classId" id="challengeClassSelect" class="form-control">
-                        <option value="">Nenhuma (Desafio Geral - Acesso por Código)</option>
-                        @foreach (var cls in Model.Classes)
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Desafio</th>
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Aluno</th>
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Data de Submissão</th>
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600; text-align: right;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var submission in Model.PendingSubmissions)
                         {
-                            <option value="@cls.ClassId">@cls.ClassName</option>
+                            <tr style="border-bottom: 1px solid var(--border-color);" class="table-row-hover">
+                                <td style="padding: var(--spacing-md) var(--spacing-sm); font-weight: 600; color: var(--primary-blue);">
+                                    @submission.ChallengeTitle
+                                </td>
+                                <td style="padding: var(--spacing-md) var(--spacing-sm);">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 24px; height: 24px; background: rgba(12, 115, 183, 0.1); color: var(--primary-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                                            @(submission.StudentName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        @submission.StudentName
+                                    </div>
+                                </td>
+                                <td style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted);">
+                                    @submission.SubmittedAt.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: right;">
+                                    <a href="/Challenges/GradeSubmission/@submission.SubmissionId" class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">
+                                        Avaliar Agora <i class="fas fa-arrow-right" style="margin-left: 4px; font-size: 0.75rem;"></i>
+                                    </a>
+                                </td>
+                            </tr>
                         }
-                    </select>
-                    <span class="text-muted" style="font-size: 0.775rem; display: block; margin-top: 8px; line-height: 1.4;">
-                        <i class="fas fa-info-circle"></i> O desafio receberá um código alfanumérico único para os alunos entrarem diretamente.
-                    </span>
-                </div>
-
-                <div class="flex gap-md" style="margin-top: var(--spacing-xl); justify-content: flex-end;">
-                    <button type="button" class="btn btn-outline" id="cancelChallengeModalBtn" style="padding: 0.55rem var(--spacing-md); font-size: 0.9rem;">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-primary" style="padding: 0.55rem var(--spacing-lg); font-size: 0.9rem; font-weight: 600; box-shadow: var(--shadow-sm);">
-                        Criar Desafio <i class="fas fa-plus-circle" style="margin-left: 5px;"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+                    </tbody>
+                </table>
+            </div>
+        }
     </div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const challengeModal = document.getElementById("createChallengeModal");
-        const openChallengeModalBtn = document.getElementById("openChallengeModalBtn");
-        const closeChallengeModalBtn = document.getElementById("closeChallengeModalBtn");
-        const cancelChallengeModalBtn = document.getElementById("cancelChallengeModalBtn");
-        const challengeTitleInput = document.getElementById("challengeTitleInput");
-
-        function openChallengeModal() {
-            challengeModal.classList.add("active");
-            if (challengeTitleInput) challengeTitleInput.focus();
-        }
-
-        function closeChallengeModal() {
-            challengeModal.classList.remove("active");
-            if (challengeTitleInput) challengeTitleInput.value = "";
-            const challengeDescInput = document.getElementById("challengeDescInput");
-            if (challengeDescInput) challengeDescInput.value = "";
-        }
-
-        if (openChallengeModalBtn) openChallengeModalBtn.addEventListener("click", openChallengeModal);
-        if (closeChallengeModalBtn) closeChallengeModalBtn.addEventListener("click", closeChallengeModal);
-        if (cancelChallengeModalBtn) cancelChallengeModalBtn.addEventListener("click", closeChallengeModal);
-        
-        challengeModal.addEventListener("click", function(e) {
-            if (e.target === challengeModal) {
-                closeChallengeModal();
-            }
-        });
-
-        document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape" && challengeModal.classList.contains("active")) {
-                closeChallengeModal();
-            }
-        });
-    });
-</script>
