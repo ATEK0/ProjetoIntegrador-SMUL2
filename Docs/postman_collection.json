@@ -1,0 +1,487 @@
+{
+  "info": {
+    "name": "MS-CAFIN API Tests",
+    "description": "Coleção de testes para o microserviço financeiro MS-CAFIN.\n\nVariável {{base_url}} deve ser configurada no ambiente Postman (ex: http://localhost:8000).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/health/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Service is MS-CAFIN', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.service).to.eql('MS-CAFIN');",
+                  "});",
+                  "",
+                  "pm.test('Status is online', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql('online');",
+                  "});",
+                  "",
+                  "pm.test('Version is present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.version).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Interest Simulation",
+      "item": [
+        {
+          "name": "Simple Interest - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 10000,\n  \"rate\": 0.05,\n  \"time\": 3,\n  \"type\": \"simple\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/interest/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "interest", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Interest is 1500', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.interest).to.eql(1500.0);",
+                  "});",
+                  "",
+                  "pm.test('Total amount is 11500', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.total_amount).to.eql(11500.0);",
+                  "});",
+                  "",
+                  "pm.test('Breakdown is null for basic calc', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.breakdown).to.be.null;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Compound Interest - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 10000,\n  \"rate\": 0.05,\n  \"time\": 3,\n  \"type\": \"compound\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/interest/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "interest", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Interest is approximately 1576.25', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.interest).to.be.within(1575, 1578);",
+                  "});",
+                  "",
+                  "pm.test('Total amount present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.total_amount).to.be.above(10000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Interest with Rate Tiers - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 10000,\n  \"rate\": 0.03,\n  \"time\": 4,\n  \"type\": \"compound\",\n  \"rate_tiers\": [\n    {\"from_period\": 1, \"rate\": 0.03},\n    {\"from_period\": 3, \"rate\": 0.05}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/interest/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "interest", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Breakdown is present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.breakdown).to.be.an('array');",
+                  "    pm.expect(jsonData.breakdown.length).to.eql(4);",
+                  "});",
+                  "",
+                  "pm.test('Rate tiers applied correctly', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.breakdown[0].rate).to.eql(0.03);",
+                  "    pm.expect(jsonData.breakdown[2].rate).to.eql(0.05);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Interest - Missing Fields (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/interest/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "interest", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Response contains error info', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Object.keys(jsonData).length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Interest - Invalid Type (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 10000,\n  \"rate\": 0.05,\n  \"time\": 3,\n  \"type\": \"exponential\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/interest/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "interest", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Amortization Simulation",
+      "item": [
+        {
+          "name": "French Amortization - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 100000,\n  \"rate\": 0.05,\n  \"years\": 2,\n  \"periodicity\": \"monthly\",\n  \"commission\": 0.0,\n  \"type\": \"french\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/amortization/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "amortization", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Schedule is not empty', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.schedule).to.be.an('array');",
+                  "    pm.expect(jsonData.schedule.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('TAEG is positive', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.taeg).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('IS inicial is present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.is_inicial).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test('Final balance is zero', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var lastRow = jsonData.schedule[jsonData.schedule.length - 1];",
+                  "    pm.expect(lastRow.balance).to.eql(0.0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "SAC Amortization - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 100000,\n  \"rate\": 0.05,\n  \"years\": 2,\n  \"periodicity\": \"monthly\",\n  \"commission\": 0.0,\n  \"type\": \"sac\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/amortization/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "amortization", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Schedule has 25 rows (24 months + period 0)', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.schedule.length).to.eql(25);",
+                  "});",
+                  "",
+                  "pm.test('Final balance is zero', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var lastRow = jsonData.schedule[jsonData.schedule.length - 1];",
+                  "    pm.expect(lastRow.balance).to.eql(0.0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "American Amortization - Valid",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 100000,\n  \"rate\": 0.05,\n  \"years\": 2,\n  \"periodicity\": \"monthly\",\n  \"commission\": 0.0,\n  \"type\": \"american\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/amortization/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "amortization", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Only last period has amortization', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var schedule = jsonData.schedule;",
+                  "    for (var i = 1; i < schedule.length - 1; i++) {",
+                  "        pm.expect(schedule[i].amortization).to.eql(0.0);",
+                  "    }",
+                  "    pm.expect(schedule[schedule.length - 1].amortization).to.eql(100000);",
+                  "});",
+                  "",
+                  "pm.test('Final balance is zero', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var lastRow = jsonData.schedule[jsonData.schedule.length - 1];",
+                  "    pm.expect(lastRow.balance).to.eql(0.0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Amortization - Invalid Type (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"principal\": 100000,\n  \"rate\": 0.05,\n  \"years\": 5,\n  \"periodicity\": \"monthly\",\n  \"commission\": 0.0,\n  \"type\": \"linear\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/amortization/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "amortization", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Amortization - Missing Fields (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/simulate/amortization/",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "simulate", "amortization", ""]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error details present', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(Object.keys(jsonData).length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}
