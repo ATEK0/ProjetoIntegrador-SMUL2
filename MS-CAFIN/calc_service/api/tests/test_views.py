@@ -14,6 +14,7 @@ def client():
 
 # --- Health Check ---
 
+
 @pytest.mark.django_db
 class TestHealthCheck:
 
@@ -31,11 +32,14 @@ class TestHealthCheck:
 
 # --- Endpoint de Juros ---
 
+
 @pytest.mark.django_db
 class TestInterestEndpoint:
 
     def test_juros_simples_200(self, client, simple_interest_payload):
-        resp = client.post("/api/v1/simulate/interest/", data=simple_interest_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/interest/", data=simple_interest_payload, format="json"
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "interest" in data
@@ -51,12 +55,18 @@ class TestInterestEndpoint:
         assert data["total_amount"] == 15000.0
 
     def test_juros_compostos_200(self, client, compound_interest_payload):
-        resp = client.post("/api/v1/simulate/interest/", data=compound_interest_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/interest/", data=compound_interest_payload, format="json"
+        )
         assert resp.status_code == 200
         assert resp.json()["interest"] > 0
 
     def test_com_tiers_200(self, client, interest_with_tiers_payload):
-        resp = client.post("/api/v1/simulate/interest/", data=interest_with_tiers_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/interest/",
+            data=interest_with_tiers_payload,
+            format="json",
+        )
         assert resp.status_code == 200
         assert resp.json()["breakdown"] is not None
 
@@ -86,11 +96,16 @@ class TestInterestEndpoint:
 
 # --- Endpoint de Amortizacao ---
 
+
 @pytest.mark.django_db
 class TestAmortizationEndpoint:
 
     def test_french_200(self, client, french_amortization_payload):
-        resp = client.post("/api/v1/simulate/amortization/", data=french_amortization_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/",
+            data=french_amortization_payload,
+            format="json",
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "schedule" in data
@@ -98,19 +113,35 @@ class TestAmortizationEndpoint:
         assert "is_inicial" in data
 
     def test_sac_200(self, client, sac_amortization_payload):
-        resp = client.post("/api/v1/simulate/amortization/", data=sac_amortization_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/",
+            data=sac_amortization_payload,
+            format="json",
+        )
         assert resp.status_code == 200
 
     def test_american_200(self, client, american_amortization_payload):
-        resp = client.post("/api/v1/simulate/amortization/", data=american_amortization_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/",
+            data=american_amortization_payload,
+            format="json",
+        )
         assert resp.status_code == 200
 
     def test_schedule_nao_vazio(self, client, french_amortization_payload):
-        resp = client.post("/api/v1/simulate/amortization/", data=french_amortization_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/",
+            data=french_amortization_payload,
+            format="json",
+        )
         assert len(resp.json()["schedule"]) > 0
 
     def test_balance_final_zero(self, client, french_amortization_payload):
-        resp = client.post("/api/v1/simulate/amortization/", data=french_amortization_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/",
+            data=french_amortization_payload,
+            format="json",
+        )
         assert resp.json()["schedule"][-1]["balance"] == 0.0
 
     def test_campos_em_falta_400(self, client):
@@ -119,10 +150,16 @@ class TestAmortizationEndpoint:
 
     def test_type_invalido_400(self, client):
         payload = {
-            "principal": 100000, "rate": 0.05, "years": 5,
-            "periodicity": "monthly", "commission": 0.0, "type": "linear",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 5,
+            "periodicity": "monthly",
+            "commission": 0.0,
+            "type": "linear",
         }
-        resp = client.post("/api/v1/simulate/amortization/", data=payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/", data=payload, format="json"
+        )
         assert resp.status_code == 400
 
     def test_get_nao_permitido(self, client):
@@ -130,15 +167,25 @@ class TestAmortizationEndpoint:
         assert resp.status_code == 405
 
     def test_taeg_positiva(self, client, french_amortization_payload):
-        resp = client.post("/api/v1/simulate/amortization/", data=french_amortization_payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/",
+            data=french_amortization_payload,
+            format="json",
+        )
         assert resp.json()["taeg"] > 0
 
     def test_com_comissao(self, client):
         payload = {
-            "principal": 100000, "rate": 0.05, "years": 1,
-            "periodicity": "monthly", "commission": 25.0, "type": "french",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 1,
+            "periodicity": "monthly",
+            "commission": 25.0,
+            "type": "french",
         }
-        resp = client.post("/api/v1/simulate/amortization/", data=payload, format="json")
+        resp = client.post(
+            "/api/v1/simulate/amortization/", data=payload, format="json"
+        )
         assert resp.status_code == 200
         for row in resp.json()["schedule"]:
             if row["period"] > 0:

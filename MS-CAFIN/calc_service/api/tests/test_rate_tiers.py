@@ -3,10 +3,14 @@ Testes para as funcoes de rate_tiers.
 """
 
 import pytest
-from api.domain.rate_tiers import normalize_rate_tiers, rate_for_period, validate_rate_tiers
-
+from api.domain.rate_tiers import (
+    normalize_rate_tiers,
+    rate_for_period,
+    validate_rate_tiers,
+)
 
 # --- normalize_rate_tiers ---
+
 
 class TestNormalizeRateTiers:
 
@@ -43,6 +47,7 @@ class TestNormalizeRateTiers:
 
 # --- rate_for_period ---
 
+
 class TestRateForPeriod:
 
     def test_sem_tiers_retorna_default(self):
@@ -73,6 +78,7 @@ class TestRateForPeriod:
 
 
 # --- validate_rate_tiers ---
+
 
 class TestValidateRateTiers:
 

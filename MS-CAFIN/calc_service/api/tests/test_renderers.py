@@ -3,9 +3,7 @@ Testes para o ApiResponseRenderer.
 """
 
 import json
-import pytest
 from rest_framework.response import Response
-from rest_framework.test import APIRequestFactory
 from api.renderers import ApiResponseRenderer
 
 
@@ -21,7 +19,8 @@ class TestApiResponseRenderer:
         response.accepted_media_type = "application/json"
         response.renderer_context = {"response": response}
         rendered = self.renderer.render(
-            data, accepted_media_type="application/json",
+            data,
+            accepted_media_type="application/json",
             renderer_context={"response": response},
         )
         return json.loads(rendered)

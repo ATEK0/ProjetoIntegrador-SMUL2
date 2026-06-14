@@ -47,7 +47,9 @@ class TestAmortizationFactory:
         assert isinstance(strategy, AmericanAmortization)
 
     def test_case_insensitive(self):
-        assert isinstance(AmortizationFactory.create_strategy("French"), FrenchAmortization)
+        assert isinstance(
+            AmortizationFactory.create_strategy("French"), FrenchAmortization
+        )
         assert isinstance(AmortizationFactory.create_strategy("SAC"), SACAmortization)
         assert isinstance(
             AmortizationFactory.create_strategy("AMERICAN"), AmericanAmortization

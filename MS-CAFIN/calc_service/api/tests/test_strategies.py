@@ -12,8 +12,8 @@ from api.domain.strategies import (
     calculate_irr,
 )
 
-
 # --- Juros Simples ---
+
 
 class TestSimpleInterest:
 
@@ -50,6 +50,7 @@ class TestSimpleInterest:
 
 # --- Juros Compostos ---
 
+
 class TestCompoundInterest:
 
     def setup_method(self):
@@ -81,11 +82,12 @@ class TestCompoundInterest:
 
     def test_tempo_fracionario(self):
         result = self.strategy.calculate(principal=10000, rate=0.1, time=2.5)
-        expected_total = 10000 * (1.1 ** 2.5)
+        expected_total = 10000 * (1.1**2.5)
         assert result["total_amount"] == pytest.approx(expected_total, rel=1e-4)
 
 
 # --- Juros com Tiers ---
+
 
 class TestInterestWithTiers:
 
@@ -147,6 +149,7 @@ class TestInterestWithTiers:
 
 # --- Amortizacao Francesa ---
 
+
 class TestFrenchAmortization:
 
     def setup_method(self):
@@ -176,7 +179,9 @@ class TestFrenchAmortization:
         result = self.strategy.calculate(
             principal=100000, tan=0.06, years=5, periodicity="monthly", commission=0.0
         )
-        installments = [row["installment"] for row in result["schedule"] if row["period"] > 0]
+        installments = [
+            row["installment"] for row in result["schedule"] if row["period"] > 0
+        ]
         assert all(i == installments[0] for i in installments)
 
     def test_imposto_selo(self):
@@ -228,6 +233,7 @@ class TestFrenchAmortization:
 
 # --- Amortizacao SAC ---
 
+
 class TestSACAmortization:
 
     def setup_method(self):
@@ -265,6 +271,7 @@ class TestSACAmortization:
 
 # --- Amortizacao Americana ---
 
+
 class TestAmericanAmortization:
 
     def setup_method(self):
@@ -301,6 +308,7 @@ class TestAmericanAmortization:
 
 
 # --- IRR ---
+
 
 class TestCalculateIRR:
 

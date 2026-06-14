@@ -109,8 +109,12 @@ class TestRunAmortization:
 
     def test_french(self):
         data = {
-            "principal": 100000, "rate": 0.05, "years": 2,
-            "periodicity": "monthly", "commission": 0.0, "type": "french",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 2,
+            "periodicity": "monthly",
+            "commission": 0.0,
+            "type": "french",
         }
         result = SimulationService.run_amortization(data)
         assert "schedule" in result
@@ -120,24 +124,36 @@ class TestRunAmortization:
 
     def test_sac(self):
         data = {
-            "principal": 100000, "rate": 0.05, "years": 2,
-            "periodicity": "monthly", "commission": 0.0, "type": "sac",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 2,
+            "periodicity": "monthly",
+            "commission": 0.0,
+            "type": "sac",
         }
         result = SimulationService.run_amortization(data)
         assert result["schedule"][-1]["balance"] == 0.0
 
     def test_american(self):
         data = {
-            "principal": 100000, "rate": 0.05, "years": 2,
-            "periodicity": "monthly", "commission": 0.0, "type": "american",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 2,
+            "periodicity": "monthly",
+            "commission": 0.0,
+            "type": "american",
         }
         result = SimulationService.run_amortization(data)
         assert result["schedule"][-1]["balance"] == 0.0
 
     def test_com_comissao(self):
         data = {
-            "principal": 100000, "rate": 0.05, "years": 1,
-            "periodicity": "monthly", "commission": 15.0, "type": "french",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 1,
+            "periodicity": "monthly",
+            "commission": 15.0,
+            "type": "french",
         }
         result = SimulationService.run_amortization(data)
         for row in result["schedule"]:
@@ -146,8 +162,12 @@ class TestRunAmortization:
 
     def test_periodicidade_anual(self):
         data = {
-            "principal": 100000, "rate": 0.05, "years": 5,
-            "periodicity": "annual", "commission": 0.0, "type": "sac",
+            "principal": 100000,
+            "rate": 0.05,
+            "years": 5,
+            "periodicity": "annual",
+            "commission": 0.0,
+            "type": "sac",
         }
         result = SimulationService.run_amortization(data)
         assert len(result["schedule"]) == 6  # 5 periodos + periodo 0

@@ -28,8 +28,11 @@ class TestFacadeJuros:
             {"from_period": 3, "rate": 0.06},
         ]
         result = SimulatorFacade.simulate_interest(
-            principal=10000, rate=0.03, time=4,
-            interest_type="compound", rate_tiers=tiers,
+            principal=10000,
+            rate=0.03,
+            time=4,
+            interest_type="compound",
+            rate_tiers=tiers,
         )
         assert result["breakdown"] is not None
         assert len(result["breakdown"]) == 4
@@ -57,8 +60,12 @@ class TestFacadeAmortizacao:
 
     def test_french(self):
         result = SimulatorFacade.simulate_amortization(
-            principal=100000, rate=0.05, years=2,
-            periodicity="monthly", commission=0.0, amortization_type="french",
+            principal=100000,
+            rate=0.05,
+            years=2,
+            periodicity="monthly",
+            commission=0.0,
+            amortization_type="french",
         )
         assert "schedule" in result
         assert "taeg" in result
@@ -67,21 +74,33 @@ class TestFacadeAmortizacao:
 
     def test_sac(self):
         result = SimulatorFacade.simulate_amortization(
-            principal=100000, rate=0.05, years=2,
-            periodicity="monthly", commission=0.0, amortization_type="sac",
+            principal=100000,
+            rate=0.05,
+            years=2,
+            periodicity="monthly",
+            commission=0.0,
+            amortization_type="sac",
         )
         assert len(result["schedule"]) == 25
 
     def test_american(self):
         result = SimulatorFacade.simulate_amortization(
-            principal=100000, rate=0.05, years=2,
-            periodicity="monthly", commission=0.0, amortization_type="american",
+            principal=100000,
+            rate=0.05,
+            years=2,
+            periodicity="monthly",
+            commission=0.0,
+            amortization_type="american",
         )
         assert len(result["schedule"]) == 25
 
     def test_tipo_desconhecido(self):
         with pytest.raises(ValueError):
             SimulatorFacade.simulate_amortization(
-                principal=100000, rate=0.05, years=2,
-                periodicity="monthly", commission=0.0, amortization_type="linear",
+                principal=100000,
+                rate=0.05,
+                years=2,
+                periodicity="monthly",
+                commission=0.0,
+                amortization_type="linear",
             )

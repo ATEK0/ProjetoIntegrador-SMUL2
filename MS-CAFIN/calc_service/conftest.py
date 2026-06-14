@@ -1,7 +1,7 @@
 import pytest
 
-
 # -- Fixtures para juros --
+
 
 @pytest.fixture
 def simple_interest_payload():
@@ -38,6 +38,7 @@ def interest_with_tiers_payload():
 
 
 # -- Fixtures para amortizacao --
+
 
 @pytest.fixture
 def french_amortization_payload():
