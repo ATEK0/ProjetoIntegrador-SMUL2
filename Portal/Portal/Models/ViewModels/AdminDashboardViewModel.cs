@@ -1,10 +1,9 @@
-using System.Collections.Generic;
-
 namespace Portal.Models.ViewModels
 {
     public class AdminDashboardViewModel
     {
-        public IEnumerable<SchoolClass> Classes { get; set; }
-        public IEnumerable<Challenge> Challenges { get; set; }
+        public List<SchoolClass> Classes { get; set; } = new();
+        public List<Challenge> Challenges { get; set; } = new();
+        public List<User> Users { get; set; } = new();
     }
 }

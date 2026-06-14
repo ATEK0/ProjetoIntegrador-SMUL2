@@ -1,0 +1,194 @@
+@model Portal.Models.ViewModels.SimulationCompareRequest
+@{
+    ViewData["Title"] = "Comparar Créditos";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/simulator.css" asp-append-version="true" />
+    <style>
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xl);
+        }
+        
+        @@media (max-width: 800px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .compare-col {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            border: 2px solid transparent;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+        
+        .compare-col:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .compare-col--a { border-color: rgba(12, 115, 183, 0.1); }
+        .compare-col--b { border-color: rgba(5, 150, 105, 0.1); }
+        
+        .compare-col-header {
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .compare-col-header h4 { margin: 0; font-size: 1.1rem; }
+    </style>
+}
+
+<div class="sim-page">
+    <div class="sim-hero" style="margin-bottom: 24px;">
+        <div class="sim-hero-icon" style="background: linear-gradient(135deg, var(--primary-blue), #059669);">
+            <i class="fas fa-balance-scale"></i>
+        </div>
+        <div style="flex:1;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h3>Comparador de Créditos</h3>
+                    <p>Compare duas propostas de crédito lado a lado para descobrir qual oferece a menor TAEG e o menor custo total (MTIC).</p>
+                </div>
+                <a href="/Simulator" class="btn btn-outline" style="background: white;">Simulação Simples</a>
+            </div>
+        </div>
+    </div>
+
+    <form action="/Simulator/Compare" method="post" class="card glass-panel" style="padding: var(--spacing-xl);" novalidate>
+        @Html.AntiForgeryToken()
+        @await Html.PartialAsync("_FormErrors")
+
+        <div class="compare-grid">
+            <!-- Proposta A -->
+            <div class="compare-col compare-col--a">
+                <div class="compare-col-header" style="color: var(--primary-blue);">
+                    <i class="fas fa-file-contract"></i>
+                    <h4>Proposta A</h4>
+                </div>
+                
+                <input type="hidden" name="ProposalA.SimulationMode" value="amortization" />
+                
+                <div class="form-group sim-field">
+                    <label class="form-label">Capital Financiado (€)</label>
+                    <div class="sim-input-wrap">
+                        <span class="sim-input-prefix">€</span>
+                        <input name="ProposalA.Principal" class="form-control" type="number" step="0.01" value="@(Model.ProposalA.Principal)" required />
+                    </div>
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Taxa Nominal Anual (TAN) %</label>
+                    <div class="sim-input-wrap">
+                        <input name="ProposalA.RatePercentage" class="form-control" type="number" step="0.01" value="@(Model.ProposalA.RatePercentage)" required />
+                        <span class="sim-input-suffix">%</span>
+                    </div>
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Prazo (em Anos)</label>
+                    <input name="ProposalA.Time" class="form-control" type="number" step="0.1" value="@(Model.ProposalA.Time)" required />
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Comissão Mensal (€)</label>
+                    <div class="sim-input-wrap">
+                        <span class="sim-input-prefix">€</span>
+                        <input name="ProposalA.MonthlyCommission" class="form-control" type="number" step="0.01" value="@(Model.ProposalA.MonthlyCommission ?? 0)" />
+                    </div>
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Regime Específico</label>
+                    <select name="ProposalA.Type" class="form-control">
+                        <option value="french" selected="@(Model.ProposalA.Type == "french")">Sistema Francês (Prestação Constante)</option>
+                        <option value="sac" selected="@(Model.ProposalA.Type == "sac")">Sistema SAC (Amortização Constante)</option>
+                        <option value="american" selected="@(Model.ProposalA.Type == "american")">Sistema Americano</option>
+                    </select>
+                </div>
+                
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Periodicidade</label>
+                    <select name="ProposalA.Periodicity" class="form-control">
+                        <option value="monthly" selected="@(Model.ProposalA.Periodicity == "monthly")">Mensal</option>
+                        <option value="quarterly" selected="@(Model.ProposalA.Periodicity == "quarterly")">Trimestral</option>
+                        <option value="semiannual" selected="@(Model.ProposalA.Periodicity == "semiannual")">Semestral</option>
+                        <option value="annual" selected="@(Model.ProposalA.Periodicity == "annual")">Anual</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Proposta B -->
+            <div class="compare-col compare-col--b">
+                <div class="compare-col-header" style="color: #059669;">
+                    <i class="fas fa-file-contract"></i>
+                    <h4>Proposta B</h4>
+                </div>
+                
+                <input type="hidden" name="ProposalB.SimulationMode" value="amortization" />
+                
+                <div class="form-group sim-field">
+                    <label class="form-label">Capital Financiado (€)</label>
+                    <div class="sim-input-wrap">
+                        <span class="sim-input-prefix">€</span>
+                        <input name="ProposalB.Principal" class="form-control" type="number" step="0.01" value="@(Model.ProposalB.Principal)" required />
+                    </div>
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Taxa Nominal Anual (TAN) %</label>
+                    <div class="sim-input-wrap">
+                        <input name="ProposalB.RatePercentage" class="form-control" type="number" step="0.01" value="@(Model.ProposalB.RatePercentage)" required />
+                        <span class="sim-input-suffix">%</span>
+                    </div>
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Prazo (em Anos)</label>
+                    <input name="ProposalB.Time" class="form-control" type="number" step="0.1" value="@(Model.ProposalB.Time)" required />
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Comissão Mensal (€)</label>
+                    <div class="sim-input-wrap">
+                        <span class="sim-input-prefix">€</span>
+                        <input name="ProposalB.MonthlyCommission" class="form-control" type="number" step="0.01" value="@(Model.ProposalB.MonthlyCommission ?? 0)" />
+                    </div>
+                </div>
+
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Regime Específico</label>
+                    <select name="ProposalB.Type" class="form-control">
+                        <option value="french" selected="@(Model.ProposalB.Type == "french")">Sistema Francês (Prestação Constante)</option>
+                        <option value="sac" selected="@(Model.ProposalB.Type == "sac")">Sistema SAC (Amortização Constante)</option>
+                        <option value="american" selected="@(Model.ProposalB.Type == "american")">Sistema Americano</option>
+                    </select>
+                </div>
+                
+                <div class="form-group sim-field" style="margin-top: 16px;">
+                    <label class="form-label">Periodicidade</label>
+                    <select name="ProposalB.Periodicity" class="form-control">
+                        <option value="monthly" selected="@(Model.ProposalB.Periodicity == "monthly")">Mensal</option>
+                        <option value="quarterly" selected="@(Model.ProposalB.Periodicity == "quarterly")">Trimestral</option>
+                        <option value="semiannual" selected="@(Model.ProposalB.Periodicity == "semiannual")">Semestral</option>
+                        <option value="annual" selected="@(Model.ProposalB.Periodicity == "annual")">Anual</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: var(--spacing-xl); text-align: center;">
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">
+                <i class="fas fa-balance-scale" style="margin-right: 8px;"></i> Comparar Propostas
+            </button>
+        </div>
+    </form>
+</div>

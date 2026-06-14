@@ -30,7 +30,7 @@ namespace Portal.Models
             ClassId = classId;
             StudentId = studentId;
         }
-        protected ClassEnrollment() { }
 
+        protected ClassEnrollment() { }
     }
 }

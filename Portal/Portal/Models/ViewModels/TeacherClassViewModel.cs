@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Portal.Models
+namespace Portal.Models.ViewModels
 {
     public class TeacherClassViewModel
     {

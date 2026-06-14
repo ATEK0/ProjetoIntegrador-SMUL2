@@ -221,3 +221,5 @@ __marimo__/
 
 # Keys
 *.key
+# Nginx TLS certificates (auto-assinados)
+nginx/certs/

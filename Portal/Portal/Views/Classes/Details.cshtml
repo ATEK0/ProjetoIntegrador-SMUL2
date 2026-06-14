@@ -1,0 +1,220 @@
+@model Portal.Models.ViewModels.ClassDetailsViewModel
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<style>
+    .details-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+
+    @@media (min-width: 1024px) {
+        .details-grid {
+            grid-template-columns: @(Model.CanEdit ? "350px 1fr" : "1fr");
+        }
+    }
+
+    .info-card {
+        background: var(--surface-color);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-lg);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .danger-zone {
+        border: 1px dashed #ef4444;
+        background: rgba(239, 68, 68, 0.02);
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--dark-grey);
+        margin-bottom: var(--spacing-xs);
+        display: block;
+        font-size: 0.9rem;
+    }
+
+    .student-item {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg) var(--spacing-md);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .student-item:last-child {
+        border-bottom: none;
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-full);
+        background-color: rgba(12, 115, 183, 0.1);
+        color: var(--primary-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .btn-remove-student {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .btn-remove-student:hover {
+        background: #ef4444;
+        color: white;
+    }
+
+    .membership-code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: rgba(12, 115, 183, 0.08);
+        color: var(--primary-blue);
+        padding: 8px 16px;
+        border-radius: var(--radius-md);
+        border: 1px dashed rgba(12, 115, 183, 0.3);
+        display: inline-block;
+        margin-top: 8px;
+    }
+</style>
+
+<div class="container dashboard-page">
+
+    <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel {
+        Title = Model.Name,
+        Subtitle = Model.CanEdit ? "Gerir turma e alunos inscritos." : $"Código de adesão: {Model.MembershipCode}"
+    }' />
+
+    <div class="details-grid">
+        @if (Model.CanEdit)
+        {
+            <div>
+                <div class="info-card">
+                    <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                        Configurações
+                    </h3>
+
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Código de Adesão</label>
+                        <div><span class="membership-code">@Model.MembershipCode</span></div>
+                    </div>
+
+                    <form action="/Classes/Edit" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+
+                        <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                            <label for="name">Nome da Turma</label>
+                            <input type="text" id="name" name="name" class="form-control" value="@Model.Name" required />
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                            <label for="teacherId">Professor Responsável</label>
+                            <select id="teacherId" name="teacherId" class="form-control" required>
+                                @foreach (var teacher in Model.AvailableTeachers)
+                                {
+                                    if (teacher.Id == Model.TeacherId)
+                                    {
+                                        <option value="@teacher.Id" selected>@teacher.Name (@teacher.Email)</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@teacher.Id">@teacher.Name (@teacher.Email)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Alterações</button>
+                    </form>
+                </div>
+
+                <div class="info-card danger-zone">
+                    <h3 style="color: #ef4444; font-size: 1.05rem; margin-bottom: var(--spacing-sm);">Eliminar Turma</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: var(--spacing-md);">
+                        Esta ação é irreversível.
+                    </p>
+                    <form action="/Classes/Delete" method="post" onsubmit="return confirm('Eliminar a turma @Model.Name?');">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-outline" style="width: 100%; border-color: #ef4444; color: #ef4444;">Eliminar Turma</button>
+                    </form>
+                </div>
+            </div>
+        }
+
+        <div>
+            <div class="info-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                    <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin: 0;">Alunos Inscritos</h3>
+                    <span style="background: rgba(12, 115, 183, 0.1); color: var(--primary-blue); font-weight: 700; font-size: 0.85rem; padding: 4px 12px; border-radius: var(--radius-full);">
+                        @Model.EnrolledStudents.Count
+                    </span>
+                </div>
+
+                @if (!Model.CanEdit)
+                {
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Código de Adesão</label>
+                        <div><span class="membership-code">@Model.MembershipCode</span></div>
+                    </div>
+                }
+
+                @if (!Model.EnrolledStudents.Any())
+                {
+                    <div style="text-align: center; padding: var(--spacing-xl) 0; color: var(--text-muted);">
+                        <p style="font-size: 0.9rem;">Sem alunos inscritos. Partilhe o código <strong>@Model.MembershipCode</strong> com os alunos.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var student in Model.EnrolledStudents)
+                    {
+                        <div class="student-item">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="user-avatar">
+                                        @(!string.IsNullOrWhiteSpace(student.Name) ? student.Name.Substring(0, 1).ToUpper() : "A")
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--dark-grey); font-size: 1.05rem;">@student.Name</div>
+                                    </div>
+                                </div>
+
+                                @if (Model.CanEdit)
+                                {
+                                    <form action="/Classes/RemoveUserFromClass" method="post" onsubmit="return confirm('Remover este aluno da turma?');">
+                                        <input type="hidden" name="userId" value="@student.Id" />
+                                        <input type="hidden" name="classId" value="@Model.Id" />
+                                        <button type="submit" class="btn-remove-student" title="Remover da turma">
+                                            <i class="fas fa-user-minus"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+
+
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,40 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
-using Portal.Data;
-using Portal.Models;
+using Portal.Models.ViewModels;
+using Portal.Services;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Portal.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
-        private readonly ApplicationDbContext _context;
-        private readonly PasswordHasher<User> _passwordHasher = new();
-        private readonly IConfiguration _configuration;
+        private readonly AccountService _accountService;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(ApplicationDbContext context, IConfiguration configuration)
+        public AccountController(AccountService accountService, ILogger<AccountController> logger)
         {
-            _context = context;
-            _configuration = configuration;
+            _accountService = accountService;
+            _logger = logger;
         }
 
         [HttpGet]
         public IActionResult Login()
         {
             if (User.Identity?.IsAuthenticated == true)
-            {
-                return RedirectUserBasedOnRole(User.FindFirst(ClaimTypes.Role)?.Value);
-            }
+                return RedirectByRole(User.FindFirst(ClaimTypes.Role)?.Value);
             return View();
         }
 
@@ -43,56 +34,38 @@ namespace Portal.Controllers
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                TempData["Error"] = "Por favor, preencha todos os campos obrigatórios.";
+                ModelState.AddModelError(string.Empty, "Por favor, preencha todos os campos obrigatórios.");
                 return View();
             }
 
             try
             {
-                var user = await _context.Users
-                    .Include(u => u.Role)
-                    .Include(u => u.UserStatus)
-                    .FirstOrDefaultAsync(u => u.Email == email.Trim().ToLower());
-
-                if (user == null)
+                var result = await _accountService.TryLoginAsync(email, password);
+                if (result == null)
                 {
-                    TempData["Error"] = "E-mail ou password incorretos.";
+                    ModelState.AddModelError(string.Empty, "E-mail ou password incorretos.");
                     return View();
                 }
 
-                // Verificar a password
-                var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
-                if (verificationResult == PasswordVerificationResult.Failed)
-                {
-                    TempData["Error"] = "E-mail ou password incorretos.";
-                    return View();
-                }
-
-                if (user.UserStatus?.StatusName != "Ativo")
-                {
-                    TempData["Error"] = "A sua conta não está ativa. Por favor, contacte o administrador.";
-                    return View();
-                }
-
-                // Gerar token JWT
-                var token = GenerateJwtToken(user);
-
-                // Armazenar o JWT num cookie seguro HTTP-Only
-                var cookieOptions = new CookieOptions
+                Response.Cookies.Append("JWT_Token", result.Value.token, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = false, // Em produção deve ser true (apenas HTTPS)
+                    Secure = false,
                     SameSite = SameSiteMode.Strict,
                     Expires = rememberMe ? DateTime.UtcNow.AddDays(7) : DateTime.UtcNow.AddHours(2)
-                };
+                });
 
-                Response.Cookies.Append("JWT_Token", token, cookieOptions);
-
-                return RedirectUserBasedOnRole(user.Role?.RoleName);
+                return RedirectByRole(result.Value.user.Role?.RoleName);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Erro ao tentar iniciar sessão: {ex.Message}";
+                _logger.LogError(ex, "Erro no login para {Email}", email);
+                ModelState.AddModelError(string.Empty, "Ocorreu um erro ao tentar iniciar sessão. Tente novamente.");
                 return View();
             }
         }
@@ -101,113 +74,109 @@ namespace Portal.Controllers
         public IActionResult Register()
         {
             if (User.Identity?.IsAuthenticated == true)
-            {
-                return RedirectUserBasedOnRole(User.FindFirst(ClaimTypes.Role)?.Value);
-            }
+                return RedirectByRole(User.FindFirst(ClaimTypes.Role)?.Value);
             return View();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string name, string email, string password, string role)
+        public async Task<IActionResult> Register(string name, string email, string password, int? genderId, DateTime? birthDate, string role = "aluno")
         {
-            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(role))
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                TempData["Error"] = "Por favor, preencha todos os campos.";
+                ModelState.AddModelError(string.Empty, "Por favor, preencha todos os campos obrigatórios.");
                 return View();
             }
 
-            try
+            var error = await _accountService.RegisterAsync(name, email, password, genderId, birthDate, role);
+            if (error != null)
             {
-                // Verificar se o e-mail já existe
-                var existingUser = await _context.Users.AnyAsync(u => u.Email == email.Trim().ToLower());
-                if (existingUser)
-                {
-                    TempData["Error"] = "Este e-mail já está registado na plataforma.";
-                    return View();
-                }
-
-                // Determinar a Role correspondente
-                string dbRoleName = role.Equals("professor", StringComparison.OrdinalIgnoreCase) ? "Professor" : "Aluno";
-                var dbRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == dbRoleName);
-                if (dbRole == null)
-                {
-                    TempData["Error"] = $"A função '{dbRoleName}' selecionada não é válida. Por favor, verifique se a base de dados está inicializada.";
-                    return View();
-                }
-
-                // Determinar o Estado correspondente (Ativo por padrão)
-                var status = await _context.UserStatuses.FirstOrDefaultAsync(s => s.StatusName == "Ativo");
-                if (status == null)
-                {
-                    TempData["Error"] = "Não foi possível encontrar o estado 'Ativo' na base de dados. Por favor, verifique se a base de dados está inicializada.";
-                    return View();
-                }
-
-                var newUser = new User(name.Trim(), status.Id, dbRole.Id)
-                {
-                    Email = email
-                };
-
-                newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
-
-                _context.Users.Add(newUser);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Conta criada com sucesso! Faça login abaixo.";
-                return RedirectToAction(nameof(Login));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Erro ao criar conta: {ex.Message}";
+                ModelState.AddModelError(string.Empty, error);
                 return View();
             }
+
+            TempData["Success"] = "Conta criada com sucesso! Faça login abaixo.";
+            return RedirectToAction(nameof(Login));
         }
 
-        [HttpGet]
-        [HttpPost]
+        [HttpGet, HttpPost]
         public IActionResult Logout()
         {
             Response.Cookies.Delete("JWT_Token");
             return RedirectToAction(nameof(Login));
         }
 
-        private string GenerateJwtToken(User user)
+        [Authorize, HttpGet]
+        public async Task<IActionResult> Profile()
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtSecret = _configuration["Jwt:Secret"] ?? "SuaChaveSecretaSuperProtegidaComPeloMenos32CaracteresDEC!";
-            var key = Encoding.UTF8.GetBytes(jwtSecret);
+            var userId = GetUserId();
+            if (userId == null) return RedirectToAction(nameof(Login));
 
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Name),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "Aluno")
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var vm = await _accountService.GetProfileAsync(userId.Value);
+            return vm == null ? RedirectToAction(nameof(Login)) : View(vm);
         }
 
-        private IActionResult RedirectUserBasedOnRole(string? roleName)
+        [Authorize, HttpPost]
+        public async Task<IActionResult> Profile(ProfileViewModel vm)
         {
-            if (string.Equals(roleName, "Admin", StringComparison.OrdinalIgnoreCase))
+            var userId = GetUserId();
+            if (userId == null) return RedirectToAction(nameof(Login));
+
+            if (!ModelState.IsValid)
+                return View(await RepopulateProfile(vm, userId.Value));
+
+            var error = await _accountService.UpdateProfileAsync(userId.Value, vm);
+            if (error != null)
             {
-                return Redirect("/admin");
+                ModelState.AddModelError(string.Empty, error);
+                return View(await RepopulateProfile(vm, userId.Value));
             }
-            else if (string.Equals(roleName, "Professor", StringComparison.OrdinalIgnoreCase))
+
+            Response.Cookies.Append("JWT_Token", await _accountService.GenerateTokenForUserAsync(userId.Value), new CookieOptions
             {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            TempData["Success"] = "Perfil atualizado com sucesso!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+        [Authorize, HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
+        {
+            var userId = GetUserId();
+            if (userId == null) return RedirectToAction(nameof(Login));
+
+            if (!ModelState.IsValid)
+            {
+                var profile = await _accountService.GetProfileAsync(userId.Value);
+                return profile == null ? RedirectToAction(nameof(Login)) : View("Profile", profile);
+            }
+
+            var error = await _accountService.ChangePasswordAsync(userId.Value, vm);
+            TempData[error == null ? "Success" : "Error"] =
+                error ?? "Password alterada com sucesso!";
+            return RedirectToAction(nameof(Profile));
+        }
+
+
+
+        private async Task<ProfileViewModel> RepopulateProfile(ProfileViewModel vm, int userId)
+        {
+            var current = await _accountService.GetProfileAsync(userId);
+            if (current != null) { vm.Role = current.Role; vm.CreatedAt = current.CreatedAt; }
+            return vm;
+        }
+
+        private IActionResult RedirectByRole(string? role)
+        {
+            if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("Admin", "Dashboard");
+            if (string.Equals(role, "Professor", StringComparison.OrdinalIgnoreCase))
                 return RedirectToAction("Professor", "Dashboard");
-            }
-            else
-            {
-                return RedirectToAction("Aluno", "Dashboard");
-            }
+            return RedirectToAction("Aluno", "Dashboard");
         }
     }
 }

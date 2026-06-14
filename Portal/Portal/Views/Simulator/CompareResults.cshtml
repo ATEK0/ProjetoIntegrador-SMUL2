@@ -1,0 +1,220 @@
+@model Portal.Models.ViewModels.SimulationCompareResultViewModel
+@{
+    ViewData["Title"] = "Resultados da Comparação";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/simulator.css" asp-append-version="true" />
+    <style>
+        .compare-results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
+        }
+        
+        @@media (max-width: 800px) {
+            .compare-results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .compare-panel {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            border: 2px solid transparent;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+        
+        .compare-panel:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .compare-panel--winner {
+            border-color: #059669;
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+            position: relative;
+        }
+        
+        .compare-panel--loser {
+            opacity: 0.85;
+        }
+        
+        .winner-badge {
+            position: absolute;
+            top: -14px;
+            right: var(--spacing-lg);
+            background: #059669;
+            color: white;
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .compare-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .compare-stat:last-child {
+            border-bottom: none;
+        }
+        
+        .compare-stat .label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .compare-stat .value {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--dark-grey);
+        }
+        
+        .compare-stat .value.highlight {
+            font-size: 1.1rem;
+            color: var(--primary-blue);
+        }
+        
+        .compare-stat .value.winner-value {
+            color: #059669;
+        }
+        
+        .compare-stat .value.loser-value {
+            color: #dc2626;
+        }
+        
+        .vs-badge {
+            display: inline-block;
+            background: var(--dark-grey);
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            text-align: center;
+            line-height: 36px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            margin-top: -18px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        @@media (max-width: 800px) {
+            .vs-badge { display: none; }
+        }
+    </style>
+}
+
+<div class="sim-results">
+    <div class="sim-results-header" style="margin-bottom: var(--spacing-md);">
+        <a href="/Simulator/Compare" class="sim-back">
+            <i class="fas fa-arrow-left"></i>
+            Nova comparação
+        </a>
+    </div>
+
+    @if (Model.Winner != "Empate")
+    {
+        <div class="alert alert-success" style="background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(5, 150, 105, 0.2); color: #059669; padding: var(--spacing-md); border-radius: var(--radius-md); text-align: center; margin-bottom: var(--spacing-lg);">
+            <i class="fas fa-trophy" style="margin-right: 8px;"></i>
+            <strong>A Proposta @Model.Winner é a mais vantajosa!</strong> Permite poupar <strong>@Model.Difference.ToString("C")</strong> no custo total do crédito (MTIC).
+        </div>
+    }
+
+    <div style="position: relative;">
+        <div class="vs-badge">VS</div>
+        <div class="compare-results-grid">
+            
+            <!-- RESULTADOS A -->
+            <div class="compare-panel @(Model.Winner == "A" ? "compare-panel--winner" : "") @(Model.Winner == "B" ? "compare-panel--loser" : "")">
+                @if (Model.Winner == "A") { <div class="winner-badge"><i class="fas fa-star"></i> Melhor Escolha</div> }
+                <h4 style="color: var(--primary-blue); margin-bottom: 16px; font-size: 1.2rem; text-align: center;">Proposta A</h4>
+                
+                <div style="background: #f8fafb; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Custo Total (MTIC)</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: @(Model.Winner == "A" ? "#059669" : "var(--dark-grey)");">
+                        @Model.TotalPagoA.ToString("C")
+                    </div>
+                </div>
+
+                <div class="compare-stat">
+                    <span class="label">TAEG</span>
+                    <span class="value @(Model.ResultA.TAEG < Model.ResultB.TAEG ? "winner-value highlight" : "highlight")">@Model.ResultA.TAEG.ToString("N2")%</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Total Juros pagos</span>
+                    <span class="value @(Model.TotalJurosA < Model.TotalJurosB ? "winner-value" : "")">@Model.TotalJurosA.ToString("C")</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Impostos e Comissões</span>
+                    <span class="value @(Model.TotalImpostosComissoesA < Model.TotalImpostosComissoesB ? "winner-value" : "")">@Model.TotalImpostosComissoesA.ToString("C")</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">1ª Prestação</span>
+                    <span class="value">@Model.PrestacaoA.ToString("C")</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Taxa Anual Nominal (TAN)</span>
+                    <span class="value">@Model.Request.ProposalA.RatePercentage%</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Regime</span>
+                    <span class="value">@(Model.Request.ProposalA.Type == "french" ? "Francês" : Model.Request.ProposalA.Type == "sac" ? "SAC" : "Americano")</span>
+                </div>
+            </div>
+
+            <!-- RESULTADOS B -->
+            <div class="compare-panel @(Model.Winner == "B" ? "compare-panel--winner" : "") @(Model.Winner == "A" ? "compare-panel--loser" : "")">
+                @if (Model.Winner == "B") { <div class="winner-badge"><i class="fas fa-star"></i> Melhor Escolha</div> }
+                <h4 style="color: #059669; margin-bottom: 16px; font-size: 1.2rem; text-align: center;">Proposta B</h4>
+                
+                <div style="background: #f8fafb; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Custo Total (MTIC)</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: @(Model.Winner == "B" ? "#059669" : "var(--dark-grey)");">
+                        @Model.TotalPagoB.ToString("C")
+                    </div>
+                </div>
+
+                <div class="compare-stat">
+                    <span class="label">TAEG</span>
+                    <span class="value @(Model.ResultB.TAEG < Model.ResultA.TAEG ? "winner-value highlight" : "highlight")">@Model.ResultB.TAEG.ToString("N2")%</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Total Juros pagos</span>
+                    <span class="value @(Model.TotalJurosB < Model.TotalJurosA ? "winner-value" : "")">@Model.TotalJurosB.ToString("C")</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Impostos e Comissões</span>
+                    <span class="value @(Model.TotalImpostosComissoesB < Model.TotalImpostosComissoesA ? "winner-value" : "")">@Model.TotalImpostosComissoesB.ToString("C")</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">1ª Prestação</span>
+                    <span class="value">@Model.PrestacaoB.ToString("C")</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Taxa Anual Nominal (TAN)</span>
+                    <span class="value">@Model.Request.ProposalB.RatePercentage%</span>
+                </div>
+                <div class="compare-stat">
+                    <span class="label">Regime</span>
+                    <span class="value">@(Model.Request.ProposalB.Type == "french" ? "Francês" : Model.Request.ProposalB.Type == "sac" ? "SAC" : "Americano")</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

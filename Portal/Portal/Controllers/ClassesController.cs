@@ -1,152 +1,139 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Portal.Data;
-using Portal.Models;
 using Portal.Models.ViewModels;
-using System;
-using System.Linq;
+using Portal.Services;
+using Portal;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Portal.Controllers
 {
     [Authorize]
-    public class ClassesController : Controller
+    public class ClassesController : BaseController
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ClassService _classService;
+        private readonly ILogger<ClassesController> _logger;
 
-        public ClassesController(ApplicationDbContext context)
+        public ClassesController(ClassService classService, ILogger<ClassesController> logger)
         {
-            _context = context;
+            _classService = classService;
+            _logger = logger;
         }
 
-        private int GetUserId()
+        [HttpGet, Authorize(Roles = "Admin")]
+        public IActionResult Create() => RedirectToAction("AdminClasses", "Dashboard");
+
+        public async Task<IActionResult> Index()
         {
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier);
-            return claim != null ? int.Parse(claim.Value) : 1;
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+            return View(await _classService.GetTeacherClassesAsync(id.Value));
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        [HttpPost, Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create(CreateClassViewModel model)
         {
-            return Redirect("/admin/classes");
-        }
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
 
-        public IActionResult Index()
-        {
-            int currentTeacherId = GetUserId();
-
-            var myClasses = _context.Classes
-                .Where(c => c.TeacherId == currentTeacherId)
-                .Select(c => new TeacherClassViewModel
-                {
-                    ClassId = c.Id,
-                    ClassName = c.Name,
-                    MembershipCode = c.MembershipCode,
-                    StudentNames = _context.ClassEnrollments
-                        .Where(ce => ce.ClassId == c.Id)
-                        .Select(ce => ce.Student.Name)
-                        .ToList()
-                })
-                .ToList();
-
-            return View(myClasses);
-        }
-
-        [HttpPost]
-        public IActionResult Create(CreateClassViewModel model)
-        {
             if (!ModelState.IsValid)
             {
-                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
-                                 ?? "O nome da turma é obrigatório.";
-                TempData["Error"] = firstError;
-                return Redirect("/admin/classes");
+                ToastMessages.SetErrors(this);
+                return RedirectToAction("AdminClasses", "Dashboard");
             }
 
             try
             {
-                string code = GenerateMembershipCode();
-                int teacherId = GetUserId();
-
-                var newClass = new SchoolClass(teacherId, model.Name, code);
-                _context.Classes.Add(newClass);
-                _context.SaveChanges();
-
+                await _classService.CreateClassAsync(id.Value, model.Name);
                 TempData["Success"] = "Turma criada com sucesso!";
-                return Redirect("/admin/classes");
             }
-            catch (Exception ex)
+            catch (System.Exception ex)
             {
+                _logger.LogError(ex, "Erro ao criar turma");
                 TempData["Error"] = $"Erro ao criar turma: {ex.Message}";
-                return Redirect("/admin/classes");
             }
-        }
 
-        private string GenerateMembershipCode()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-
-            string code;
-            do
-            {
-                code = new string(Enumerable.Repeat(chars, 6)
-                    .Select(s => s[random.Next(s.Length)]).ToArray());
-            }
-            while (_context.Classes.Any(c => c.MembershipCode == code));
-
-            return code;
-        }
-
-        public IActionResult Join()
-        {
-            return View();
+            return RedirectToAction("AdminClasses", "Dashboard");
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Join(string membershipCode)
+        public async Task<IActionResult> Join(string membershipCode)
         {
-            if (string.IsNullOrWhiteSpace(membershipCode))
+            var id = GetUserId();
+            if (id == null) return Unauthorized();
+
+            var error = await _classService.JoinClassAsync(id.Value, membershipCode);
+            if (error != null)
             {
-                ModelState.AddModelError("MembershipCode", "O código de adesão é obrigatório.");
-                return View();
+                TempData["Error"] = error;
+                return RedirectToAction("Aluno", "Dashboard");
             }
 
-            var targetClass = _context.Classes
-                .FirstOrDefault(c => c.MembershipCode == membershipCode.Trim().ToUpper());
+            TempData["Success"] = "Inscrição na turma realizada com sucesso!";
+            return RedirectToAction("Aluno", "Dashboard");
+        }
 
-            if (targetClass == null)
+        [HttpPost, Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EnrollUser(int userId, int classId)
+        {
+            var error = await _classService.EnrollUserAsync(userId, classId);
+            TempData[error == null ? "Success" : "Error"] = error ?? "Utilizador inscrito com sucesso!";
+            return RedirectToAction("AdminUsers", "Dashboard");
+        }
+
+        [HttpPost, Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RemoveUserFromClass(int userId, int classId)
+        {
+            var error = await _classService.RemoveUserFromClassAsync(userId, classId);
+            TempData[error == null ? "Success" : "Error"] = error ?? "Utilizador removido da turma!";
+            return RedirectToAction("AdminUsers", "Dashboard");
+        }
+
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,Professor")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var viewModel = await _classService.GetClassDetailsAsync(id);
+            if (viewModel == null)
             {
-                ModelState.AddModelError("", "Código inválido. Não foi encontrada nenhuma turma ou desafio com este código.");
-                return View();
+                TempData["Error"] = "Turma não encontrada.";
+                return RedirectToAction(User.IsInRole("Admin") ? "AdminClasses" : "Professor", "Dashboard");
             }
 
-            int studentId = GetUserId();
-
-            bool alreadyJoined = _context.ClassEnrollments
-                .Any(ce => ce.ClassId == targetClass.Id && ce.StudentId == studentId);
-
-            if (alreadyJoined)
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin && viewModel.TeacherId != userId.Value)
             {
-                ModelState.AddModelError("", "Já estás inscrito nesta turma / desafio!");
-                return View();
+                TempData["Error"] = "Não tem permissão para ver esta turma.";
+                return RedirectToAction("Professor", "Dashboard");
             }
 
-            try
-            {
-                var newEnrollment = new ClassEnrollment(targetClass.Id, studentId);
+            viewModel.CanEdit = isAdmin;
+            return View(viewModel);
+        }
 
-                _context.ClassEnrollments.Add(newEnrollment);
-                _context.SaveChanges();
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, string name, int teacherId)
+        {
+            var error = await _classService.EditClassAsync(id, name, teacherId);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Detalhes da turma atualizados com sucesso.";
+            return RedirectToAction("Details", new { id = id });
+        }
 
-                return RedirectToAction("Index", "Home");
-            }
-            catch (Exception ex)
-            {
-                ModelState.AddModelError("", $"Erro inesperado ao aderir à turma: {ex.Message}");
-                return View();
-            }
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var error = await _classService.DeleteClassAsync(id);
+            if (error != null) TempData["Error"] = error;
+            else TempData["Success"] = "Turma eliminada com sucesso.";
+            return RedirectToAction("AdminClasses", "Dashboard");
         }
     }
 }

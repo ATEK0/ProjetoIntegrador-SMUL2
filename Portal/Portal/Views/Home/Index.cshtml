@@ -1,14 +1,174 @@
 @{
-    ViewData["Title"] = "Bem-vindo";
-    Layout = "_AuthLayout";
+    ViewData["Title"] = "Literacia financeira na sala de aula";
+    Layout = "_LandingLayout";
 }
 
-<div class="text-center">
-    <h3 style="color: var(--primary-blue); margin-bottom: var(--spacing-md);">Plataforma Digital de Literacia Financeira</h3>
-    <p style="color: var(--text-muted); margin-bottom: var(--spacing-xl);">Aprenda a gerir a economia doméstica simulando cenários reais. Crie a sua família virtual e tome decisões financeiras críticas.</p>
-    
-    <div class="flex flex-col gap-md">
-        <a href="/Account/Login" class="btn btn-primary" style="width: 100%;">Entrar</a>
-        <a href="/Account/Register" class="btn btn-outline" style="width: 100%;">Criar Conta</a>
+<section class="landing-hero">
+    <div class="landing-container landing-hero__grid">
+        <div class="landing-hero__content">
+            <span class="landing-hero__badge">
+                <i class="fas fa-graduation-cap"></i>
+                Projeto Integrador SMUL2 · ISTEC
+            </span>
+            <h1>Aprenda a gerir o <span>dinheiro em casa</span> com simulações reais</h1>
+            <p class="landing-hero__lead">
+                A plataforma Dinheiro em Casa coloca alunos e professores num ambiente seguro para praticar orçamento familiar,
+                desafios financeiros e decisões do dia a dia — sem risco real.
+            </p>
+            <div class="landing-hero__actions">
+                <a href="/Account/Register" class="btn btn-primary">Começar gratuitamente</a>
+                <a href="/Account/Login" class="btn btn-outline">Já tenho conta</a>
+            </div>
+            <div class="landing-hero__stats">
+                <div class="landing-hero__stat">
+                    <strong>100%</strong>
+                    <span>Simulação educativa</span>
+                </div>
+                <div class="landing-hero__stat">
+                    <strong>Turmas</strong>
+                    <span>Gestão para professores</span>
+                </div>
+                <div class="landing-hero__stat">
+                    <strong>Desafios</strong>
+                    <span>Cenários personalizados</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="landing-hero__visual">
+            <div class="landing-hero__card">
+                <div class="landing-hero__card-header">
+                    <h3><i class="fas fa-home text-primary"></i> Família Silva — Maio</h3>
+                    <span class="landing-hero__pill">Em progresso</span>
+                </div>
+                <div class="landing-hero__row">
+                    <span>Renda mensal</span>
+                    <span class="positive">+ 1 850 €</span>
+                </div>
+                <div class="landing-hero__row">
+                    <span>Renda da casa</span>
+                    <span class="negative">− 650 €</span>
+                </div>
+                <div class="landing-hero__row">
+                    <span>Supermercado</span>
+                    <span class="negative">− 420 €</span>
+                </div>
+                <div class="landing-hero__row">
+                    <span>Poupança objetivo</span>
+                    <span class="positive">+ 200 €</span>
+                </div>
+                <div class="landing-hero__balance">
+                    <small>Saldo disponível (simulado)</small>
+                    <strong>980 €</strong>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+</section>
+
+<section class="landing-section landing-section--alt" id="funcionalidades">
+    <div class="landing-container">
+        <div class="landing-section__header">
+            <h2>Tudo o que precisa para ensinar e aprender finanças</h2>
+            <p>Ferramentas pensadas para o contexto escolar: turmas, desafios, cenários familiares e acompanhamento pedagógico.</p>
+        </div>
+        <div class="landing-features">
+            <article class="landing-feature">
+                <div class="landing-feature__icon"><i class="fas fa-users"></i></div>
+                <h3>Família virtual</h3>
+                <p>Crie e gira uma família simulada com rendimentos, despesas fixas e variáveis — como na vida real.</p>
+            </article>
+            <article class="landing-feature">
+                <div class="landing-feature__icon"><i class="fas fa-bullseye"></i></div>
+                <h3>Objetivos e poupança</h3>
+                <p>Defina metas financeiras e acompanhe o progresso ao longo de cada cenário ou desafio.</p>
+            </article>
+            <article class="landing-feature">
+                <div class="landing-feature__icon"><i class="fas fa-trophy"></i></div>
+                <h3>Desafios do professor</h3>
+                <p>Professores lançam desafios com regras e cenários; alunos entram por código e competem de forma saudável.</p>
+            </article>
+            <article class="landing-feature">
+                <div class="landing-feature__icon"><i class="fas fa-chalkboard"></i></div>
+                <h3>Turmas e códigos</h3>
+                <p>Organize turmas, convide alunos com código de adesão e centralize a atividade num só portal.</p>
+            </article>
+            <article class="landing-feature">
+                <div class="landing-feature__icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Registo de movimentos</h3>
+                <p>Entradas e saídas categorizadas para reflexão sobre hábitos de consumo e prioridades.</p>
+            </article>
+            <article class="landing-feature">
+                <div class="landing-feature__icon"><i class="fas fa-shield-alt"></i></div>
+                <h3>Ambiente seguro</h3>
+                <p>Dados escolares protegidos; a aprendizagem acontece em simulação, nunca com dinheiro verdadeiro.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="landing-section" id="como-funciona">
+    <div class="landing-container">
+        <div class="landing-section__header">
+            <h2>Como funciona em três passos</h2>
+            <p>Do registo à primeira simulação em poucos minutos — para alunos e docentes.</p>
+        </div>
+        <div class="landing-steps">
+            <div class="landing-step">
+                <div class="landing-step__num">1</div>
+                <h3>Crie a sua conta</h3>
+                <p>Registe-se como aluno ou professor e complete o perfil na plataforma.</p>
+            </div>
+            <div class="landing-step">
+                <div class="landing-step__num">2</div>
+                <h3>Entre numa turma ou desafio</h3>
+                <p>Use o código do professor para juntar-se à turma ou aceitar um desafio financeiro.</p>
+            </div>
+            <div class="landing-step">
+                <div class="landing-step__num">3</div>
+                <h3>Simule e decida</h3>
+                <p>Gira o orçamento familiar, registe movimentos e analise o impacto das suas escolhas.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-section landing-section--alt" id="publico">
+    <div class="landing-container">
+        <div class="landing-section__header">
+            <h2>Feito para a comunidade escolar</h2>
+            <p>Papéis distintos, mesma plataforma — com dashboards adaptados a cada perfil.</p>
+        </div>
+        <div class="landing-audience">
+            <div class="landing-audience__card landing-audience__card--highlight">
+                <h3><i class="fas fa-user-graduate"></i> Alunos</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Dashboard pessoal com cenários e desafios ativos</li>
+                    <li><i class="fas fa-check"></i> Simulação de economia doméstica passo a passo</li>
+                    <li><i class="fas fa-check"></i> Reflexão sobre poupança, crédito e prioridades</li>
+                </ul>
+            </div>
+            <div class="landing-audience__card">
+                <h3><i class="fas fa-user-tie"></i> Professores</h3>
+                <ul>
+                    <li><i class="fas fa-check"></i> Criação de turmas e códigos de adesão</li>
+                    <li><i class="fas fa-check"></i> Desafios com cenários e objetivos pedagógicos</li>
+                    <li><i class="fas fa-check"></i> Visão consolidada da atividade da turma</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-section">
+    <div class="landing-container">
+        <div class="landing-cta">
+            <h2>Pronto para experimentar na sua turma?</h2>
+            <p>Crie conta em minutos e comece o primeiro desafio de literacia financeira com os seus alunos.</p>
+            <div class="landing-cta__actions">
+                <a href="/Account/Register" class="btn btn-primary">Criar conta</a>
+                <a href="/Account/Login" class="btn btn-outline">Entrar na plataforma</a>
+            </div>
+        </div>
+    </div>
+</section>

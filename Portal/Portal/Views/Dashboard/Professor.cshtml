@@ -1,81 +1,163 @@
+@model Portal.Models.ViewModels.TeacherDashboardViewModel
+
 @{
-    ViewData["Title"] = "Dashboard Professor";
+    ViewData["Title"] = "Painel Principal";
 }
 
-<div class="dashboard-grid">
-    <!-- Stats Cards -->
-    <div class="card glass-panel" style="grid-column: span 2;">
-        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary-blue);">Estatísticas das Turmas</h3>
-        <div class="flex gap-lg">
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon"><i class="fas fa-users"></i></div>
-                <div class="stat-details">
-                    <h3>Total Alunos</h3>
-                    <div class="value">124</div>
-                </div>
+<style>
+    .dashboard-stat-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        padding: var(--spacing-lg);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-details h3 {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-details .value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+        line-height: 1.2;
+    }
+
+    .table-row-hover:hover {
+        background-color: rgba(12, 115, 183, 0.02);
+    }
+</style>
+
+<div class="container dashboard-page">
+    <div class="dashboard-top" style="margin-bottom: var(--spacing-lg);">
+        <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Resumo", Subtitle = "Bem-vindo ao seu painel de controlo. Acompanhe as suas turmas, desafios e entregas." }' />
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-stat-row">
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: #f59e0b; background-color: rgba(245, 158, 11, 0.1);">
+                <i class="fas fa-graduation-cap"></i>
             </div>
-            <div class="stat-card" style="flex: 1;">
-                <div class="stat-icon"><i class="fas fa-tasks"></i></div>
-                <div class="stat-details">
-                    <h3>Desafios Ativos</h3>
-                    <div class="value">5</div>
-                </div>
+            <div class="stat-details">
+                <h3>Minhas Turmas</h3>
+                <div class="value">@Model.Classes.Count</div>
             </div>
-            <div class="stat-card" style="flex: 1; border-left-color: #10b981;">
-                <div class="stat-icon" style="color: #10b981; background-color: rgba(16,185,129,0.1);"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-details">
-                    <h3>Submissões Pendentes</h3>
-                    <div class="value">12</div>
-                </div>
+        </div>
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: var(--primary-blue); background-color: rgba(12, 115, 183, 0.1);">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Total de Alunos</h3>
+                <div class="value">@Model.TotalStudents</div>
+            </div>
+        </div>
+        <div class="stat-card card glass-panel">
+            <div class="stat-icon" style="color: #10b981; background-color: rgba(16, 185, 129, 0.1);">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-details">
+                <h3>Desafios Ativos</h3>
+                <div class="value">@Model.TotalChallenges</div>
+            </div>
+        </div>
+        <div class="stat-card card glass-panel" style="@(Model.TotalPendingGrades > 0 ? "border: 1px solid rgba(239, 68, 68, 0.3); background-color: rgba(239, 68, 68, 0.02);" : "")">
+            <div class="stat-icon" style="color: #ef4444; background-color: rgba(239, 68, 68, 0.1);">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div class="stat-details">
+                <h3 style="color: #ef4444; font-weight: 600;">Entregas Pendentes</h3>
+                <div class="value">@Model.TotalPendingGrades</div>
             </div>
         </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="card">
-        <h3 style="margin-bottom: var(--spacing-md);">Gestão Pedagógica</h3>
-        <div class="flex flex-col gap-sm">
-            <button class="btn btn-primary" style="justify-content: flex-start;"><i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Desafio</button>
-            <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-users-cog" style="margin-right: 8px;"></i> Gerir Turmas</button>
-            <button class="btn btn-outline" style="justify-content: flex-start;"><i class="fas fa-chart-line" style="margin-right: 8px;"></i> Ver Relatórios</button>
+    <!-- Pending Tasks Section -->
+    <div class="card glass-panel" style="padding: var(--spacing-lg);">
+        <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+            <h3 style="color: var(--primary-blue); font-size: 1.25rem;">
+                <i class="fas fa-tasks" style="margin-right: 8px;"></i> Submissões por Avaliar
+            </h3>
         </div>
-    </div>
-</div>
 
-<div class="card glass-panel">
-    <h3 style="margin-bottom: var(--spacing-md);">Desafios Recentes</h3>
-    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-            <tr style="border-bottom: 1px solid var(--border-color);">
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Desafio</th>
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Turma</th>
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Progresso</th>
-                <th style="padding: var(--spacing-sm); color: var(--text-muted);">Ação</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="border-bottom: 1px solid var(--border-color);">
-                <td style="padding: var(--spacing-sm);">Orçamento Familiar - Mês 1</td>
-                <td style="padding: var(--spacing-sm);">10º A</td>
-                <td style="padding: var(--spacing-sm);">
-                    <div style="background-color: var(--border-color); height: 8px; border-radius: 4px; width: 100%; max-width: 150px;">
-                        <div style="background-color: var(--primary-blue); height: 100%; width: 75%; border-radius: 4px;"></div>
-                    </div>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">75% Concluído</span>
-                </td>
-                <td style="padding: var(--spacing-sm);"><button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Avaliar (5)</button></td>
-            </tr>
-            <tr>
-                <td style="padding: var(--spacing-sm);">Simulação Crédito Habitação</td>
-                <td style="padding: var(--spacing-sm);">12º B</td>
-                <td style="padding: var(--spacing-sm);">
-                    <div style="background-color: var(--border-color); height: 8px; border-radius: 4px; width: 100%; max-width: 150px;">
-                        <div style="background-color: var(--primary-blue); height: 100%; width: 20%; border-radius: 4px;"></div>
-                    </div>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">20% Concluído</span>
-                </td>
-                <td style="padding: var(--spacing-sm);"><button class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Monitorizar</button></td>
-            </tr>
-        </tbody>
-    </table>
+        @if (!Model.PendingSubmissions.Any())
+        {
+            <div class="text-center" style="padding: var(--spacing-xl) 0;">
+                <div style="background-color: rgba(16, 185, 129, 0.05); width: 60px; height: 60px; border-radius: var(--radius-full); display: inline-flex; align-items: center; justify-content: center; color: #10b981; margin-bottom: var(--spacing-sm);">
+                    <i class="fas fa-check fa-2x"></i>
+                </div>
+                <h4 style="font-size: 1.05rem; margin-bottom: var(--spacing-xs); font-weight: 600;">Tudo em dia!</h4>
+                <p class="text-muted" style="font-size: 0.825rem; max-width: 320px; margin: 0 auto var(--spacing-md) auto;">Não existem submissões pendentes de avaliação neste momento. Bom trabalho!</p>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Desafio</th>
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Aluno</th>
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600;">Data de Submissão</th>
+                            <th style="padding: var(--spacing-sm); color: var(--text-muted); font-weight: 600; text-align: right;">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var submission in Model.PendingSubmissions)
+                        {
+                            <tr style="border-bottom: 1px solid var(--border-color);" class="table-row-hover">
+                                <td style="padding: var(--spacing-md) var(--spacing-sm); font-weight: 600; color: var(--primary-blue);">
+                                    @submission.ChallengeTitle
+                                </td>
+                                <td style="padding: var(--spacing-md) var(--spacing-sm);">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div style="width: 24px; height: 24px; background: rgba(12, 115, 183, 0.1); color: var(--primary-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;">
+                                            @(submission.StudentName.Substring(0, 1).ToUpper())
+                                        </div>
+                                        @submission.StudentName
+                                    </div>
+                                </td>
+                                <td style="padding: var(--spacing-md) var(--spacing-sm); color: var(--text-muted);">
+                                    @submission.SubmittedAt.ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td style="padding: var(--spacing-md) var(--spacing-sm); text-align: right;">
+                                    <a href="/Challenges/GradeSubmission/@submission.SubmissionId" class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;">
+                                        Avaliar Agora <i class="fas fa-arrow-right" style="margin-left: 4px; font-size: 0.75rem;"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
 </div>

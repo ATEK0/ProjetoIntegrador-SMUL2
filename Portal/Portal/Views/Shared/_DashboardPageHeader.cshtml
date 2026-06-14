@@ -1,0 +1,9 @@
+@model Portal.Models.ViewModels.DashboardPageHeaderViewModel
+
+<div class="dashboard-header">
+    <h1>@Model.Title</h1>
+    @if (!string.IsNullOrEmpty(Model.Subtitle))
+    {
+        <p>@Model.Subtitle</p>
+    }
+</div>

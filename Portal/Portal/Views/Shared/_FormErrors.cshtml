@@ -1,0 +1,33 @@
+@if (!ViewData.ModelState.IsValid)
+{
+    var errors = ViewData.ModelState.Values
+        .SelectMany(v => v.Errors)
+        .Select(e => e.ErrorMessage)
+        .Where(m => !string.IsNullOrWhiteSpace(m))
+        .Distinct()
+        .ToList();
+
+    if (errors.Count > 0)
+    {
+        <div class="form-alert form-alert--error" role="alert">
+            <div class="form-alert__icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="form-alert__body">
+                @if (errors.Count == 1)
+                {
+                    <p>@errors[0]</p>
+                }
+                else
+                {
+                    <ul>
+                        @foreach (var error in errors)
+                        {
+                            <li>@error</li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    }
+}

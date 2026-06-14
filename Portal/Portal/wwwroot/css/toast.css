@@ -1,0 +1,187 @@
+/* ========================================================================
+   Toast Notifications – floating feedback for PRG (Post-Redirect-Get) flows
+   ======================================================================== */
+
+.toast-container {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: min(420px, calc(100vw - 2rem));
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md, 0.5rem);
+    box-shadow: var(--shadow-lg);
+    font-size: 0.9rem;
+    line-height: 1.45;
+    animation: toast-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1);
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ---- Success ---- */
+.toast--success {
+    background: #ecfdf5;
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #047857;
+}
+
+.toast--success .toast__progress {
+    background: rgba(16, 185, 129, 0.35);
+}
+
+/* ---- Error ---- */
+.toast--error {
+    background: #fef2f2;
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #b91c1c;
+}
+
+.toast--error .toast__progress {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+/* ---- Inner elements ---- */
+.toast__icon {
+    margin-top: 0.15rem;
+    flex-shrink: 0;
+    font-size: 1.05rem;
+}
+
+.toast__message {
+    flex: 1;
+}
+
+.toast__close {
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.5;
+    cursor: pointer;
+    padding: 2px;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: opacity 0.2s ease;
+}
+
+.toast__close:hover {
+    opacity: 1;
+}
+
+/* ---- Progress bar ---- */
+.toast__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    transform-origin: left;
+    animation: toast-progress 6s linear forwards;
+}
+
+/* ---- Animations ---- */
+.toast.toast--out {
+    animation: toast-out 0.3s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateX(2rem) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toast-out {
+    to {
+        opacity: 0;
+        transform: translateX(2rem) scale(0.95);
+    }
+}
+
+@keyframes toast-progress {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+/* ========================================================================
+   Inline Form Alerts – persistent feedback inside forms
+   ======================================================================== */
+
+.form-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--radius-md, 0.5rem);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin-bottom: var(--spacing-lg, 1.5rem);
+    border: 1px solid transparent;
+    animation: form-alert-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1);
+}
+
+.form-alert--error {
+    background: #fef2f2;
+    border-color: rgba(239, 68, 68, 0.25);
+    color: #991b1b;
+}
+
+.form-alert--error .form-alert__icon {
+    color: #dc2626;
+}
+
+.form-alert__icon {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    font-size: 1rem;
+}
+
+.form-alert__body {
+    flex: 1;
+}
+
+.form-alert__body p {
+    margin: 0;
+    font-weight: 500;
+}
+
+.form-alert__body ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    list-style: disc;
+}
+
+.form-alert__body ul li {
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+
+.form-alert__body ul li:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes form-alert-in {
+    from {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

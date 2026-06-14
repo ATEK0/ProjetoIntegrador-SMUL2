@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models
@@ -19,6 +19,9 @@ namespace Portal.Models
 
         [ForeignKey(nameof(TeacherId))]
         public User Teacher { get; set; }
+
+        public List<Scenario> Scenarios { get; set; } = new();
+        public List<ChallengeSubmission> Submissions { get; set; } = new();
 
         public int? ClassId
         {

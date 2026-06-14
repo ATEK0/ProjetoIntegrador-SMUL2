@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Portal.Models
@@ -27,6 +27,8 @@ namespace Portal.Models
 
         [ForeignKey(nameof(ChallengeId))]
         public Challenge Challenge { get; set; }
+
+        public List<Entry> Entries { get; set; } = new();
 
         [Required]
         [MaxLength(255)]

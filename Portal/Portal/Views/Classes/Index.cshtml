@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Portal.Models.TeacherClassViewModel>
+@model List<Portal.Models.ViewModels.TeacherClassViewModel>
 
 @{
     ViewData["Title"] = "As Minhas Turmas";
@@ -10,9 +10,12 @@
         <div class="flex" style="justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
             <h3 style="margin: 0; color: var(--primary-blue);">As Minhas Turmas e Alunos</h3>
 
-            <a asp-action="Create" class="btn btn-primary" style="text-decoration: none;">
-                <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Turma
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a href="/Classes/Create" class="btn btn-primary" style="text-decoration: none;">
+                    <i class="fas fa-plus" style="margin-right: 8px;"></i> Criar Turma
+                </a>
+            }
         </div>
 
         <table style="width: 100%; border-collapse: collapse; text-align: left;">

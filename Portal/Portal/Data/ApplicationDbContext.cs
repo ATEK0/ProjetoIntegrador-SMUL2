@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Portal.Models;
 
 namespace Portal.Data
@@ -14,8 +14,14 @@ namespace Portal.Data
         public DbSet<ClassEnrollment> ClassEnrollments { get; set; }
         public DbSet<Challenge> Challenges { get; set; }
         public DbSet<Scenario> Scenarios { get; set; }
+        public DbSet<ScenarioMember> ScenarioMembers { get; set; }
         public DbSet<Entry> Entries { get; set; }
         public DbSet<Objective> Objectives { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<SimulationHistory> SimulationHistories { get; set; }
+        public DbSet<ChallengeSubmission> ChallengeSubmissions { get; set; }
+        public DbSet<ChallengeQuestion> ChallengeQuestions { get; set; }
+        public DbSet<ChallengeAnswer> ChallengeAnswers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,12 +35,18 @@ namespace Portal.Data
             modelBuilder.Entity<ClassEnrollment>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Challenge>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Scenario>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ScenarioMember>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Entry>().HasQueryFilter(x => x.DeletedAt == null);
             modelBuilder.Entity<Objective>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<SimulationHistory>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ChallengeSubmission>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ChallengeQuestion>().HasQueryFilter(x => x.DeletedAt == null);
+            modelBuilder.Entity<ChallengeAnswer>().HasQueryFilter(x => x.DeletedAt == null);
 
             // Traduzir os Enums para String no MySQL
             modelBuilder.Entity<Entry>().Property(e => e.EntryType).HasConversion<string>();
             modelBuilder.Entity<Entry>().Property(e => e.Recurrence).HasConversion<string>();
+            modelBuilder.Entity<ChallengeQuestion>().Property(q => q.QuestionType).HasConversion<string>();
 
 
             var cascadeFKs = modelBuilder.Model.GetEntityTypes()
@@ -57,8 +69,17 @@ namespace Portal.Data
             modelBuilder.Entity<Challenge>().HasIndex(c => new { c.TeacherId, c.ClassId, c.DeletedAt });
 
             modelBuilder.Entity<Scenario>().HasIndex(s => new { s.StudentId, s.ChallengeId, s.DeletedAt });
+            modelBuilder.Entity<ScenarioMember>().HasIndex(sm => new { sm.ScenarioId, sm.DeletedAt });
             modelBuilder.Entity<Entry>().HasIndex(e => new { e.ScenarioId, e.DeletedAt });
             modelBuilder.Entity<Objective>().HasIndex(o => new { o.ScenarioId, o.DeletedAt });
+
+            modelBuilder.Entity<AuditLog>().Property(a => a.ActionName).HasColumnName("action");
+            modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.UserId, a.Timestamp });
+            modelBuilder.Entity<AuditLog>().HasIndex(a => new { a.EntityType, a.EntityId });
+            modelBuilder.Entity<SimulationHistory>().HasIndex(sh => new { sh.UserId, sh.DeletedAt });
+            modelBuilder.Entity<ChallengeSubmission>().HasIndex(cs => new { cs.StudentId, cs.ChallengeId, cs.DeletedAt });
+            modelBuilder.Entity<ChallengeQuestion>().HasIndex(q => new { q.ChallengeId, q.DeletedAt });
+            modelBuilder.Entity<ChallengeAnswer>().HasIndex(a => new { a.ChallengeSubmissionId, a.ChallengeQuestionId, a.DeletedAt });
         }
     }
 }
