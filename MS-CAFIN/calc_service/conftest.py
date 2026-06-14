@@ -5,6 +5,7 @@ import pytest
 
 @pytest.fixture
 def simple_interest_payload():
+    """teste"""
     return {
         "principal": 10000.0,
         "rate": 0.05,
