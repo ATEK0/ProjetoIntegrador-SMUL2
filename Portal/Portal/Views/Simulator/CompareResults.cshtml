@@ -131,7 +131,7 @@
     {
         <div class="alert alert-success" style="background: rgba(5, 150, 105, 0.1); border: 1px solid rgba(5, 150, 105, 0.2); color: #059669; padding: var(--spacing-md); border-radius: var(--radius-md); text-align: center; margin-bottom: var(--spacing-lg);">
             <i class="fas fa-trophy" style="margin-right: 8px;"></i>
-            <strong>A Proposta @Model.Winner é a mais vantajosa!</strong> Permite poupar <strong>@Model.Difference.ToString("C")</strong> no custo total do crédito (MTIC).
+            <strong>A Proposta @Model.Winner é a mais vantajosa!</strong> Permite poupar <strong>@Model.Difference.ToString("N2") €</strong> no custo total do crédito (MTIC).
         </div>
     }
 
@@ -147,7 +147,7 @@
                 <div style="background: #f8fafb; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
                     <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Custo Total (MTIC)</div>
                     <div style="font-size: 1.8rem; font-weight: bold; color: @(Model.Winner == "A" ? "#059669" : "var(--dark-grey)");">
-                        @Model.TotalPagoA.ToString("C")
+                        @Model.TotalPagoA.ToString("N2") €
                     </div>
                 </div>
 
@@ -157,15 +157,15 @@
                 </div>
                 <div class="compare-stat">
                     <span class="label">Total Juros pagos</span>
-                    <span class="value @(Model.TotalJurosA < Model.TotalJurosB ? "winner-value" : "")">@Model.TotalJurosA.ToString("C")</span>
+                    <span class="value @(Model.TotalJurosA < Model.TotalJurosB ? "winner-value" : "")">@Model.TotalJurosA.ToString("N2") €</span>
                 </div>
                 <div class="compare-stat">
                     <span class="label">Impostos e Comissões</span>
-                    <span class="value @(Model.TotalImpostosComissoesA < Model.TotalImpostosComissoesB ? "winner-value" : "")">@Model.TotalImpostosComissoesA.ToString("C")</span>
+                    <span class="value @(Model.TotalImpostosComissoesA < Model.TotalImpostosComissoesB ? "winner-value" : "")">@Model.TotalImpostosComissoesA.ToString("N2") €</span>
                 </div>
                 <div class="compare-stat">
                     <span class="label">1ª Prestação</span>
-                    <span class="value">@Model.PrestacaoA.ToString("C")</span>
+                    <span class="value">@Model.PrestacaoA.ToString("N2") €</span>
                 </div>
                 <div class="compare-stat">
                     <span class="label">Taxa Anual Nominal (TAN)</span>
@@ -185,7 +185,7 @@
                 <div style="background: #f8fafb; padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center;">
                     <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Custo Total (MTIC)</div>
                     <div style="font-size: 1.8rem; font-weight: bold; color: @(Model.Winner == "B" ? "#059669" : "var(--dark-grey)");">
-                        @Model.TotalPagoB.ToString("C")
+                        @Model.TotalPagoB.ToString("N2") €
                     </div>
                 </div>
 
@@ -195,15 +195,15 @@
                 </div>
                 <div class="compare-stat">
                     <span class="label">Total Juros pagos</span>
-                    <span class="value @(Model.TotalJurosB < Model.TotalJurosA ? "winner-value" : "")">@Model.TotalJurosB.ToString("C")</span>
+                    <span class="value @(Model.TotalJurosB < Model.TotalJurosA ? "winner-value" : "")">@Model.TotalJurosB.ToString("N2") €</span>
                 </div>
                 <div class="compare-stat">
                     <span class="label">Impostos e Comissões</span>
-                    <span class="value @(Model.TotalImpostosComissoesB < Model.TotalImpostosComissoesA ? "winner-value" : "")">@Model.TotalImpostosComissoesB.ToString("C")</span>
+                    <span class="value @(Model.TotalImpostosComissoesB < Model.TotalImpostosComissoesA ? "winner-value" : "")">@Model.TotalImpostosComissoesB.ToString("N2") €</span>
                 </div>
                 <div class="compare-stat">
                     <span class="label">1ª Prestação</span>
-                    <span class="value">@Model.PrestacaoB.ToString("C")</span>
+                    <span class="value">@Model.PrestacaoB.ToString("N2") €</span>
                 </div>
                 <div class="compare-stat">
                     <span class="label">Taxa Anual Nominal (TAN)</span>

@@ -60,7 +60,7 @@
                 </li>
                 <li>
                     <span class="label">Capital</span>
-                    <span class="value">@Model.Request.Principal?.ToString("C")</span>
+                    <span class="value">@Model.Request.Principal?.ToString("N2") €</span>
                 </li>
                 <li>
                     <span class="label">@(hasVariableRates ? "Taxas" : "Taxa")</span>
@@ -86,14 +86,14 @@
                         <div class="sim-kpi-icon"><i class="fas fa-coins"></i></div>
                         <div>
                             <div class="sim-kpi-label">Total de juros</div>
-                            <div class="sim-kpi-value">@interestResult.Interest.ToString("C")</div>
+                            <div class="sim-kpi-value">@interestResult.Interest.ToString("N2") €</div>
                         </div>
                     </div>
                     <div class="sim-kpi sim-kpi--total card">
                         <div class="sim-kpi-icon"><i class="fas fa-chart-line"></i></div>
                         <div>
                             <div class="sim-kpi-label">Montante final</div>
-                            <div class="sim-kpi-value">@interestResult.TotalAmount.ToString("C")</div>
+                            <div class="sim-kpi-value">@interestResult.TotalAmount.ToString("N2") €</div>
                         </div>
                     </div>
                 </div>
@@ -120,8 +120,8 @@
                                         <tr>
                                             <td>@(row.Period)@(row.Partial ? "*" : "")</td>
                                             <td>@((row.Rate * 100).ToString("N2")) %</td>
-                                            <td class="col-interest">@row.Interest.ToString("C")</td>
-                                            <td class="col-balance">@row.Amount.ToString("C")</td>
+                                            <td class="col-interest">@row.Interest.ToString("N2") €</td>
+                                            <td class="col-balance">@row.Amount.ToString("N2") €</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -148,23 +148,23 @@
                 <div class="sim-amort-summary" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
                     <div class="sim-amort-stat sim-amort-stat--installment">
                         <div class="label">Total crédito</div>
-                        <div class="value">@totalAmort.ToString("C")</div>
+                        <div class="value">@totalAmort.ToString("N2") €</div>
                     </div>
                     <div class="sim-amort-stat sim-amort-stat--interest">
                         <div class="label">Total juros</div>
-                        <div class="value">@totalInterest.ToString("C")</div>
+                        <div class="value">@totalInterest.ToString("N2") €</div>
                     </div>
                     <div class="sim-amort-stat" style="background: rgba(12, 115, 183, 0.05); border: 1px solid rgba(12, 115, 183, 0.1);">
                         <div class="label">Imposto do Selo</div>
-                        <div class="value">@totalIS.ToString("C")</div>
+                        <div class="value">@totalIS.ToString("N2") €</div>
                     </div>
                     <div class="sim-amort-stat" style="background: rgba(12, 115, 183, 0.05); border: 1px solid rgba(12, 115, 183, 0.1);">
                         <div class="label">Comissões</div>
-                        <div class="value">@totalComissao.ToString("C")</div>
+                        <div class="value">@totalComissao.ToString("N2") €</div>
                     </div>
                     <div class="sim-amort-stat" style="background: rgba(220, 38, 38, 0.05); border: 1px solid rgba(220, 38, 38, 0.2);">
                         <div class="label">Custo Total (MTIC)</div>
-                        <div class="value" style="color: #dc2626;">@totalPago.ToString("C")</div>
+                        <div class="value" style="color: #dc2626;">@totalPago.ToString("N2") €</div>
                     </div>
                     <div class="sim-amort-stat" style="background: linear-gradient(135deg, var(--primary-blue) 0%, #095a8f 100%); color: white; border: none;">
                         <div class="label" style="color: rgba(255,255,255,0.8);">TAEG</div>
@@ -175,7 +175,7 @@
                 <div class="sim-table-card card glass-panel">
                     <div class="sim-table-header" style="display:flex; justify-content:space-between; align-items:center;">
                         <h4><i class="fas fa-table-list" style="margin-right: 8px; color: var(--primary-blue);"></i> Plano de amortização por período</h4>
-                        <span class="text-muted" style="font-size:0.85rem;">IS Inicial cobrado no Mês 0: <strong>@response.ImpostoSeloInicial.ToString("C")</strong></span>
+                        <span class="text-muted" style="font-size:0.85rem;">IS Inicial cobrado no Mês 0: <strong>@response.ImpostoSeloInicial.ToString("N2") €</strong></span>
                     </div>
                     <div class="sim-table-scroll">
                         <table class="sim-table">
@@ -196,25 +196,25 @@
                                 {
                                     <tr>
                                         <td>@p.Period</td>
-                                        <td>@p.Installment.ToString("C")</td>
-                                        <td class="col-interest">@p.Interest.ToString("C")</td>
-                                        <td class="col-amort">@p.Amortization.ToString("C")</td>
-                                        <td>@p.ImpostoSelo.ToString("C")</td>
-                                        <td>@p.Comissao.ToString("C")</td>
-                                        <td style="font-weight: 600;">@p.TotalPago.ToString("C")</td>
-                                        <td class="col-balance">@p.Balance.ToString("C")</td>
+                                        <td>@p.Installment.ToString("N2") €</td>
+                                        <td class="col-interest">@p.Interest.ToString("N2") €</td>
+                                        <td class="col-amort">@p.Amortization.ToString("N2") €</td>
+                                        <td>@p.ImpostoSelo.ToString("N2") €</td>
+                                        <td>@p.Comissao.ToString("N2") €</td>
+                                        <td style="font-weight: 600;">@p.TotalPago.ToString("N2") €</td>
+                                        <td class="col-balance">@p.Balance.ToString("N2") €</td>
                                     </tr>
                                 }
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td>Total</td>
-                                    <td>@totalInstallment.ToString("C")</td>
-                                    <td class="col-interest">@totalInterest.ToString("C")</td>
-                                    <td class="col-amort">@totalAmort.ToString("C")</td>
-                                    <td>@(amortizationResult.Sum(x => x.ImpostoSelo).ToString("C"))</td>
-                                    <td>@totalComissao.ToString("C")</td>
-                                    <td>@(amortizationResult.Sum(x => x.TotalPago).ToString("C"))</td>
+                                    <td>@totalInstallment.ToString("N2") €</td>
+                                    <td class="col-interest">@totalInterest.ToString("N2") €</td>
+                                    <td class="col-amort">@totalAmort.ToString("N2") €</td>
+                                    <td>@(amortizationResult.Sum(x => x.ImpostoSelo).ToString("N2")) €</td>
+                                    <td>@totalComissao.ToString("N2") €</td>
+                                    <td>@(amortizationResult.Sum(x => x.TotalPago).ToString("N2")) €</td>
                                     <td></td>
                                 </tr>
                             </tfoot>
