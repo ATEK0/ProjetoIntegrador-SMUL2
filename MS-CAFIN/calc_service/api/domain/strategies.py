@@ -80,15 +80,7 @@ class InterestStrategy(ABC):
 
 class SimpleInterest(InterestStrategy):
     def calculate(self, principal: float, rate: float, time: float) -> dict:
-        # Fórmula dos Juros Simples: J = C * i * t
-        interest = principal * rate * time
-        # Montante Total: M = C + J
-        total = principal + interest
-        return {
-            "interest": round(interest, 2),
-            "total_amount": round(total, 2),
-            "breakdown": None,
-        }
+        return self.calculate_with_tiers(principal, rate, time, [])
 
     def _period_interest(self, amount: float, principal: float, rate: float) -> float:
         return principal * rate
@@ -101,18 +93,15 @@ class SimpleInterest(InterestStrategy):
 
 class CompoundInterest(InterestStrategy):
     def calculate(self, principal: float, rate: float, time: float) -> dict:
-        # Fórmula dos Juros Compostos: M = C * (1 + i)^t
-        total = principal * ((1 + rate) ** time)
-        # Juros Totais: J = M - C
-        interest = total - principal
-        return {
-            "interest": round(interest, 2),
-            "total_amount": round(total, 2),
-            "breakdown": None,
-        }
+        return self.calculate_with_tiers(principal, rate, time, [])
 
     def _period_interest(self, amount: float, principal: float, rate: float) -> float:
         return amount * rate
+
+    def _period_interest_fractional(
+        self, amount: float, principal: float, rate: float, fraction: float
+    ) -> float:
+        return amount * ((1 + rate) ** fraction - 1)
 
     def _amount_after_period(
         self, amount: float, principal: float, rate: float, period_interest: float
