@@ -17,6 +17,8 @@ namespace Portal.Data
             SeedRoles(context);
             SeedUserStatuses(context);
 
+            if (context.Users.IgnoreQueryFilters().Any()) return;
+
             var activeStatus = context.UserStatuses.First(s => s.StatusName == "Ativo");
             var hasher = new PasswordHasher<User>();
 
@@ -127,6 +129,13 @@ namespace Portal.Data
             };
             context.Challenges.Add(challenge);
             context.SaveChanges();
+
+            if (!context.ChallengeQuestions.Any(q => q.ChallengeId == challenge.Id))
+            {
+                context.ChallengeQuestions.Add(new ChallengeQuestion(challenge.Id, "Qual é o seu principal objetivo de poupança com este orçamento?", QuestionType.Simple));
+                context.SaveChanges();
+            }
+
             return challenge;
         }
 

@@ -154,14 +154,15 @@ namespace Portal.Services
             };
         }
 
-        public async Task<string?> EditChallengeAsync(int id, string title, string description)
+        public async Task<string?> EditChallengeAsync(int id, string title, string description, int? classId)
         {
             var challenge = await _context.Challenges.FindAsync(id);
             if (challenge == null) return "Desafio não encontrado.";
             if (string.IsNullOrWhiteSpace(title)) return "O título é obrigatório.";
 
             challenge.Title = title.Trim();
-            challenge.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+            challenge.Description = string.IsNullOrWhiteSpace(description) ? "" : description.Trim();
+            challenge.ClassId = classId;
             await _context.SaveChangesAsync();
             await _audit.LogAsync(AuditAction.Update, "Challenge", id.ToString());
             return null;
