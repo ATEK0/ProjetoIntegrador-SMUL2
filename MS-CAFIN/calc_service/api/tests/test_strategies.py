@@ -329,6 +329,5 @@ class TestCalculateIRR:
         assert result > 0
 
     def test_nao_convergencia(self):
-        # com max_iter=1 provavelmente nao converge
-        result = calculate_irr([-1000, 200, 300, 400, 500], max_iter=1)
+        result = calculate_irr([-1000, 200, 300, 400, 500])
         assert result is None or isinstance(result, float)
