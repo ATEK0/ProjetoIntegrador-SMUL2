@@ -99,6 +99,11 @@
                     <select name="newRoleName" onchange="this.form.submit()" class="form-control" style="width: 100%; border-color: rgba(12, 115, 183, 0.2); font-weight: 600;">
                         @foreach (var role in Model.AvailableRoles)
                         {
+                            if (role.RoleName == "Admin")
+                            {
+                                continue;
+                            }
+                            
                             if (role.RoleName == Model.User.Role.RoleName)
                             {
                                 <option value="@role.RoleName" selected>@role.RoleName</option>

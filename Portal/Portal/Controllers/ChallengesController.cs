@@ -96,9 +96,9 @@ namespace Portal.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(int id, string title, string description)
+        public async Task<IActionResult> Edit(int id, string title, string description, int? classId)
         {
-            var error = await _challengeService.EditChallengeAsync(id, title, description);
+            var error = await _challengeService.EditChallengeAsync(id, title, description, classId);
             if (error != null) TempData["Error"] = error;
             else TempData["Success"] = "Desafio atualizado com sucesso!";
             return RedirectToAction("Details", new { id = id });

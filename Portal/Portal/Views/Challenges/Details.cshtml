@@ -5,6 +5,15 @@
 }
 
 <style>
+    .btn-danger-outline {
+        border-color: #ef4444 !important;
+        color: #ef4444 !important;
+    }
+    .btn-danger-outline:hover {
+        background-color: #ef4444 !important;
+        color: white !important;
+    }
+
     .info-card {
         background: var(--surface-color);
         border: 1px solid var(--border-color);
@@ -83,76 +92,112 @@
 
 <div class="container animate-fade-in" style="padding: var(--spacing-md) 0 var(--spacing-xl) 0;">
 
-    <div style="margin-bottom: var(--spacing-lg); display: flex; justify-content: space-between; align-items: center;">
-        @if (User.IsInRole("Admin"))
-        {
-            <a href="/Dashboard/AdminChallenges" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-arrow-left"></i> Voltar à Administração
-            </a>
-        }
-        else
-        {
-            <a href="/Dashboard/Professor" class="text-muted" style="text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-arrow-left"></i> Voltar ao Dashboard
-            </a>
-        }
-    </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46; font-size: 0.9rem;">
-            <i class="fas fa-check-circle" style="margin-right: 6px;"></i> @TempData["Success"]
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b; font-size: 0.9rem;">
-            <i class="fas fa-exclamation-circle" style="margin-right: 6px;"></i> @TempData["Error"]
-        </div>
-    }
+
+
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-lg); align-items: start;">
         
         <!-- Coluna Esquerda: Dados do Desafio -->
         <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
             
-            <div class="info-card">
-                <h4><i class="fas fa-trophy"></i> Dados do Desafio</h4>
-                
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Título</label>
-                    <div style="font-size: 1.05rem; font-weight: 600; color: var(--dark-grey); padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">@Model.Challenge.Title</div>
-                </div>
-                
-                <div class="form-group" style="margin-bottom: var(--spacing-md);">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Descrição</label>
-                    <div style="font-size: 0.95rem; color: var(--dark-grey); padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-height: 80px;">@(string.IsNullOrWhiteSpace(Model.Challenge.Description) ? "Sem descrição." : Model.Challenge.Description)</div>
-                </div>
-                
-                <div style="margin-bottom: var(--spacing-md); display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.05); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px dashed rgba(16, 185, 129, 0.2);">
-                    <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Código de Acesso</span>
-                    <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; font-weight: 700; color: #10b981; letter-spacing: 1px;">@Model.Challenge.AccessLinkCode</span>
+            @if (User.IsInRole("Admin") || User.IsInRole("Professor"))
+            {
+                <div class="info-card">
+                    <h3 style="color: var(--primary-blue); font-size: 1.1rem; margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-top: 0;">
+                        Configurações do Desafio
+                    </h3>
+
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Código de Acesso</label>
+                        <div>
+                            <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.25rem; font-weight: 700; letter-spacing: 2px; background: rgba(12, 115, 183, 0.08); color: var(--primary-blue); padding: 8px 16px; border-radius: var(--radius-md); border: 1px dashed rgba(12, 115, 183, 0.3); display: inline-block; margin-top: 8px;">
+                                @Model.Challenge.AccessLinkCode
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <form action="/Challenges/Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.Challenge.Id" />
+
+                        <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                            <label style="font-weight: 600; color: var(--dark-grey); margin-bottom: var(--spacing-xs); display: block; font-size: 0.9rem;">Título</label>
+                            <input type="text" name="title" class="form-control" value="@Model.Challenge.Title" required />
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                            <label style="font-weight: 600; color: var(--dark-grey); margin-bottom: var(--spacing-xs); display: block; font-size: 0.9rem;">Descrição</label>
+                            <textarea name="description" class="form-control" rows="4">@Model.Challenge.Description</textarea>
+                        </div>
+
+                        <h4 style="margin-top: var(--spacing-md); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md); margin-bottom: var(--spacing-sm); color: var(--primary-blue); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-link"></i> Associação a Turma
+                        </h4>
+                        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+                            <select name="classId" class="form-control" style="font-weight: 600; color: var(--dark-grey);">
+                                <option value="">-- Independente (Acesso por Código) --</option>
+                                @if (Model.AvailableClasses != null)
+                                {
+                                    foreach (var c in Model.AvailableClasses)
+                                    {
+                                        if (Model.Challenge.ClassId == c.Id)
+                                        {
+                                            <option value="@c.Id" selected>@c.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@c.Id">@c.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">Guardar Alterações</button>
+                    </form>
                 </div>
 
-                <h4 style="margin-top: var(--spacing-xl); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md);"><i class="fas fa-link"></i> Associação a Turma</h4>
-                <div style="padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--dark-grey);">
-                    <i class="fas fa-graduation-cap" style="margin-right: 6px; color: var(--text-muted);"></i>
-                    @(Model.Challenge.Class != null ? Model.Challenge.Class.Name : "Independente (Por Código)")
-                </div>
-            </div>
-
-            <!-- Perigo -->
-            <div class="info-card" style="border-color: rgba(239, 68, 68, 0.3); background-color: rgba(239, 68, 68, 0.02);">
-                <h4 style="color: #ef4444; border-color: rgba(239, 68, 68, 0.2);"><i class="fas fa-exclamation-triangle"></i> Zona de Perigo</h4>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: var(--spacing-md);">A eliminação de um desafio é irreversível. Todos os cenários, registos, entregas e pontuações associadas a este desafio serão eliminados permanentemente.</p>
-                
-                <form asp-controller="Challenges" asp-action="Delete" method="post" onsubmit="return confirm('ATENÇÃO: Tem a certeza absoluta que deseja eliminar este desafio permanentemente?');">
-                    <input type="hidden" name="id" value="@Model.Challenge.Id" />
-                    <button type="submit" class="btn btn-outline" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background-color: white;">
-                        <i class="fas fa-trash-alt"></i> Eliminar Desafio
+                <div class="info-card danger-zone" style="border: 1px dashed #ef4444; background: rgba(239, 68, 68, 0.02);">
+                    <h3 style="color: #ef4444; font-size: 1.05rem; margin-bottom: var(--spacing-sm); margin-top: 0;">Eliminar Desafio</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: var(--spacing-md);">Esta ação é irreversível. Todos os cenários, registos, entregas e pontuações associadas a este desafio serão eliminados permanentemente.</p>
+                    
+                    <button type="button" class="btn btn-outline btn-danger-outline" style="width: 100%; background-color: white;" onclick="document.getElementById('deleteChallengeModal').classList.add('active');">
+                        Eliminar Desafio
                     </button>
-                </form>
-            </div>
+                </div>
+            }
+            else
+            {
+                <div class="info-card">
+                    <h4 style="margin: 0; border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm); margin-bottom: var(--spacing-md); color: var(--primary-blue); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-trophy"></i> Dados do Desafio
+                    </h4>
+                    
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Título</label>
+                        <div style="font-size: 1.05rem; font-weight: 600; color: var(--dark-grey); padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md);">@Model.Challenge.Title</div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Descrição</label>
+                        <div style="font-size: 0.95rem; color: var(--dark-grey); padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); min-height: 80px;">@(string.IsNullOrWhiteSpace(Model.Challenge.Description) ? "Sem descrição." : Model.Challenge.Description)</div>
+                    </div>
+                    
+                    <div style="margin-bottom: var(--spacing-md); display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.05); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px dashed rgba(16, 185, 129, 0.2);">
+                        <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Código de Acesso</span>
+                        <span style="font-family: 'Courier New', Courier, monospace; font-size: 1.2rem; font-weight: 700; color: #10b981; letter-spacing: 1px;">@Model.Challenge.AccessLinkCode</span>
+                    </div>
+
+                    <h4 style="margin-top: var(--spacing-xl); border-top: 1px solid var(--border-color); padding-top: var(--spacing-md); margin-bottom: var(--spacing-md); color: var(--primary-blue); font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-link"></i> Associação a Turma
+                    </h4>
+                    <div style="padding: 10px; background: rgba(0,0,0,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.95rem; color: var(--dark-grey);">
+                        <i class="fas fa-graduation-cap" style="margin-right: 6px; color: var(--text-muted);"></i>
+                        @(Model.Challenge.Class != null ? Model.Challenge.Class.Name : "Independente (Por Código)")
+                    </div>
+                </div>
+            }
 
         </div>
 
@@ -237,16 +282,22 @@
                                     else if (!s.IsGraded)
                                     {
                                         <span class="status-badge status-submitted" style="margin-right: 8px;"><i class="fas fa-clock"></i> Por Avaliar</span>
-                                        <a href="/Challenges/GradeSubmission/@s.SubmissionId" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.775rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; line-height: 1;">
-                                            Avaliar
-                                        </a>
+                                        @if (User.IsInRole("Professor"))
+                                        {
+                                            <a href="/Challenges/GradeSubmission/@s.SubmissionId" class="btn btn-primary" style="padding: 4px 10px; font-size: 0.775rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; line-height: 1;">
+                                                Avaliar
+                                            </a>
+                                        }
                                     }
                                     else
                                     {
                                         <span class="status-badge status-graded" style="margin-right: 8px;"><i class="fas fa-check-circle"></i> Avaliado</span>
-                                        <a href="/Challenges/GradeSubmission/@s.SubmissionId" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.775rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; line-height: 1; border-color: var(--primary-blue); color: var(--primary-blue);">
-                                            Reavaliar
-                                        </a>
+                                        @if (User.IsInRole("Professor"))
+                                        {
+                                            <a href="/Challenges/GradeSubmission/@s.SubmissionId" class="btn btn-outline" style="padding: 4px 10px; font-size: 0.775rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; line-height: 1; border-color: var(--primary-blue); color: var(--primary-blue);">
+                                                Reavaliar
+                                            </a>
+                                        }
                                     }
                                 </div>
                             </div>
@@ -263,5 +314,24 @@
 
         </div>
 
+    </div>
+</div>
+
+<!-- Delete Challenge Modal -->
+<div id="deleteChallengeModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="font-size: 3rem; color: #ef4444; margin-bottom: 16px;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Eliminar Desafio</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza absoluta que deseja eliminar este desafio permanentemente? Todos os cenários, registos, entregas e pontuações associadas a este desafio serão eliminados.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+            <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+            <form action="/Challenges/Delete" method="post" style="margin: 0;">
+                <input type="hidden" name="id" value="@Model.Challenge.Id" />
+                <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #ef4444; border-color: #ef4444;">Sim, Eliminar</button>
+            </form>
+        </div>
     </div>
 </div>

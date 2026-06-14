@@ -154,6 +154,13 @@ namespace Portal.Services
 
             var entries = _context.Entries.Where(e => e.ScenarioId == scenarioId);
             _context.Entries.RemoveRange(entries);
+
+            var members = _context.ScenarioMembers.Where(sm => sm.ScenarioId == scenarioId);
+            _context.ScenarioMembers.RemoveRange(members);
+
+            var objectives = _context.Objectives.Where(o => o.ScenarioId == scenarioId);
+            _context.Objectives.RemoveRange(objectives);
+
             _context.Scenarios.Remove(scenario);
             await _context.SaveChangesAsync();
             await _audit.LogAsync(AuditAction.Delete, "Scenario", scenarioId.ToString(), userId: studentId);

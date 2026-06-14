@@ -12,17 +12,17 @@
         Configure a sua família virtual para iniciar as simulações financeiras e responder aos desafios.
     </p>
 
-    <form asp-action="Create" method="post" class="flex flex-col gap-md">
+    <form action="/Scenarios/Create" method="post" class="flex flex-col gap-md">
         <div class="form-group">
-            <label asp-for="FamilyName" class="form-label">Nome da Família</label>
-            <input asp-for="FamilyName" class="form-control" placeholder="Ex: Família Silva" required />
-            <span asp-validation-for="FamilyName" class="text-danger" style="font-size: 0.875rem; color: #ef4444; display: block; margin-top: var(--spacing-xs);"></span>
+            <label for="FamilyName" class="form-label">Nome da Família</label>
+            <input type="text" id="FamilyName" name="FamilyName" class="form-control" placeholder="Ex: Família Silva" required />
+            @Html.ValidationMessageFor(m => m.FamilyName, "", new { @class = "text-danger", style = "font-size: 0.875rem; color: #ef4444; display: block; margin-top: var(--spacing-xs);" })
         </div>
 
         <div class="form-group">
-            <label asp-for="InitialBalance" class="form-label">Saldo Inicial (€)</label>
-            <input asp-for="InitialBalance" type="number" step="0.01" class="form-control" placeholder="0.00" required />
-            <span asp-validation-for="InitialBalance" class="text-danger" style="font-size: 0.875rem; color: #ef4444; display: block; margin-top: var(--spacing-xs);"></span>
+            <label for="InitialBalance" class="form-label">Saldo Inicial (€)</label>
+            <input type="number" id="InitialBalance" name="InitialBalance" step="0.01" class="form-control" placeholder="0.00" required />
+            @Html.ValidationMessageFor(m => m.InitialBalance, "", new { @class = "text-danger", style = "font-size: 0.875rem; color: #ef4444; display: block; margin-top: var(--spacing-xs);" })
         </div>
 
         <div class="flex gap-md" style="margin-top: var(--spacing-md);">

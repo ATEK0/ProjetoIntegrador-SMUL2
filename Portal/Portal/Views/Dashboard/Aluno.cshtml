@@ -5,19 +5,6 @@
 }
 
 <div class="container dashboard-page">
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
-            @TempData["Success"]
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
-            @TempData["Error"]
-        </div>
-    }
-
     <div class="dashboard-top">
         <partial name="_DashboardPageHeader" model='new DashboardPageHeaderViewModel { Title = "Painel do Aluno", Subtitle = $"Olá, {Model.StudentName}. Acompanha turmas, desafios e cenários." }' />
         <div style="display: flex; gap: var(--spacing-sm);">

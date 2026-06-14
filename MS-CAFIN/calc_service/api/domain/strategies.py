@@ -80,7 +80,9 @@ class InterestStrategy(ABC):
 
 class SimpleInterest(InterestStrategy):
     def calculate(self, principal: float, rate: float, time: float) -> dict:
+        # Fórmula dos Juros Simples: J = C * i * t
         interest = principal * rate * time
+        # Montante Total: M = C + J
         total = principal + interest
         return {
             "interest": round(interest, 2),
@@ -99,7 +101,9 @@ class SimpleInterest(InterestStrategy):
 
 class CompoundInterest(InterestStrategy):
     def calculate(self, principal: float, rate: float, time: float) -> dict:
+        # Fórmula dos Juros Compostos: M = C * (1 + i)^t
         total = principal * ((1 + rate) ** time)
+        # Juros Totais: J = M - C
         interest = total - principal
         return {
             "interest": round(interest, 2),
@@ -117,16 +121,20 @@ class CompoundInterest(InterestStrategy):
 
 
 def calculate_irr(
-    cash_flows: list[float], guess=0.1, max_iter=1000, tol=1e-6
+    cash_flows: list[float], estimated_rate=0.1, max_iterations=1000, tolerance=1e-6
 ) -> float | None:
-    rate = guess
-    for _ in range(max_iter):
-        npv = sum(cf / (1 + rate) ** t for t, cf in enumerate(cash_flows))
-        d_npv = sum(-t * cf / (1 + rate) ** (t + 1) for t, cf in enumerate(cash_flows))
-        if abs(d_npv) < 1e-12:
+    # Utiliza o método de Newton-Raphson para aproximar a TIR (Taxa Interna de Retorno)
+    rate = estimated_rate
+    for _ in range(max_iterations):
+        # Valor Presente Líquido (VPL / NPV): Soma de todos os fluxos descontados pela taxa
+        net_present_value = sum(cash_flow / (1 + rate) ** period for period, cash_flow in enumerate(cash_flows))
+        # Derivada do VPL em relação à taxa de juro
+        derivative_npv = sum(-period * cash_flow / (1 + rate) ** (period + 1) for period, cash_flow in enumerate(cash_flows))
+        if abs(derivative_npv) < 1e-12:
             return None
-        new_rate = rate - npv / d_npv
-        if abs(new_rate - rate) < tol:
+        # Fórmula de Newton-Raphson: taxa_nova = taxa_atual - (f(taxa) / f'(taxa))
+        new_rate = rate - net_present_value / derivative_npv
+        if abs(new_rate - rate) < tolerance:
             return new_rate
         rate = new_rate
     return None
@@ -193,9 +201,11 @@ class FrenchAmortization(AmortizationStrategy):
         schedule = []
         balance = principal
 
+        # Sistema Francês (Tabela Price): As prestações são constantes
         if i == 0:
             prestacao_base = principal / n
         else:
+            # Fórmula da Prestação Constante (PMT): PMT = PV * (i * (1 + i)^n) / ((1 + i)^n - 1)
             prestacao_base = principal * (i * (1 + i) ** n) / ((1 + i) ** n - 1)
 
         schedule.append(
@@ -212,7 +222,9 @@ class FrenchAmortization(AmortizationStrategy):
         )
 
         for t in range(1, n + 1):
+            # Os juros incidem sobre o saldo devedor do período anterior
             juros = balance * i
+            # A amortização é a diferença entre a prestação constante e os juros do período
             amortizacao = prestacao_base - juros
             balance -= amortizacao
 
@@ -242,8 +254,10 @@ class SACAmortization(AmortizationStrategy):
     def _generate_schedule(
         self, principal: float, n: int, i: float, commission: float
     ) -> list:
+        # Sistema de Amortização Constante (SAC): A amortização é igual em todos os períodos
         schedule = []
         balance = principal
+        # Fórmula da Amortização Constante: Amortização = Capital / Nº de Períodos
         amortizacao = principal / n
 
         schedule.append(
@@ -260,7 +274,9 @@ class SACAmortization(AmortizationStrategy):
         )
 
         for t in range(1, n + 1):
+            # Os juros incidem sobre o saldo devedor atual (decrescente)
             juros = balance * i
+            # A prestação é variável e diminui ao longo do tempo (Amortização Constante + Juros Variáveis)
             prestacao_base = amortizacao + juros
             balance -= amortizacao
 
@@ -290,6 +306,7 @@ class AmericanAmortization(AmortizationStrategy):
     def _generate_schedule(
         self, principal: float, n: int, i: float, commission: float
     ) -> list:
+        # Sistema Americano: Pagamento apenas de juros durante o período, amortização total no final
         schedule = []
         balance = principal
 
@@ -307,12 +324,15 @@ class AmericanAmortization(AmortizationStrategy):
         )
 
         for t in range(1, n + 1):
+            # Juros calculados sobre o saldo devedor (que se mantém igual até ao último período)
             juros = balance * i
+            # A amortização é zero em todos os períodos, exceto no último
             if t == n:
                 amortizacao = principal
             else:
                 amortizacao = 0.0
 
+            # Prestação é composta apenas por juros, exceto na última que inclui a devolução do capital
             prestacao_base = juros + amortizacao
             balance -= amortizacao
 

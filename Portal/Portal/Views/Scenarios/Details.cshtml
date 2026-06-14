@@ -75,22 +75,19 @@
         color: #ef4444;
         background: rgba(239, 68, 68, 0.1);
     }
+
+    .btn-danger-outline {
+        border-color: #ef4444 !important;
+        color: #ef4444 !important;
+    }
+
+    .btn-danger-outline:hover {
+        background-color: #ef4444 !important;
+        color: white !important;
+    }
 </style>
 
 <div class="container animate-fade-in" style="padding: var(--spacing-lg) 0;">
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert-flash success" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #065f46;">
-            @TempData["Success"]
-        </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert-flash error" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; margin-bottom: 16px; border-radius: 8px; color: #991b1b;">
-            @TempData["Error"]
-        </div>
-    }
 
     <div class="flex justify-between items-center" style="margin-bottom: var(--spacing-lg); flex-wrap: wrap; gap: 16px;">
         <div>
@@ -125,7 +122,7 @@
                 <button class="btn btn-outline" onclick="document.getElementById('editScenarioModal').classList.add('active');">
                     <i class="fas fa-edit" style="margin-right: 6px;"></i> Editar
                 </button>
-                <button class="btn btn-outline" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" onclick="document.getElementById('deleteScenarioModal').classList.add('active');">
+                <button class="btn btn-outline btn-danger-outline" onclick="document.getElementById('deleteScenarioModal').classList.add('active');">
                     <i class="fas fa-trash" style="margin-right: 6px;"></i> Eliminar
                 </button>
             }
@@ -423,7 +420,7 @@
 
 <!-- Register Income Modal -->
 <div id="registerIncomeModal" class="modal-overlay">
-    <div class="modal-card">
+    <div class="modal-card" style="overflow: visible;">
         <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
         <h3 style="color: #10b981; font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Registar Rendimento</h3>
         <form action="/Scenarios/RegisterIncome" method="post">
@@ -446,7 +443,7 @@
                     <select name="entryMonth" class="form-control" required>
                         @for (int m = 1; m <= 12; m++)
                         {
-                            if (m == DateTime.Now.Month)
+                            if (m == Model.SelectedMonth)
                             {
                                 <option value="@m" selected>@months[m - 1]</option>
                             }
@@ -478,7 +475,7 @@
 
 <!-- Register Expense Modal -->
 <div id="registerExpenseModal" class="modal-overlay">
-    <div class="modal-card">
+    <div class="modal-card" style="overflow: visible;">
         <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
         <h3 style="color: #ef4444; font-size: 1.35rem; font-weight: 700; margin-bottom: 16px;">Registar Despesa</h3>
         <form action="/Scenarios/RegisterExpense" method="post">
@@ -501,7 +498,7 @@
                     <select name="entryMonth" class="form-control" required>
                         @for (int m = 1; m <= 12; m++)
                         {
-                            if (m == DateTime.Now.Month)
+                            if (m == Model.SelectedMonth)
                             {
                                 <option value="@m" selected>@months[m - 1]</option>
                             }
@@ -759,13 +756,5 @@
         document.getElementById('deleteObjectiveModal').classList.add('active');
     }
 
-    // Auto dismiss flash
-    setTimeout(function() {
-        var flashes = document.querySelectorAll('.alert-flash');
-        flashes.forEach(f => {
-            f.style.transition = "opacity 0.4s";
-            f.style.opacity = "0";
-            setTimeout(() => f.remove(), 400);
-        });
-    }, 5000);
+
 </script>

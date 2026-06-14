@@ -10,6 +10,16 @@
         gap: var(--spacing-lg);
     }
 
+    .btn-danger-outline {
+        border-color: #ef4444 !important;
+        color: #ef4444 !important;
+    }
+
+    .btn-danger-outline:hover {
+        background-color: #ef4444 !important;
+        color: white !important;
+    }
+
     @@media (min-width: 1024px) {
         .details-grid {
             grid-template-columns: @(Model.CanEdit ? "350px 1fr" : "1fr");
@@ -152,10 +162,9 @@
                     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: var(--spacing-md);">
                         Esta ação é irreversível.
                     </p>
-                    <form action="/Classes/Delete" method="post" onsubmit="return confirm('Eliminar a turma @Model.Name?');">
-                        <input type="hidden" name="id" value="@Model.Id" />
-                        <button type="submit" class="btn btn-outline" style="width: 100%; border-color: #ef4444; color: #ef4444;">Eliminar Turma</button>
-                    </form>
+                    <button type="button" class="btn btn-outline btn-danger-outline" style="width: 100%;" onclick="document.getElementById('deleteClassModal').classList.add('active');">
+                        Eliminar Turma
+                    </button>
                 </div>
             </div>
         }
@@ -215,6 +224,25 @@
                     }
                 }
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Class Modal -->
+<div id="deleteClassModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <button type="button" class="modal-close-btn" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fas fa-times"></i></button>
+        <div style="font-size: 3rem; color: #ef4444; margin-bottom: 16px;">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 style="color: var(--primary-blue); font-size: 1.35rem; font-weight: 700; margin-bottom: 8px;">Eliminar Turma</h3>
+        <p class="text-muted" style="margin-bottom: 24px; font-size: 0.9rem;">Tem a certeza absoluta que deseja eliminar a turma <strong>@Model.Name</strong>? Esta ação é irreversível.</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+            <button type="button" class="btn btn-outline" onclick="this.closest('.modal-overlay').classList.remove('active')">Cancelar</button>
+            <form action="/Classes/Delete" method="post" style="margin: 0;">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #ef4444; border-color: #ef4444;">Sim, Eliminar</button>
+            </form>
         </div>
     </div>
 </div>
