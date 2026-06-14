@@ -127,10 +127,14 @@ def calculate_irr(
     rate = estimated_rate
     for _ in range(max_iterations):
         # Valor Presente Líquido (VPL / NPV): Soma de todos os fluxos descontados pela taxa
-        net_present_value = sum(cash_flow / (1 + rate) ** period for period, cash_flow in enumerate(cash_flows))
+        net_present_value = sum(
+            cash_flow / (1 + rate) ** period
+            for period, cash_flow in enumerate(cash_flows)
+        )
         # Derivada do VPL em relação à taxa de juro
         derivative_npv = sum(
-            -period * cash_flow / (1 + rate) ** (period + 1) for period, cash_flow in enumerate(cash_flows)
+            -period * cash_flow / (1 + rate) ** (period + 1)
+            for period, cash_flow in enumerate(cash_flows)
         )
         if abs(derivative_npv) < 1e-12:
             return None
