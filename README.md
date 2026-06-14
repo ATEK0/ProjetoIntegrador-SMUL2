@@ -172,6 +172,63 @@ Para parar todos os contentores:
 ```bash
 docker compose --profile main --profile develop down
 ```
+## Testes
+
+O projeto inclui testes unitários, testes de integração e testes de API automatizados para garantir o correto funcionamento das simulações financeiras no microserviço `MS-CAFIN`.
+
+### 1. Testes Unitários e de Integração (Python / pytest)
+
+Os testes do backend estão localizados na pasta `MS-CAFIN/calc_service/api/tests/` e cobrem:
+- Estratégias de Cálculo (Juros Simples, Compostos, Amortização SAC, Price/Francesa e Americana)
+- Lógica de faixas de taxas de juro (`rate_tiers`) e validações associadas
+- Serializers, Facades, Services e Renderizadores de resposta personalizados
+- Integração HTTP (Views / Endpoints da API)
+
+#### Como Executar:
+
+1. Entra na pasta do microserviço:
+   ```bash
+   cd MS-CAFIN/calc_service
+   ```
+
+2. Instala as dependências necessárias (incluindo `pytest`, `pytest-django` e `coverage`):
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Executa a suite de testes:
+   ```bash
+   python -m pytest --tb=short -v
+   ```
+
+#### Relatório de Cobertura (Coverage):
+
+Para verificar a percentagem de código coberta por testes:
+
+1. Corre os testes com recolha de dados de cobertura:
+   ```bash
+   python -m coverage run -m pytest
+   ```
+
+2. Mostra o relatório no terminal:
+   ```bash
+   python -m coverage report
+   ```
+   *Nota: O pipeline de CI/CD está configurado para requerer um mínimo de **80%** de cobertura nos ficheiros da API.*
+
+---
+
+### 2. Testes da API (Coleção Postman)
+
+Para além dos testes em Python, existe uma coleção do Postman com testes automatizados escritos em JavaScript para validar os contratos e comportamentos dos endpoints.
+
+- **Ficheiro da Coleção**: [postman_collection.json](Docs/postman_collection.json) (localizado em `Docs/`)
+
+#### Como Executar:
+
+1. Importa o ficheiro [postman_collection.json](Docs/postman_collection.json) no Postman.
+2. Configura a variável de ambiente `base_url` (ex: `http://localhost:8000` para execução local ou `https://api.localhost` para Docker).
+3. Usa o **Runner** do Postman para correr a coleção e validar os códigos HTTP, estruturas de dados e regras de negócio de forma automática.
 
 ## Integração Contínua (CI/CD)
 
